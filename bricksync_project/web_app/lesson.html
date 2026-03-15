@@ -3388,6 +3388,7 @@ print("BrickSync Sandbox Run")
                                         if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, speedHex])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
+                                        break; // 전문가 패치: 파란색(단일 모터) 블록은 가장 먼저 인식된 모터 1개만 돌리고 루프 탈출
                                     }
                                 } else if (cmd.action.startsWith('car_') && cmd.action !== 'car_speed_set' && cmd.action !== 'car_stop') {
                                     let fws = cmd.action === 'car_forward' ? 'UP' : cmd.action === 'car_backward' ? 'DOWN' : cmd.action === 'car_left' ? 'LEFT' : 'RIGHT';
