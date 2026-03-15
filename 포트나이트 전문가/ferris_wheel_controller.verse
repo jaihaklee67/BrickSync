@@ -56,22 +56,22 @@ ferris_wheel_controller := class(creative_device):
         TriggerStop.Register(Agent)
 
     OnPlayerExited(Agent : agent):void=
-        set CurrentDriver = false
-        TriggerLeft_CCW.Unregister(Agent)
-        TriggerRight_CW.Unregister(Agent)
-        TriggerStop.Unregister(Agent)
+        # 플레이어가 튕겨나가도 조종 권한(h,j,k 등)을 뺏지 않음!
+        # set CurrentDriver = false
+        # TriggerLeft_CCW.Unregister(Agent) 등 주석 처리
+        set TargetAngle = TargetAngle
 
     OnTurnLeft(Agent:agent):void=
         if (Driver := CurrentDriver?, Driver = Agent):
             set TargetDir = -1.0
             set IsMoving = true
-            set TargetAngle = CurrentAngle - 360.0 # 정확히 1바퀴(-360도)를 목표로 설정
+            set TargetAngle = CurrentAngle - 99999.0 # 정확히 1바퀴 족쇄를 풀고 무한대 역회전 개방
 
     OnTurnRight(Agent:agent):void=
         if (Driver := CurrentDriver?, Driver = Agent):
             set TargetDir = 1.0
             set IsMoving = true
-            set TargetAngle = CurrentAngle + 360.0 # 정확히 1바퀴(+360도)를 목표로 설정
+            set TargetAngle = CurrentAngle + 99999.0 # 정확히 1바퀴 족쇄를 풀고 무한대 회전 개방
 
     OnStop(Agent:agent):void=
         if (Driver := CurrentDriver?, Driver = Agent):

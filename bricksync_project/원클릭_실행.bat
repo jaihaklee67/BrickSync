@@ -24,7 +24,7 @@ timeout /T 2 /NOBREAK >nul
 
 echo.
 echo 3. 인터넷 페이지(브릭싱크 워크스페이스)를 엽니다...
-start "" "http://127.0.0.1:8000/app.html"
+start "" "http://localhost:8000/app.html"
 
 echo.
 echo 모든 준비가 완료되었습니다! 

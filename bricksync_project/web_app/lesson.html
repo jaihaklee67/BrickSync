@@ -3084,14 +3084,14 @@ print("BrickSync Sandbox Run")
                             localActionsQueue.push({ action: 'MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
                             localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
-                            cumulativeDelayMs += 500; // 정지키(K) 타이핑 소요시간(0.3초) 회피를 위한 필수 딜레이
+                            cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_ccw':
                             pyCode += `${indent}rm(-global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
                             localActionsQueue.push({ action: 'MWHEEL_LEFT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
                             localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
-                            cumulativeDelayMs += 500; // 정지키 타이핑 회피 딜레이
+                            cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_stop':
                             pyCode += `${indent}sm() \n`;
@@ -3302,17 +3302,17 @@ print("BrickSync Sandbox Run")
                                 bleQueue.push({ action: 'motor_cw', speed: bleGlobalMotorSpeed, delay: currentBleDelay });
                                 currentBleDelay += (timeVal * 1000);
                                 bleQueue.push({ action: 'motor_stop_cw', speed: 0, delay: currentBleDelay });
-                                currentBleDelay += 500;
+                                currentBleDelay += 800;
                                 break;
                             case 'motor_ccw':
                                 bleQueue.push({ action: 'motor_ccw', speed: -bleGlobalMotorSpeed, delay: currentBleDelay });
                                 currentBleDelay += (timeVal * 1000);
                                 bleQueue.push({ action: 'motor_stop_ccw', speed: 0, delay: currentBleDelay });
-                                currentBleDelay += 500;
+                                currentBleDelay += 800;
                                 break;
                             case 'motor_stop':
                                 bleQueue.push({ action: 'motor_stop_generic', speed: 0, delay: currentBleDelay });
-                                currentBleDelay += 500;
+                                currentBleDelay += 800;
                                 break;
                             case 'sound_note':
                             case 'sound_animal':
