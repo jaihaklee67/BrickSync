@@ -1,0 +1,68 @@
+{
+	"fileVersion": 15,
+	"title": "LegoFortnite",
+	"description": "",
+	"keyArt": "Resources/Thumbnail.png",
+	"docsUrl": "",
+	"apiAccess": "Private",
+	"compatibilityVersion": "39.51",
+	"requiredRedirectorStartingVersion": "39.50.51043566",
+	"editorPermissions": [],
+	"epicApp": "",
+	"sortPriority": 0,
+	"featureSet": "LimeGFS",
+	"plugins": [
+		{
+			"name": "LegoFortnite",
+			"bIsRoot": true,
+			"bIsPublic": false
+		}
+	],
+	"dataSets":
+	{
+		"matchmaking":
+		{
+			"maxPlayers": 16,
+			"maxTeamCount": 16,
+			"maxTeamSize": 16,
+			"maxSocialPartySize": 16,
+			"allowJoinInProgress": true,
+			"allowSquadFillOption": false,
+			"islandQueuePrivacy": "Public",
+			"minPlayers": 1,
+			"overtimePlayerTarget": 1,
+			"queueMainDuration": 5,
+			"queueOvertimeDuration": 5,
+			"useSkillBasedMatchmaking": false,
+			"ratingType": "",
+			"version": 1
+		},
+		"experimental":
+		{
+			"experimentalContent":
+			{
+				"bIsExperimentalContentAllowed": false
+			},
+			"version": 1,
+			"sceneGraph":
+			{
+				"bIsSceneGraphSystemAllowed": true,
+				"bEnableOneFilePerEntity": false
+			},
+			"personaDevice":
+			{
+				"bEnablePersonaDevice": false
+			}
+		}
+	},
+	"bindings":
+	{
+		"projectId": "b097f667-43ac-99ea-a899-aea1d01e89b9",
+		"modules":
+		{
+			"LegoFortnite": "3e7bfc23-478e-a031-a166-b9b4ce49ac0a"
+		},
+		"bSuppressAutomaticVersePathAssignment": false,
+		"projectVersePath": ""
+	}
+}
