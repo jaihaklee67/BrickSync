@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학습 미션</title>
+    <!-- 폰트 적용 -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #4f1e73 0%, #6c1f86 50%, #eab308 100%);
+            overflow: hidden;
+            color: #1e293b;
+        }
+
+        .mission-container {
+            width: 80%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            padding: 60px;
+            position: relative;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mission-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+            padding-bottom: 20px;
+        }
+
+        .mission-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #6c1f86;
+        }
+
+        .mission-badge {
+            background: #facc15;
+            color: #1e293b;
+            font-weight: 900;
+            font-size: 1.2rem;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(250, 204, 21, 0.3);
+        }
+
+        .mission-content {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 50px;
+        }
+
+        .mission-goals {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .mission-goals h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mission-goals ul {
+            list-style: none;
+        }
+
+        .mission-goals li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .mission-goals li::before {
+            content: '✔';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            color: #22c55e;
+            font-weight: 900;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+        }
+
+        .btn-back {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-back:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+        }
+
+        .btn-start {
+            background: #eab308;
+            color: #1e293b;
+            box-shadow: 0 10px 20px rgba(234, 179, 8, 0.3);
+        }
+
+        .btn-start:hover {
+            background: #facc15;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(234, 179, 8, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mission-container">
+        <div class="mission-header">
+            <h1 class="mission-title" id="m-title">학습 미션 브리핑</h1>
+            <div class="mission-badge" id="m-badge">STAGE 1</div>
+        </div>
+
+        <div class="mission-content" id="m-desc">
+            레고 스파이크 에센셜 허브를 사용하여 새로운 코딩 모험을 시작할 준비가 되셨나요? <br>
+            이번 학습에서는 포트나이트 캣 아일랜드와 현실의 레고 조명을 연동하는 방법을 배웁니다.
+        </div>
+
+        <div class="mission-goals">
+            <h3><i data-lucide="target" style="color:#eab308;"></i>이번 미션의 목표</h3>
+            <ul id="m-goals">
+                <li>레고 스파이크 허브에 블루투스로 연결하기</li>
+                <li>무한 루프와 조명 블록을 사용해 깜빡이는 신호 장치 코딩하기</li>
+                <li>코드를 실행하여 섬에 있는 고양이에게 신호 보내기</li>
+            </ul>
+        </div>
+
+        <div class="btn-group">
+            <a href="index.html" class="btn btn-back">
+                <i data-lucide="arrow-left"></i> 뒤로가기
+            </a>
+            <a href="lesson.html" class="btn btn-start" id="m-start-btn">
+                미션 코딩 시작 <i data-lucide="play"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // URL에서 파라미터(unit) 읽어와서 동적으로 텍스트 변경
+        const urlParams = new URLSearchParams(window.location.search);
+        const unit = urlParams.get('unit') || '1';
+
+        const missionData = {
+            '1': {
+                title: '학습 1: 첫 번째 연동',
+                badge: 'STAGE 1',
+                desc: '가장 기본적인 블록들을 조립하여 현실 세계의 레고 허브 조명을 켜봅시다.',
+                goals: ['블루투스로 혹은 USB로 스파이크 허브 연결하기', '조명 블록을 사용하여 원하는 모양 그리기', '포트나이트 게임에 신호 보내기']
+            },
+            '2': {
+                title: '학습 2: 모터 움직이기',
+                badge: 'STAGE 2',
+                desc: '모터 블록을 활용하여 물리적인 회전을 만들고 포트나이트 장치와 싱크를 맞춰봅니다.',
+                goals: ['모터 회전 블록 사용법 이해하기', '모터 속도를 디테일하게 제어하기', '장애물 돌파를 위한 코드 작성']
+            },
+            '3': {
+                title: '학습 3: 센서 반응형 장치',
+                badge: 'STAGE 3',
+                desc: '주변 환경을 감지하는 센서를 활용해 스마트한 코딩을 해볼 차례입니다.',
+                goals: ['거리 센서를 통한 자동문 코딩', '센서 입력에 따라 조건 다르게 처리하기']
+            },
+            '4': {
+                title: '학습 4: 캣 아일랜드 마스터',
+                badge: 'STAGE 4',
+                desc: '모든 센서와 모터, 조명을 총동원하여 궁극의 발명품을 코딩해보세요!',
+                goals: ['변수와 무한루프 결합하기', '복잡한 형태의 알고리즘 작성', '포트나이트 월드 이벤트 완수하기']
+            }
+        };
+
+        const current = missionData[unit];
+        if (current) {
+            document.getElementById('m-title').textContent = current.title;
+            document.getElementById('m-badge').textContent = current.badge;
+            document.getElementById('m-desc').textContent = current.desc;
+
+            const goalsEl = document.getElementById('m-goals');
+            goalsEl.innerHTML = '';
+            current.goals.forEach(g => {
+                const li = document.createElement('li');
+                li.textContent = g;
+                goalsEl.appendChild(li);
+            });
+
+            // 미션 시작 버튼의 href에 파라미터 전달
+            document.getElementById('m-start-btn').href = `lesson.html?unit=${unit}`;
+        }
+    </script>
+</body>
+
+</html>
