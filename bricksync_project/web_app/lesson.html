@@ -1061,18 +1061,17 @@
 
         <!-- 3. 진보라(라이트 매트릭스) 추가 -->
         <div class="spike-block bg-purple" draggable="true" data-action="matrix_pixel">
-            <!-- 3x3 보더 매트릭스 특수 아이콘 -->
             <div
                 style="display: flex; flex-wrap: wrap; gap: 2px; width: 34px; height: 34px; background: #6b21a8; padding: 2px; border-radius: 6px; z-index: 5; pointer-events: none; margin-left: -5px; box-sizing: border-box; box-shadow: inset 0 0 0 1px #581c87; position: relative;">
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #fde047; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
 
             </div>
 
@@ -1317,9 +1316,9 @@
 
             let matrixState = paramEl.getAttribute('data-matrix') ? JSON.parse(paramEl.getAttribute('data-matrix')) : Array(9).fill(0);
 
-            // 이미지처럼 초기 분홍색 선택상태 기준
-            let selectedColorVal = 1;
-            let selectedColorHex = '#ec4899';
+            // 초기 흰색(비어 있는 시각 효과) 선택 상태 기준
+            let selectedColorVal = 10;
+            let selectedColorHex = '#ffffff';
 
             const leftCol = document.createElement('div');
             leftCol.style.cssText = 'display: flex; flex-direction: column; gap: 6px; align-items: center;';
@@ -1437,8 +1436,12 @@
                 rightCol.appendChild(swatch);
             });
 
-            // 초기 분홍색 선택상태 유지 강제전파
-            colorSwatches[0].onclick(new Event('click'));
+            // 초기 흰색(10번 인덱스, 배열상 9번째) 강제 클릭
+            if (colorSwatches[9]) {
+                colorSwatches[9].onclick(new Event('click'));
+            } else {
+                colorSwatches[0].onclick(new Event('click'));
+            }
 
             // =========================
             // 새로운 통합 섹션: 시간 설정 
@@ -3337,9 +3340,11 @@ print("BrickSync Sandbox Run")
                                 bleQueue.push({ action: 'matrix', colors: JSON.parse(matrixArrBLE), delay: currentBleDelay });
                                 currentBleDelay += (mBleTime * 1000);
                                 bleQueue.push({ action: 'matrix_clear', delay: currentBleDelay });
+                                currentBleDelay += 300;
                                 break;
                             case 'matrix_clear':
                                 bleQueue.push({ action: 'matrix_clear', delay: currentBleDelay });
+                                currentBleDelay += 300;
                                 break;
                             case 'action_send_message':
                                 bleQueue.push({ action: 'send_message', delay: currentBleDelay });
@@ -3378,13 +3383,20 @@ print("BrickSync Sandbox Run")
                                     } catch (e) { }
                                     let speedInt = Math.round(cmd.speed);
                                     let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
-                                    await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, 0, 0x10, 0x51, 0x00, speedHex])).catch(e => { });
-                                    await new Promise(r => setTimeout(r, 60));
+                                    for (let p = 0; p < 2; p++) {
+                                        const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
+                                        if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
+                                        await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, speedHex])).catch(e => { });
+                                        await new Promise(r => setTimeout(r, 60));
+                                    }
                                 } else if (cmd.action.startsWith('car_') && cmd.action !== 'car_speed_set' && cmd.action !== 'car_stop') {
                                     let fws = cmd.action === 'car_forward' ? 'UP' : cmd.action === 'car_backward' ? 'DOWN' : cmd.action === 'car_left' ? 'LEFT' : 'RIGHT';
                                     try { window.parent.sendWebSocketAction({ action: 'STEER_' + fws }); } catch (e) { }
 
                                     for (let p = 0; p < 2; p++) {
+                                        const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
+                                        if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
+
                                         let p0_s = (cmd.action === 'car_forward' || cmd.action === 'car_right') ? -1 : 1;
                                         let p1_s = (cmd.action === 'car_forward' || cmd.action === 'car_left') ? 1 : -1;
 
@@ -3399,29 +3411,33 @@ print("BrickSync Sandbox Run")
                                     try { window.parent.sendWebSocketAction({ action: 'STOP_' + fws }); } catch (e) { }
 
                                     for (let p = 0; p < 2; p++) {
+                                        const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
+                                        if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
+
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, 0])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
                                     }
                                 } else if (cmd.action === 'matrix') {
                                     let encodedColors = cmd.colors.map(c => c > 0 ? c + 160 : 0);
+                                    let targetPort = 0;
                                     for (let p = 0; p < 6; p++) {
-                                        const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
-                                        if (dev !== undefined && dev !== 64) continue;
-
-                                        let payload = [16, 0, 0x81, p, 0x10, 0x51, 0x02, ...encodedColors];
-                                        await window.parent.writeToHub(new Uint8Array(payload)).catch(e => { });
-                                        await new Promise(r => setTimeout(r, 40));
+                                        if (window.parent.hubDevices && window.parent.hubDevices[p] === 64) {
+                                            targetPort = p; break;
+                                        }
                                     }
+                                    let payload = [16, 0, 0x81, targetPort, 0x10, 0x51, 0x02, ...encodedColors];
+                                    await window.parent.writeToHub(new Uint8Array(payload)).catch(e => { });
+                                    await new Promise(r => setTimeout(r, 40));
                                 } else if (cmd.action === 'matrix_clear') {
+                                    let targetPort = 0;
                                     for (let p = 0; p < 6; p++) {
-                                        const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
-                                        if (dev !== undefined && dev !== 64) continue;
-
-                                        let payload = [16, 0, 0x81, p, 0x10, 0x51, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                                        await window.parent.writeToHub(new Uint8Array(payload)).catch(e => { });
-                                        await new Promise(r => setTimeout(r, 40));
+                                        if (window.parent.hubDevices && window.parent.hubDevices[p] === 64) {
+                                            targetPort = p; break;
+                                        }
                                     }
-                                    await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, 50, 0x10, 0x51, 0x00, 0])).catch(e => { });
+                                    let payload = [16, 0, 0x81, targetPort, 0x10, 0x51, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                                    await window.parent.writeToHub(new Uint8Array(payload)).catch(e => { });
+                                    await new Promise(r => setTimeout(r, 40));
                                 } else if (cmd.action === 'wait_color') {
                                     console.log(`?�️ [BLE_ENGINE] Waiting for Color Sensor to detect color ID: ${cmd.targetColor}`);
                                     let matched = false;
