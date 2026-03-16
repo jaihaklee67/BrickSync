@@ -2994,25 +2994,29 @@ def sm():
       except: pass
 
 def dm(v0, v1):
-  # A(0)번 포트와 B(1)번 포트 모터 동작 (스파이크 구형/신형 펌웨어 호환)
+  m = []
   try:
     import motor
-    try: motor.set_duty_cycle(0, int(v0 * 100))
-    except:
-      try: motor.run(0, int(v0 * 100))
+    for i in range(6):
+      try:
+        motor.run(i, 0)
+        m.append(i)
       except: pass
-    try: motor.set_duty_cycle(1, int(v1 * 100))
-    except:
-      try: motor.run(1, int(v1 * 100))
+    if len(m) >= 1:
+      try: motor.run(m[0], int(v0 * 100))
+      except: pass
+    if len(m) >= 2:
+      try: motor.run(m[1], int(v1 * 100))
       except: pass
   except:
-    pA = getattr(hub.port, 'A', None)
-    pB = getattr(hub.port, 'B', None)
-    if pA and hasattr(pA, 'motor'):
-      try: pA.motor.pwm(int(v0))
+    for pName in ['A','B','C','D','E','F']:
+      p = getattr(hub.port, pName, None)
+      if p and hasattr(p, 'motor'): m.append(p)
+    if len(m) >= 1:
+      try: m[0].motor.pwm(int(v0))
       except: pass
-    if pB and hasattr(pB, 'motor'):
-      try: pB.motor.pwm(int(v1))
+    if len(m) >= 2:
+      try: m[1].motor.pwm(int(v1))
       except: pass
 
 print("BrickSync Sandbox Run")
@@ -3390,29 +3394,37 @@ print("BrickSync Sandbox Run")
                                     let fws = cmd.action === 'car_forward' ? 'UP' : cmd.action === 'car_backward' ? 'DOWN' : cmd.action === 'car_left' ? 'LEFT' : 'RIGHT';
                                     try { window.parent.sendWebSocketAction({ action: 'STEER_' + fws }); } catch (e) { }
 
-                                    for (let p = 0; p < 2; p++) {
+                                    let mCnt = 0;
+                                    for (let p = 0; p < 6; p++) {
                                         const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
-                                        if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
+                                        if (!dev || dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
 
                                         let p0_s = (cmd.action === 'car_forward' || cmd.action === 'car_right') ? -1 : 1;
                                         let p1_s = (cmd.action === 'car_forward' || cmd.action === 'car_left') ? 1 : -1;
 
-                                        let spd = p === 0 ? (cmd.speed * p0_s) : (cmd.speed * p1_s);
+                                        let spd = mCnt === 0 ? (cmd.speed * p0_s) : (cmd.speed * p1_s);
                                         let speedInt = Math.round(spd);
                                         let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, speedHex])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
+                                        
+                                        mCnt++;
+                                        if (mCnt >= 2) break;
                                     }
                                 } else if (cmd.action === 'car_stop') {
                                     let fws = cmd.dir === 'car_forward' ? 'UP' : cmd.dir === 'car_backward' ? 'DOWN' : cmd.dir === 'car_left' ? 'LEFT' : 'RIGHT';
                                     try { window.parent.sendWebSocketAction({ action: 'STOP_' + fws }); } catch (e) { }
 
-                                    for (let p = 0; p < 2; p++) {
+                                    let mCnt = 0;
+                                    for (let p = 0; p < 6; p++) {
                                         const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
-                                        if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
+                                        if (!dev || dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
 
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, 0])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
+                                        
+                                        mCnt++;
+                                        if (mCnt >= 2) break;
                                     }
                                 } else if (cmd.action === 'matrix') {
                                     let encodedColors = cmd.colors.map(c => c > 0 ? c + 160 : 0);
