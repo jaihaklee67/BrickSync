@@ -3,6 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BrickSync - 메인 메뉴</title>
     <!-- 폰트: 한글은 Noto Sans, 영문은 Outfit -->
@@ -335,7 +338,11 @@
                     <i data-lucide="book-open" class="menu-icon"></i>
                     학습단원
                 </li>
-                <a href="workspace.html" class="menu-item">
+                <a href="#" onclick="location.href='ai_fusion.html?v=' + new Date().getTime(); return false;" class="menu-item" id="btn-ai">
+                    <i data-lucide="bot" class="menu-icon"></i>
+                    AI 학습단원
+                </a>
+                <a href="#" onclick="location.href='workspace.html?v=' + new Date().getTime(); return false;" class="menu-item">
                     <i data-lucide="monitor" class="menu-icon"></i>
                     워크스페이스
                 </a>

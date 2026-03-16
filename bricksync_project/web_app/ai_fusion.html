@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 폭죽(파티클) 효과 라이브러리 추가 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- TensorFlow.js 및 머신러닝 라이브러리 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
     <style>
         * {
             margin: 0;
@@ -634,22 +638,59 @@
         </div>
     </div>
 
-    <!-- Main Workspace Area -->
-    <div class="main-layout">
-        <div class="coding-area" id="workspaceArea">
-            <div class="hint-text">
-                <i class="fas fa-hand-pointer" style="font-size: 48px;"></i>
-                하단에서 아이콘 블럭을 끌어와 조립해보세요!
+    <!-- 🟢 AI & Coding Fusion Layout 🟢 -->
+    <div style="display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px);">
+        <!-- 좌측: AI 카메라 및 제어 영역 -->
+        <div style="width: 480px; border-right: 4px solid #e2e8f0; background: #fff; display: flex; flex-direction: column; z-index: 10;">
+            <div style="padding: 15px 20px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">
+                    <i class="fas fa-robot" style="color: #8b5cf6;"></i> AI 비전 제스처 인식
+                </div>
+            </div>
+            
+            <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 15px; align-items: center; overflow-y: auto;">
+                <div style="width: 100%; aspect-ratio: 4/3; background: #1e293b; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 4px solid #334155;">
+                    <video id="webcam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+                    <div id="ai-result-overlay" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(4px);">
+                        <i class="fas fa-eye"></i> <span id="current-gesture">대기 중...</span>
+                    </div>
+                </div>
+
+                <div id="ai-status" style="width: 100%; padding: 12px; background: #dbeafe; border: 1px solid #bfdbfe; border-radius: 8px; color: #1e3a8a; font-weight: 700; text-align: center; font-size: 0.95rem;">
+                    <i class="fas fa-spinner fa-spin"></i> AI 엔진 로딩 중...
+                </div>
+
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.9rem; font-weight: 800; color: #64748b; margin-bottom: 5px;">인식 모델 학습 기능</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button onclick="addExample(0)" style="background:#ef4444; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #b91c1c; transition:transform 0.1s;"><i class="fas fa-hand-rock"></i> 주먹 (Rock)</button>
+                        <button onclick="addExample(1)" style="background:#3b82f6; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #1d4ed8; transition:transform 0.1s;"><i class="fas fa-hand-paper"></i> 보 (Paper)</button>
+                        <button onclick="addExample(2)" style="background:#10b981; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #047857; transition:transform 0.1s;"><i class="fas fa-hand-scissors"></i> 가위 (Scissors)</button>
+                        <button onclick="addExample(3)" style="background:#64748b; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #475569; transition:transform 0.1s;"><i class="fas fa-ban"></i> 배경 (None)</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; font-weight: 700; padding: 0 5px; margin-top: 5px;">
+                        <span id="count-rock">0개</span> <span id="count-paper">0개</span> <span id="count-scissors">0개</span> <span id="count-none">0개</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="trash-area" id="trashArea">
-            <i class="fas fa-trash-can"></i>
-        </div>
-    </div>
+        <!-- 우측: 기존 코딩 워크스페이스 영역 -->
+        <div style="flex: 1; display: flex; flex-direction: column; position: relative;">
+            <div class="main-layout">
+                <div class="coding-area" id="workspaceArea">
+                    <div class="hint-text">
+                        <i class="fas fa-hand-pointer" style="font-size: 48px;"></i>
+                        하단에서 아이콘 블럭을 끌어와 조립해보세요!
+                    </div>
+                </div>
+                <div class="trash-area" id="trashArea">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+            </div>
 
-    <!-- Bottom Toolbox (28 Blocks utilizing FontAwesome Solid to match Spike EXACTLY) -->
-    <div class="toolbox" id="palette">
+            <!-- Bottom Toolbox -->
+            <div class="toolbox" id="palette">
 
         <!-- 1. 제어(노랑) 시작/조건 블럭 -->
         <div class="spike-block bg-yellow" draggable="true" data-action="start">
@@ -1125,9 +1166,70 @@
 
         <div class="category-divider"></div>
 
+        <!-- NEW AI 제스처 이벤트 블록 (보라색) -->
+        <div class="spike-block" draggable="true" data-action="event_ai_gesture" style="background: #a855f7;">
+            <div class="block-icon" style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+                <div style="color: #6ee7b7; font-size: 16px; position:absolute; top:-10px;">
+                    <i class="fas fa-wifi" style="transform: rotate(-45deg);"></i>
+                </div>
+                <div style="color: white; font-size: 18px; z-index: 2; margin-top: 5px;">
+                    <i class="fas fa-hand-sparkles"></i>
+                </div>
+            </div>
+            <div class="block-param" data-val="1">
+                 <i class="fas fa-hand-paper" style="color:#64748b;"></i>
+            </div>
+            <style>
+                .spike-block[data-action="event_ai_gesture"] { border-radius: 35px 16px 16px 35px; width: 80px; }
+                .spike-block[data-action="event_ai_gesture"]::before { display: none; }
+                .spike-block[data-action="event_ai_gesture"]::after { background: #a855f7 !important; }
+                .spike-block[data-action="event_ai_gesture"] .block-icon { margin-left: -5px; font-size: 32px; }
+            </style>
+        </div>
+
     </div>
+    
+    </div> <!-- 우측 워크스페이스 컨테이너 닫기 -->
+    </div> <!-- 전체 스플릿 컨테이너 닫기 -->
 
     <script>
+        // ==========================================
+        // 🚀 신규: AI 제스처 선택 모달
+        // ==========================================
+        function showAIGestureModal(paramEl) {
+            modalBox.innerHTML = '';
+            modalBox.style.cssText = 'background: #8b5cf6; display: flex; gap: 10px; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #7c3aed; width: auto; max-width: 250px;';
+            const options = [
+                { type: 'rock', val: 0, icon: '<i class="fas fa-hand-rock"></i>' },
+                { type: 'paper', val: 1, icon: '<i class="fas fa-hand-paper"></i>' },
+                { type: 'scissors', val: 2, icon: '<i class="fas fa-hand-scissors"></i>' },
+                { type: 'none', val: 3, icon: '<i class="fas fa-ban"></i>' }
+            ];
+            const currentVal = parseInt(paramEl.getAttribute('data-val') || 1);
+            options.forEach(opt => {
+                const btn = document.createElement('div');
+                const isSelected = currentVal === opt.val;
+                btn.style.cssText = `
+                    width: 50px; height: 50px; border-radius: 6px;
+                    display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; font-size: 24px;
+                    background: ${isSelected ? 'rgba(0,0,0,0.2)' : 'transparent'};
+                    border: 1px solid ${isSelected ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)'};
+                    transition: 0.2s;
+                `;
+                btn.innerHTML = opt.icon;
+                btn.onmouseover = () => { if (!isSelected) btn.style.background = 'rgba(0,0,0,0.1)'; };
+                btn.onmouseout = () => { if (!isSelected) btn.style.background = 'transparent'; };
+                btn.onclick = () => {
+                    paramEl.setAttribute('data-val', opt.val);
+                    paramEl.innerHTML = opt.icon;
+                    modalOverlay.style.display = 'none';
+                };
+                modalBox.appendChild(btn);
+            });
+            positionModalUnder(paramEl, '#8b5cf6');
+            modalOverlay.style.display = 'flex';
+        }
+
         // ==========================================
         // 파라미터(숫자/아이콘) 클릭 시 커스텀 모달 팝업 띄우기 (옵션 선택기)
         // ==========================================
@@ -2434,6 +2536,8 @@
                         showMatrixModal(param);
                     } else if (action === 'control_repeat') {
                         showRepeatLoopModal(param);
+                    } else if (action === 'event_ai_gesture') {
+                        showAIGestureModal(param);
                     } else {
                         // 기본 숫자 파라미터 클릭 시 기존의 옵션 패널 대신 넘버패드 표시
                         showNumpadModal(param);
@@ -2748,14 +2852,8 @@
                 e.preventDefault();
                 trashArea.classList.remove('drag-over');
                 if (dragSourceNode && (dragSourceNode.classList.contains('workspace-item') || dragSourceNode.parentElement === workspaceArea)) {
-                    if (dragSourceNode.getAttribute('data-action') !== 'start') {
-                        deleteBlockAndChildren(dragSourceNode);
-                        if (placeholder) placeholder.remove(); // 허공에 남은 틀 제거
-                    } else {
-                        alert("시작 블럭은 지울 수 없습니다!");
-                        if (placeholder) workspaceArea.insertBefore(dragSourceNode, placeholder);
-                        dragSourceNode.style.display = 'inline-flex';
-                    }
+                    deleteBlockAndChildren(dragSourceNode);
+                    if (placeholder) placeholder.remove(); // 허공에 남은 틀 제거
                 }
             });
         }
@@ -2893,9 +2991,13 @@
 
         async function connectBluetooth() {
             try {
+                if (window === window.parent || typeof window.parent.connectBluetooth !== 'function') {
+                    throw new Error("독립 실행 모드입니다. app.html을 통해 브라우저를 열어주세요!");
+                }
                 await window.parent.connectBluetooth();
             } catch (e) {
                 console.error("SPA 프록시 블루투스 연결 실패", e);
+                alert("❌ 블루투스 연결 실패: " + e.message + "\n\n반드시 바탕화면의 [app.html]을 통해 실행하셔야 합니다!");
             }
         }
 
@@ -2921,15 +3023,34 @@
                 try { await window.parent.writeToHub(pyStop); } catch (e) { }
             }
         }
-        async function runBlocks() {
-            // 실행 가능한 스택 찾기 (시작 블록 또는 수신된 메시지 블록, 음량 블록 등으로 시작하는 스택들만 조건부 실행)
+        async function runBlocks(triggerAction = 'gui', triggerVal = -1) {
+            // 실행 가능한 스택 찾기 (방어 로직 탑재)
             const validStacks = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).filter(stack => {
                 const firstBlock = stack.querySelector('.workspace-item');
                 const action = firstBlock ? firstBlock.getAttribute('data-action') : '';
-                return action === 'start' || action.startsWith('event_');
+                
+                if (triggerAction === 'gui') {
+                    // GUI "실행" 버튼 클릭 시에는 AI 제스처 개별 트리거 스택은 무시 
+                    if (action === 'event_ai_gesture') return false; 
+                    return action === 'start' || action.startsWith('event_');
+                } else {
+                    // 시스템(AI 락다운 머신)에서 특정 제스처로 트리거했을 때
+                    if (action === triggerAction) {
+                        const paramEl = firstBlock.querySelector('.block-param');
+                        if (paramEl && parseInt(paramEl.getAttribute('data-val')) === triggerVal) {
+                            return true; // 매칭된 스택만 골라냄! (시소 방어 핵심루트)
+                        }
+                    }
+                    return false;
+                }
             });
 
-            // 스택들을 왼쪽에서 오른쪽으로 나타나는 순서 (X 좌표)대로 정렬
+            if (validStacks.length === 0) {
+                console.log(`[BrickSync] 매칭되는 블록 스택이 없으므로 실행을 생략합니다. (Trigger: ${triggerAction}, Val: ${triggerVal})`);
+                return;
+            }
+
+            // 스택들을 왼쪽에서 오른쪽으로 정렬
             validStacks.sort((a, b) => {
                 const rectA = a.getBoundingClientRect();
                 const rectB = b.getBoundingClientRect();
@@ -3166,6 +3287,10 @@ print("BrickSync Sandbox Run")
                             pyCode += `${indent}print("Waiting for color", ${pythonVal}) \n${indent}wait_sensor = True\n${indent}while wait_sensor:\n${indent}  try:\n${indent}    import color_sensor\n${indent}    for p in range(6):\n${indent}      try:\n${indent}        if color_sensor.color(p) == ${pythonVal}:\n${indent}          wait_sensor = False\n${indent}          break\n${indent}      except: pass\n${indent}  except: pass\n${indent}  utime.sleep_ms(50)\n`;
                             break;
 
+                        case 'event_ai_gesture':
+                            pyCode += `${indent}print("AI Vision Trigger Check Passed!") \n`;
+                            break;
+
                         case 'sound_note':
                         case 'sound_animal':
                         case 'sound_play':
@@ -3238,9 +3363,9 @@ print("BrickSync Sandbox Run")
                     if (stackBlocks.length === 0) return;
 
                     anySequenceFound = true;
-                    // ?블록???벤??블록??(Start가 ?닌지) ?인
+                    // 첫 블록이 이벤트 블록인지(Start가 아닌지) 확인 (단, AI 제스처는 AI 루프가 자체 폴링하므로 제외)
                     const firstAction = stackBlocks[0].getAttribute('data-action');
-                    const isEventLoop = firstAction !== 'start';
+                    const isEventLoop = firstAction !== 'start' && firstAction !== 'event_ai_gesture';
 
                     let currentBleDelay = 0;
                     let bleGlobalMotorSpeed = 40;
@@ -3733,8 +3858,111 @@ print("BrickSync Sandbox Run")
                     닫기
                 </button>
             </div>
+            </div>
         </div>
     </div>
-</body>
 
+    <!-- 🚀 AI CAMERA ENGINE (Seesaw Protection System) 🚀 -->
+    <script>
+        const classifier = knnClassifier.create();
+        const webcamElement = document.getElementById('webcam');
+        let net;
+        let aiLoopRunning = false;
+        let aiConfidenceThreshold = 0.85; // 신뢰도 85% 이상만 캡처
+        
+        let lastTriggeredAiGesture = -1; // 댐 스위치 상태락다운 변수
+        let candidateAiGesture = -1; // 현재 프레임의 연속 후보
+        let consecutiveAiFrames = 0; // 연속 감지 프레임 카운터
+
+        const currentGestureLabel = document.getElementById('current-gesture');
+        const aiStatusLabel = document.getElementById('ai-status');
+        let examplesCount = [0, 0, 0, 0];
+
+        async function setupWebcam() {
+            return new Promise((resolve, reject) => {
+                const navigatorAny = navigator;
+                navigator.getUserMedia = navigator.getUserMedia ||
+                    navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia || navigatorAny.msGetUserMedia;
+                if (navigator.getUserMedia) {
+                    navigator.getUserMedia({ video: true }, stream => {
+                        webcamElement.srcObject = stream;
+                        webcamElement.addEventListener('loadeddata', () => resolve(), false);
+                    }, error => reject());
+                } else {
+                    reject();
+                }
+            });
+        }
+
+        async function app() {
+            try {
+                aiStatusLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 모바일넷 모델링 중... (10초 소요)';
+                net = await mobilenet.load();
+                aiStatusLabel.innerHTML = '<i class="fas fa-camera"></i> 웹캠 마운트 중...';
+                await setupWebcam();
+                aiStatusLabel.innerHTML = '<i class="fas fa-check-circle"></i> AI 엔진 가동 완료! 하단의 버튼으로 학습하세요.';
+                aiStatusLabel.style.color = '#10b981';
+                aiStatusLabel.style.backgroundColor = '#d1fae5';
+                aiStatusLabel.style.borderColor = '#a7f3d0';
+
+                aiLoopRunning = true;
+                predictWebcam();
+            } catch (e) {
+                console.error(e);
+                aiStatusLabel.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> 카메라 권한 오류가 발생했습니다.';
+            }
+        }
+
+        async function predictWebcam() {
+            while (aiLoopRunning) {
+                if (classifier.getNumClasses() > 0) {
+                    const img = await webcamElement;
+                    const activation = net.infer(img, 'conv_preds');
+                    const result = await classifier.predictClass(activation);
+                    
+                    if (result.confidences[result.label] > aiConfidenceThreshold) {
+                        const detectedGesture = parseInt(result.label);
+                        const labels = ['주먹 (Rock)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
+                        const icons = ['fa-hand-rock', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
+                        
+                        currentGestureLabel.innerHTML = `<i class="fas ${icons[detectedGesture]}"></i> ${labels[detectedGesture]} (${Math.round(result.confidences[result.label] * 100)}%)`;
+                        
+                        // 🔒 시소 이펙트 철통 방어 (연속 프레임 교차 검증) 🔒
+                        // 사유: 학습 데이터가 적을 때 1~2프레임 단위로 예측이 요동치는(Flicker) 현상 방지. 최소 10프레임 이상 연속 일치해야만 통과.
+                        if (candidateAiGesture === detectedGesture) {
+                            consecutiveAiFrames++;
+                            if (consecutiveAiFrames >= 10 && lastTriggeredAiGesture !== detectedGesture) {
+                                lastTriggeredAiGesture = detectedGesture;
+                                console.log("🚀 [AI Trigger] Confirmed Stable Gesture:", detectedGesture);
+                                runBlocks('event_ai_gesture', detectedGesture);
+                            }
+                        } else {
+                            candidateAiGesture = detectedGesture;
+                            consecutiveAiFrames = 1;
+                        }
+                    } else {
+                        currentGestureLabel.innerHTML = `<i class="fas fa-question-circle"></i> 판독 불가 (신뢰도 미달)`;
+                        candidateAiGesture = -1;
+                        consecutiveAiFrames = 0;
+                    }
+                }
+                await tf.nextFrame();
+            }
+        }
+
+        function addExample(classId) {
+            const activation = net.infer(webcamElement, 'conv_preds');
+            classifier.addExample(activation, classId);
+            examplesCount[classId]++;
+            
+            document.getElementById('count-rock').innerText = `${examplesCount[0]}개`;
+            document.getElementById('count-paper').innerText = `${examplesCount[1]}개`;
+            document.getElementById('count-scissors').innerText = `${examplesCount[2]}개`;
+            document.getElementById('count-none').innerText = `${examplesCount[3]}개`;
+        }
+
+        // 스파이크 앱 로딩에 지장이 없도록 1.5초 딜레이 후 AI 로딩
+        setTimeout(app, 1500);
+    </script>
+</body>
 </html>

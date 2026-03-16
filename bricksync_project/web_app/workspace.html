@@ -3,6 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BrickSync - 워크스페이스</title>
     <!-- 폰트: 한글은 Noto Sans, 영문은 Outfit -->
@@ -298,13 +301,17 @@
         <!-- 왼쪽 메뉴 영역 -->
         <div class="sidebar">
             <ul class="menu-list">
-                <a href="index.html" class="menu-item">
+                <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;" class="menu-item">
                     <i data-lucide="home" class="menu-icon"></i>
                     홈
                 </a>
-                <a href="lesson.html" class="menu-item">
+                <a href="#" onclick="location.href='lesson.html?v='+new Date().getTime(); return false;" class="menu-item">
                     <i data-lucide="book-open" class="menu-icon"></i>
                     학습단원
+                </a>
+                <a href="#" onclick="location.href='ai_fusion.html?v='+new Date().getTime(); return false;" class="menu-item" id="btn-ai">
+                    <i data-lucide="bot" class="menu-icon"></i>
+                    AI 학습단원
                 </a>
                 <!-- 활성 메뉴: 워크스페이스 -->
                 <li class="menu-item active">
