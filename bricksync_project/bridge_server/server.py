@@ -101,6 +101,14 @@ async def handle_websocket(request):
                     elif action == "CAT_FEED_REWARD":
                         print("[REWARD] 보상 발동! E키")
                         pydirectinput.keyDown('e'); time.sleep(0.1); pydirectinput.keyUp('e')
+                        
+                    elif action == "motor_cw":
+                        print("▶ 쓰레기 괴물 입 열기 (Z키 전송)")
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('z'), time.sleep(0.3), pydirectinput.keyUp('z')], daemon=True).start()
+                        
+                    elif action == "motor_ccw":
+                        print("▶ 쓰레기 괴물 입 닫기 (X키 전송)")
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('x'), time.sleep(0.3), pydirectinput.keyUp('x')], daemon=True).start()
                 except Exception as e:
                     pass
     except Exception as e:

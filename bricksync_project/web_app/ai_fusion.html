@@ -567,7 +567,7 @@
 <body>
 
     <div class="top-bar">
-        <a href="#" onclick="location.href='index.html?v=' + new Date().getTime(); return false;" class="home-btn">
+        <a href="index.html" class="home-btn">
             <i class="fas fa-home"></i> 홈으로 가기
         </a>
         <div
@@ -641,35 +641,54 @@
     <!-- 🟢 AI & Coding Fusion Layout 🟢 -->
     <div style="display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px);">
         <!-- 좌측: AI 카메라 및 제어 영역 -->
-        <div style="width: 480px; border-right: 4px solid #e2e8f0; background: #fff; display: flex; flex-direction: column; z-index: 10;">
-            <div style="padding: 15px 20px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <div
+            style="width: 480px; border-right: 4px solid #e2e8f0; background: #fff; display: flex; flex-direction: column; z-index: 10;">
+            <div
+                style="padding: 15px 20px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">
                     <i class="fas fa-robot" style="color: #8b5cf6;"></i> AI 비전 제스처 인식
                 </div>
             </div>
-            
-            <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 15px; align-items: center; overflow-y: auto;">
-                <div style="width: 100%; aspect-ratio: 4/3; background: #1e293b; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 4px solid #334155;">
-                    <video id="webcam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
-                    <div id="ai-result-overlay" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(4px);">
+
+            <div
+                style="padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 15px; align-items: center; overflow-y: auto;">
+                <div
+                    style="width: 100%; aspect-ratio: 4/3; background: #1e293b; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 4px solid #334155;">
+                    <video id="webcam" autoplay playsinline
+                        style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+                    <div id="ai-result-overlay"
+                        style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(4px);">
                         <i class="fas fa-eye"></i> <span id="current-gesture">대기 중...</span>
                     </div>
                 </div>
 
-                <div id="ai-status" style="width: 100%; padding: 12px; background: #dbeafe; border: 1px solid #bfdbfe; border-radius: 8px; color: #1e3a8a; font-weight: 700; text-align: center; font-size: 0.95rem;">
+                <div id="ai-status"
+                    style="width: 100%; padding: 12px; background: #dbeafe; border: 1px solid #bfdbfe; border-radius: 8px; color: #1e3a8a; font-weight: 700; text-align: center; font-size: 0.95rem;">
                     <i class="fas fa-spinner fa-spin"></i> AI 엔진 로딩 중...
                 </div>
 
-                <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                    <div style="font-size: 0.9rem; font-weight: 800; color: #64748b; margin-bottom: 5px;">인식 모델 학습 기능</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <button onclick="addExample(0)" style="background:#ef4444; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #b91c1c; transition:transform 0.1s;"><i class="fas fa-hand-rock"></i> 주먹 (Rock)</button>
-                        <button onclick="addExample(1)" style="background:#3b82f6; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #1d4ed8; transition:transform 0.1s;"><i class="fas fa-hand-paper"></i> 보 (Paper)</button>
-                        <button onclick="addExample(2)" style="background:#10b981; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #047857; transition:transform 0.1s;"><i class="fas fa-hand-scissors"></i> 가위 (Scissors)</button>
-                        <button onclick="addExample(3)" style="background:#64748b; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #475569; transition:transform 0.1s;"><i class="fas fa-ban"></i> 배경 (None)</button>
+                <div
+                    style="width: 100%; display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.9rem; font-weight: 800; color: #64748b; margin-bottom: 5px;">인식 모델 학습 기능
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; font-weight: 700; padding: 0 5px; margin-top: 5px;">
-                        <span id="count-rock">0개</span> <span id="count-paper">0개</span> <span id="count-scissors">0개</span> <span id="count-none">0개</span>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button onclick="addExample(0)"
+                            style="background:#ef4444; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #b91c1c; transition:transform 0.1s;"><i
+                                class="fas fa-hand-rock"></i> 주먹 (Rock)</button>
+                        <button onclick="addExample(1)"
+                            style="background:#3b82f6; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #1d4ed8; transition:transform 0.1s;"><i
+                                class="fas fa-hand-paper"></i> 보 (Paper)</button>
+                        <button onclick="addExample(2)"
+                            style="background:#10b981; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #047857; transition:transform 0.1s;"><i
+                                class="fas fa-hand-scissors"></i> 가위 (Scissors)</button>
+                        <button onclick="addExample(3)"
+                            style="background:#64748b; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #475569; transition:transform 0.1s;"><i
+                                class="fas fa-ban"></i> 배경 (None)</button>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; font-weight: 700; padding: 0 5px; margin-top: 5px;">
+                        <span id="count-rock">0개</span> <span id="count-paper">0개</span> <span
+                            id="count-scissors">0개</span> <span id="count-none">0개</span>
                     </div>
                 </div>
             </div>
@@ -692,504 +711,532 @@
             <!-- Bottom Toolbox -->
             <div class="toolbox" id="palette">
 
-        <!-- 1. 제어(노랑) 시작/조건 블럭 -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="start">
-            <i class="fas fa-play block-icon"></i>
-        </div>
-
-        <!-- NEW 대기(시간 기다리기) 블록 -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="flow_wait">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <i class="far fa-clock" style="color: white; font-size: 30px;"></i>
-            </div>
-            <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
-
-        <!-- NEW 컬러 센서 이벤트 블록 -->
-        <div class="spike-block bg-yellow" draggable="true"
-            style="padding-bottom:15px; position:relative; overflow:visible;" data-action="event_color_sensor">
-            <div
-                style="position:relative; width:34px; height:34px; background:white; border-radius:8px; border:2px solid #cbd5e1; display:flex; justify-content:center; align-items:center; margin-left:-5px;">
-                <!-- 내부 원 (렌즈) -->
-                <div style="width:14px; height:14px; border:3px solid #94a3b8; border-radius:50%;"></div>
-
-                <!-- 레고 블럭 장식 (초기값 빨강, .color-brick-icon) -->
-                <div class="color-brick-icon"
-                    style="position:absolute; bottom:-6px; right:-8px; width:18px; height:12px; background:#ef4444; border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,0.2);">
-                    <div
-                        style="position:absolute; top:-2px; left:2px; width:4px; height:2px; background:inherit; border-radius:1px;">
-                    </div>
-                    <div
-                        style="position:absolute; top:-2px; right:2px; width:4px; height:2px; background:inherit; border-radius:1px;">
-                    </div>
-
-                    <!-- no_color일 때 보여줄 빨간 빗금 (기본적으론 숨김) -->
-                    <div class="no-color-slash"
-                        style="display:none; position:absolute; width:22px; height:2px; background:#ef4444; top:5px; left:-2px; transform:rotate(-45deg);">
-                    </div>
+                <!-- 1. 제어(노랑) 시작/조건 블럭 -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="start">
+                    <i class="fas fa-play block-icon"></i>
                 </div>
-            </div>
-            <!-- 화살표 탭 (block-param) -->
-            <div class="block-param param-dropdown" data-val="9"
-                style="position:absolute; bottom:-12px; left:50%; transform:translateX(-50%); width:30px; height:22px; border-radius:0 0 15px 15px; background:#eab308; border:none; display:flex; justify-content:center; align-items:center; box-shadow:0 3px 5px rgba(0,0,0,0.2); cursor:pointer;">
-                <i class="fas fa-chevron-down" style="color:white; font-size:12px; margin-bottom:2px;"></i>
-            </div>
-        </div>
 
-        <!-- NEW 임 센서 이벤트 블록 -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="event_force_sensor">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- Pressed icon initially -->
-                <div
-                    style="position:relative; width: 32px; height: 32px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom: 2px;">
-                    <div
-                        style="position:absolute; right: -4px; top: -6px; color: #16a34a; font-size: 16px; font-weight: 900; -webkit-text-stroke: 1px white; z-index:2;">
-                        <i class="fas fa-arrow-down"></i>
+                <!-- NEW 대기(시간 기다리기) 블록 -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="flow_wait">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <i class="far fa-clock" style="color: white; font-size: 30px;"></i>
                     </div>
-                    <div style="width: 14px; height: 4px; background: #94a3b8; border-radius: 2px 2px 0 0;"></div>
+                    <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
+                </div>
+
+                <!-- NEW 컬러 센서 이벤트 블록 -->
+                <div class="spike-block bg-yellow" draggable="true"
+                    style="padding-bottom:15px; position:relative; overflow:visible;" data-action="event_color_sensor">
                     <div
-                        style="width: 24px; height: 14px; background: white; border-radius: 4px; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2);">
-                        <div
-                            style="position:absolute; left:4px; bottom:3px; width:4px; height:4px; border-radius:50%; background:#dca500;">
-                        </div>
-                        <div
-                            style="position:absolute; right:4px; bottom:3px; width:4px; height:4px; border-radius:50%; background:#dca500;">
+                        style="position:relative; width:34px; height:34px; background:white; border-radius:8px; border:2px solid #cbd5e1; display:flex; justify-content:center; align-items:center; margin-left:-5px;">
+                        <!-- 내부 원 (렌즈) -->
+                        <div style="width:14px; height:14px; border:3px solid #94a3b8; border-radius:50%;"></div>
+
+                        <!-- 레고 블럭 장식 (초기값 빨강, .color-brick-icon) -->
+                        <div class="color-brick-icon"
+                            style="position:absolute; bottom:-6px; right:-8px; width:18px; height:12px; background:#ef4444; border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,0.2);">
+                            <div
+                                style="position:absolute; top:-2px; left:2px; width:4px; height:2px; background:inherit; border-radius:1px;">
+                            </div>
+                            <div
+                                style="position:absolute; top:-2px; right:2px; width:4px; height:2px; background:inherit; border-radius:1px;">
+                            </div>
+
+                            <!-- no_color일 때 보여줄 빨간 빗금 (기본적으론 숨김) -->
+                            <div class="no-color-slash"
+                                style="display:none; position:absolute; width:22px; height:2px; background:#ef4444; top:5px; left:-2px; transform:rotate(-45deg);">
+                            </div>
                         </div>
                     </div>
+                    <!-- 화살표 탭 (block-param) -->
+                    <div class="block-param param-dropdown" data-val="9"
+                        style="position:absolute; bottom:-12px; left:50%; transform:translateX(-50%); width:30px; height:22px; border-radius:0 0 15px 15px; background:#eab308; border:none; display:flex; justify-content:center; align-items:center; box-shadow:0 3px 5px rgba(0,0,0,0.2); cursor:pointer;">
+                        <i class="fas fa-chevron-down" style="color:white; font-size:12px; margin-bottom:2px;"></i>
+                    </div>
                 </div>
-            </div>
-            <div class="block-param" data-val="1"><i class="fas fa-chevron-down"></i></div>
-        </div>
 
-        <!-- NEW 거리 센서 이벤트 블록 -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="event_distance_sensor">
-            <div class="block-icon"
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
-                <div
-                    style="width: 30px; height: 14px; background: white; border-radius: 4px; position:relative; display:flex; align-items:center; justify-content:center; gap: 2px; border:2px solid #cbd5e1;">
-                    <!-- 두 눈깔(초음파 방출기) -->
-                    <div
-                        style="width: 8px; height: 8px; border-radius:50%; background: #94a3b8; display:flex; justify-content:center; align-items:center;">
-                        <div style="width:4px;height:4px;border-radius:50%;background:white;"></div>
-                    </div>
-                    <div
-                        style="width: 8px; height: 8px; border-radius:50%; background: #94a3b8; display:flex; justify-content:center; align-items:center;">
-                        <div style="width:4px;height:4px;border-radius:50%;background:white;"></div>
-                    </div>
-                </div>
-                <!-- 하단 와이파이(초음파) 모양 아이콘 -->
-                <div style="color: #16a34a; font-size: 14px; margin-top: 1px; line-height: 0.8;">
-                    <i class="fas fa-wifi" style="transform: rotate(180deg);"></i>
-                </div>
-            </div>
-            <div class="block-param" style="border-radius: 10px; width:40px;">20</div>
-        </div>
-
-        <!-- NEW 기울기 센서 이벤트 블록 -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="event_tilt_sensor">
-            <div class="block-icon"
-                style="position:relative; width:40px; height:40px; display:flex; justify-content:center; align-items:center;">
-                <!-- Small rotated hub -->
-                <div
-                    style="width: 20px; height: 16px; background: #fbbf24; border-radius: 3px; border: 1.5px solid #d97706; position: relative; transform: rotate(35deg); z-index: 2; margin-top:2px;">
-                    <div
-                        style="position:absolute; top:0; left:0; width:100%; height:4px; background:white; border-bottom:1px solid #d97706; border-radius: 2px 2px 0 0; display:flex; justify-content:center;">
-                        <div style="width:3px; height:2px; background:#38bdf8; margin-top:1px;"></div>
-                    </div>
-                    <div
-                        style="position:absolute; bottom:1px; left:2px; width:4px; height:2px; background:#d97706; border-radius:1px;">
-                    </div>
-                </div>
-                <!-- Green rotating arrow behind -->
-                <div
-                    style="position:absolute; top: 0px; right: 0px; color: #16a34a; font-size: 16px; font-weight: 900; z-index: 1;">
-                    <i class="fas fa-undo" style="transform: scaleX(-1) rotate(20deg);"></i>
-                </div>
-            </div>
-            <div class="block-param" data-val="left"><i class="fas fa-chevron-down"></i></div>
-        </div>
-        <!-- NEW 음량 블록 (Sound Level) -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="event_sound_level">
-            <div class="block-icon"
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
-                <div style="color: #22c55e; font-size: 16px; position:absolute; top:-10px;">
-                    <i class="fas fa-wifi" style="transform: rotate(-45deg);"></i>
-                </div>
-                <div style="color: white; font-size: 18px; z-index: 2; margin-top: 5px;">
-                    <i class="fas fa-microphone"></i>
-                </div>
-            </div>
-            <div class="block-param" style="border-radius:12px; width:44px; padding:2px 0;">20</div>
-        </div>
-
-        <!-- NEW 수신된 메시지 블록 -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="event_message_received">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 파란색 입체 편지봉투 -->
-                <div style="position:relative; width:34px; height:24px; background:#0ea5e9; border-radius:3px;">
-                    <!-- White Letter sticking out -->
-                    <div
-                        style="position:absolute; top:-8px; left:4px; width:26px; height:18px; background:white; border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,0.1);">
+                <!-- NEW 임 센서 이벤트 블록 -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="event_force_sensor">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- Pressed icon initially -->
                         <div
-                            style="position:absolute; top:4px; left:4px; width:18px; height:2px; background:#cbd5e1; border-radius:1px;">
-                        </div>
-                        <div
-                            style="position:absolute; top:8px; left:4px; width:12px; height:2px; background:#cbd5e1; border-radius:1px;">
+                            style="position:relative; width: 32px; height: 32px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom: 2px;">
+                            <div
+                                style="position:absolute; right: -4px; top: -6px; color: #16a34a; font-size: 16px; font-weight: 900; -webkit-text-stroke: 1px white; z-index:2;">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <div style="width: 14px; height: 4px; background: #94a3b8; border-radius: 2px 2px 0 0;">
+                            </div>
+                            <div
+                                style="width: 24px; height: 14px; background: white; border-radius: 4px; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                <div
+                                    style="position:absolute; left:4px; bottom:3px; width:4px; height:4px; border-radius:50%; background:#dca500;">
+                                </div>
+                                <div
+                                    style="position:absolute; right:4px; bottom:3px; width:4px; height:4px; border-radius:50%; background:#dca500;">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <!-- Envelope front (V shape depth overlay) -->
-                    <div
-                        style="position:absolute; top:0; left:0; width:0; height:0; border-left:17px solid #38bdf8; border-right:17px solid #38bdf8; border-top:12px solid transparent; border-bottom:12px solid #0284c7; border-radius:3px;">
+                    <div class="block-param" data-val="1"><i class="fas fa-chevron-down"></i></div>
+                </div>
+
+                <!-- NEW 거리 센서 이벤트 블록 -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="event_distance_sensor">
+                    <div class="block-icon"
+                        style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+                        <div
+                            style="width: 30px; height: 14px; background: white; border-radius: 4px; position:relative; display:flex; align-items:center; justify-content:center; gap: 2px; border:2px solid #cbd5e1;">
+                            <!-- 두 눈깔(초음파 방출기) -->
+                            <div
+                                style="width: 8px; height: 8px; border-radius:50%; background: #94a3b8; display:flex; justify-content:center; align-items:center;">
+                                <div style="width:4px;height:4px;border-radius:50%;background:white;"></div>
+                            </div>
+                            <div
+                                style="width: 8px; height: 8px; border-radius:50%; background: #94a3b8; display:flex; justify-content:center; align-items:center;">
+                                <div style="width:4px;height:4px;border-radius:50%;background:white;"></div>
+                            </div>
+                        </div>
+                        <!-- 하단 와이파이(초음파) 모양 아이콘 -->
+                        <div style="color: #16a34a; font-size: 14px; margin-top: 1px; line-height: 0.8;">
+                            <i class="fas fa-wifi" style="transform: rotate(180deg);"></i>
+                        </div>
+                    </div>
+                    <div class="block-param" style="border-radius: 10px; width:40px;">20</div>
+                </div>
+
+                <!-- NEW 기울기 센서 이벤트 블록 -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="event_tilt_sensor">
+                    <div class="block-icon"
+                        style="position:relative; width:40px; height:40px; display:flex; justify-content:center; align-items:center;">
+                        <!-- Small rotated hub -->
+                        <div
+                            style="width: 20px; height: 16px; background: #fbbf24; border-radius: 3px; border: 1.5px solid #d97706; position: relative; transform: rotate(35deg); z-index: 2; margin-top:2px;">
+                            <div
+                                style="position:absolute; top:0; left:0; width:100%; height:4px; background:white; border-bottom:1px solid #d97706; border-radius: 2px 2px 0 0; display:flex; justify-content:center;">
+                                <div style="width:3px; height:2px; background:#38bdf8; margin-top:1px;"></div>
+                            </div>
+                            <div
+                                style="position:absolute; bottom:1px; left:2px; width:4px; height:2px; background:#d97706; border-radius:1px;">
+                            </div>
+                        </div>
+                        <!-- Green rotating arrow behind -->
+                        <div
+                            style="position:absolute; top: 0px; right: 0px; color: #16a34a; font-size: 16px; font-weight: 900; z-index: 1;">
+                            <i class="fas fa-undo" style="transform: scaleX(-1) rotate(20deg);"></i>
+                        </div>
+                    </div>
+                    <div class="block-param" data-val="left"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <!-- NEW 음량 블록 (Sound Level) -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="event_sound_level">
+                    <div class="block-icon"
+                        style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+                        <div style="color: #22c55e; font-size: 16px; position:absolute; top:-10px;">
+                            <i class="fas fa-wifi" style="transform: rotate(-45deg);"></i>
+                        </div>
+                        <div style="color: white; font-size: 18px; z-index: 2; margin-top: 5px;">
+                            <i class="fas fa-microphone"></i>
+                        </div>
+                    </div>
+                    <div class="block-param" style="border-radius:12px; width:44px; padding:2px 0;">20</div>
+                </div>
+
+                <!-- NEW 수신된 메시지 블록 -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="event_message_received">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 파란색 입체 편지봉투 -->
+                        <div style="position:relative; width:34px; height:24px; background:#0ea5e9; border-radius:3px;">
+                            <!-- White Letter sticking out -->
+                            <div
+                                style="position:absolute; top:-8px; left:4px; width:26px; height:18px; background:white; border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,0.1);">
+                                <div
+                                    style="position:absolute; top:4px; left:4px; width:18px; height:2px; background:#cbd5e1; border-radius:1px;">
+                                </div>
+                                <div
+                                    style="position:absolute; top:8px; left:4px; width:12px; height:2px; background:#cbd5e1; border-radius:1px;">
+                                </div>
+                            </div>
+                            <!-- Envelope front (V shape depth overlay) -->
+                            <div
+                                style="position:absolute; top:0; left:0; width:0; height:0; border-left:17px solid #38bdf8; border-right:17px solid #38bdf8; border-top:12px solid transparent; border-bottom:12px solid #0284c7; border-radius:3px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="block-param" data-val="#ec4899"> <!-- 기본값은 Pink 색상 -->
+                        <div
+                            style="width:18px;height:18px;border-radius:50%;background:#ec4899;border:1px solid rgba(0,0,0,0.1);display:flex;justify-content:center;align-items:center;box-shadow:inset 0 -1px 0 rgba(0,0,0,0.1);">
+                            <i class="fas fa-chevron-down" style="font-size:10px;color:rgba(255,255,255,0.9);"></i>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="block-param" data-val="#ec4899"> <!-- 기본값은 Pink 색상 -->
-                <div
-                    style="width:18px;height:18px;border-radius:50%;background:#ec4899;border:1px solid rgba(0,0,0,0.1);display:flex;justify-content:center;align-items:center;box-shadow:inset 0 -1px 0 rgba(0,0,0,0.1);">
-                    <i class="fas fa-chevron-down" style="font-size:10px;color:rgba(255,255,255,0.9);"></i>
-                </div>
-            </div>
-        </div>
 
-        <!-- NEW 전송된 메시지 블록 -->
-        <div class="spike-block bg-yellow" draggable="true" data-action="action_send_message">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 닫힌 파란색 편지봉투 (위 화살표 모양 덮개) -->
-                <div style="position:relative; width:34px; height:24px; background:#0ea5e9; border-radius:3px;">
-                    <!-- 위 덮개 (Envelope Flap) -->
-                    <div
-                        style="position:absolute; top:0; left:0; width:0; height:0; border-left:17px solid transparent; border-right:17px solid transparent; border-top:12px solid #38bdf8; z-index:2; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));">
+                <!-- NEW 전송된 메시지 블록 -->
+                <div class="spike-block bg-yellow" draggable="true" data-action="action_send_message">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 닫힌 파란색 편지봉투 (위 화살표 모양 덮개) -->
+                        <div style="position:relative; width:34px; height:24px; background:#0ea5e9; border-radius:3px;">
+                            <!-- 위 덮개 (Envelope Flap) -->
+                            <div
+                                style="position:absolute; top:0; left:0; width:0; height:0; border-left:17px solid transparent; border-right:17px solid transparent; border-top:12px solid #38bdf8; z-index:2; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));">
+                            </div>
+                            <!-- 하단 레이어 -->
+                            <div
+                                style="position:absolute; bottom:0; left:0; width:0; height:0; border-left:17px solid transparent; border-right:17px solid transparent; border-bottom:12px solid #0284c7; z-index:1;">
+                            </div>
+                        </div>
                     </div>
-                    <!-- 하단 레이어 -->
-                    <div
-                        style="position:absolute; bottom:0; left:0; width:0; height:0; border-left:17px solid transparent; border-right:17px solid transparent; border-bottom:12px solid #0284c7; z-index:1;">
-                    </div>
-                </div>
-            </div>
-            <div class="block-param" data-val="#ec4899">
-                <div
-                    style="width:18px;height:18px;border-radius:50%;background:#ec4899;border:1px solid rgba(0,0,0,0.1);display:flex;justify-content:center;align-items:center;box-shadow:inset 0 -1px 0 rgba(0,0,0,0.1);">
-                    <i class="fas fa-chevron-down" style="font-size:10px;color:rgba(255,255,255,0.9);"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="category-divider"></div>
-
-        <!-- NEW 모터 속도 설정 블록 -->
-        <div class="spike-block bg-blue" draggable="true" data-action="motor_speed_set" style="background: #0284c7;">
-            <div class="block-icon"
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <!-- 흰색 모터/톱니바퀴 아이콘 -->
-                <div
-                    style="position:relative; width: 26px; height: 26px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: scale(0.9);">
-                    <div
-                        style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; top: 3px; left: 10px;">
-                    </div>
-                    <div
-                        style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; bottom: 3px; left: 10px;">
-                    </div>
-                    <div
-                        style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; left: 3px; top: 10px;">
-                    </div>
-                    <div
-                        style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; right: 3px; top: 10px;">
-                    </div>
-                    <i class="fas fa-plus" style="color: #0284c7; font-size: 10px; font-weight: 900;"></i>
-                </div>
-                <!-- 하단 속도계 초록색 막대 (작게) -->
-                <div style="display:flex; align-items:flex-end; gap:1px; height: 8px; margin-top: 2px;">
-                    <div style="width:4px; height:3px; background:#22c55e;"></div>
-                    <div style="width:4px; height:5px; background:#22c55e;"></div>
-                    <div
-                        style="width:4px; height:7px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
-                    </div>
-                    <div
-                        style="width:4px; height:8px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
+                    <div class="block-param" data-val="#ec4899">
+                        <div
+                            style="width:18px;height:18px;border-radius:50%;background:#ec4899;border:1px solid rgba(0,0,0,0.1);display:flex;justify-content:center;align-items:center;box-shadow:inset 0 -1px 0 rgba(0,0,0,0.1);">
+                            <i class="fas fa-chevron-down" style="font-size:10px;color:rgba(255,255,255,0.9);"></i>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="block-param" data-val="40"><i class="fas fa-chevron-down"></i></div>
-            <style>
-                .bg-blue::after {
-                    background: #0284c7;
-                }
-            </style>
-        </div>
 
-        <!-- NEW 자동차 이동 속도 설정 블록 -->
-        <div class="spike-block bg-pink" draggable="true" data-action="car_speed_set" style="background: #f472b6;">
-            <div class="block-icon"
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <!-- 2개의 톱니바퀴 (양쪽 바퀴 동시 제어 상징) -->
-                <div style="position:relative; width: 44px; height: 30px; transform: scale(0.9);">
-                    <!-- 왼쪽 톱니바퀴 -->
-                    <div
-                        style="position:absolute; left:0; top:2px; width: 24px; height: 24px; background: white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                <div class="category-divider"></div>
+
+                <!-- NEW 모터 속도 설정 블록 -->
+                <div class="spike-block bg-blue" draggable="true" data-action="motor_speed_set"
+                    style="background: #0284c7;">
+                    <div class="block-icon"
+                        style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <!-- 흰색 모터/톱니바퀴 아이콘 -->
                         <div
-                            style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; top: 2px; left: 9.5px;">
+                            style="position:relative; width: 26px; height: 26px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: scale(0.9);">
+                            <div
+                                style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; top: 3px; left: 10px;">
+                            </div>
+                            <div
+                                style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; bottom: 3px; left: 10px;">
+                            </div>
+                            <div
+                                style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; left: 3px; top: 10px;">
+                            </div>
+                            <div
+                                style="position:absolute; width: 6px; height: 6px; background: #0284c7; border-radius: 50%; right: 3px; top: 10px;">
+                            </div>
+                            <i class="fas fa-plus" style="color: #0284c7; font-size: 10px; font-weight: 900;"></i>
                         </div>
-                        <div
-                            style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; bottom: 2px; left: 9.5px;">
+                        <!-- 하단 속도계 초록색 막대 (작게) -->
+                        <div style="display:flex; align-items:flex-end; gap:1px; height: 8px; margin-top: 2px;">
+                            <div style="width:4px; height:3px; background:#22c55e;"></div>
+                            <div style="width:4px; height:5px; background:#22c55e;"></div>
+                            <div
+                                style="width:4px; height:7px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
+                            </div>
+                            <div
+                                style="width:4px; height:8px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
+                            </div>
                         </div>
-                        <div
-                            style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; left: 2px; top: 9.5px;">
-                        </div>
-                        <div
-                            style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; right: 2px; top: 9.5px;">
-                        </div>
-                        <i class="fas fa-plus"
-                            style="color: #be185d; font-size: 8px; font-weight: 900; position:absolute; top:8px; left:9px;"></i>
                     </div>
-                    <!-- 오른쪽 톱니바퀴 (겹치게) -->
-                    <div
-                        style="position:absolute; right:0; top:-4px; width: 28px; height: 28px; background: white; border-radius: 50%; box-shadow: -2px 2px 4px rgba(0,0,0,0.1); z-index:2;">
-                        <div
-                            style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; top: 3px; left: 11px;">
+                    <div class="block-param" data-val="40"><i class="fas fa-chevron-down"></i></div>
+                    <style>
+                        .bg-blue::after {
+                            background: #0284c7;
+                        }
+                    </style>
+                </div>
+
+                <!-- NEW 자동차 이동 속도 설정 블록 -->
+                <div class="spike-block bg-pink" draggable="true" data-action="car_speed_set"
+                    style="background: #f472b6;">
+                    <div class="block-icon"
+                        style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <!-- 2개의 톱니바퀴 (양쪽 바퀴 동시 제어 상징) -->
+                        <div style="position:relative; width: 44px; height: 30px; transform: scale(0.9);">
+                            <!-- 왼쪽 톱니바퀴 -->
+                            <div
+                                style="position:absolute; left:0; top:2px; width: 24px; height: 24px; background: white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                <div
+                                    style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; top: 2px; left: 9.5px;">
+                                </div>
+                                <div
+                                    style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; bottom: 2px; left: 9.5px;">
+                                </div>
+                                <div
+                                    style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; left: 2px; top: 9.5px;">
+                                </div>
+                                <div
+                                    style="position:absolute; width: 5px; height: 5px; background: #be185d; border-radius: 50%; right: 2px; top: 9.5px;">
+                                </div>
+                                <i class="fas fa-plus"
+                                    style="color: #be185d; font-size: 8px; font-weight: 900; position:absolute; top:8px; left:9px;"></i>
+                            </div>
+                            <!-- 오른쪽 톱니바퀴 (겹치게) -->
+                            <div
+                                style="position:absolute; right:0; top:-4px; width: 28px; height: 28px; background: white; border-radius: 50%; box-shadow: -2px 2px 4px rgba(0,0,0,0.1); z-index:2;">
+                                <div
+                                    style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; top: 3px; left: 11px;">
+                                </div>
+                                <div
+                                    style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; bottom: 3px; left: 11px;">
+                                </div>
+                                <div
+                                    style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; left: 3px; top: 11px;">
+                                </div>
+                                <div
+                                    style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; right: 3px; top: 11px;">
+                                </div>
+                                <i class="fas fa-plus"
+                                    style="color: #be185d; font-size: 10px; font-weight: 900; position:absolute; top:9px; left:10px;"></i>
+                            </div>
                         </div>
+                        <!-- 하단 속도계 초록색 막대 -->
                         <div
-                            style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; bottom: 3px; left: 11px;">
+                            style="display:flex; align-items:flex-end; gap:2px; height: 10px; margin-top: 4px; z-index:3;">
+                            <div style="width:5px; height:4px; background:#22c55e;"></div>
+                            <div style="width:5px; height:6px; background:#22c55e;"></div>
+                            <div
+                                style="width:5px; height:8px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
+                            </div>
+                            <div
+                                style="width:5px; height:10px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
+                            </div>
                         </div>
-                        <div
-                            style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; left: 3px; top: 11px;">
-                        </div>
-                        <div
-                            style="position:absolute; width: 6px; height: 6px; background: #be185d; border-radius: 50%; right: 3px; top: 11px;">
-                        </div>
-                        <i class="fas fa-plus"
-                            style="color: #be185d; font-size: 10px; font-weight: 900; position:absolute; top:9px; left:10px;"></i>
+                    </div>
+                    <div class="block-param" data-val="40"><i class="fas fa-chevron-down"></i></div>
+                </div>
+
+                <!-- NEW 자동차 앞으로 이동 블록 -->
+                <div class="spike-block bg-pink" draggable="true" data-action="car_forward"
+                    style="background: #f472b6;">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 자동차 전진 위쪽 화살표 -->
+                        <i class="fas fa-arrow-up" style="color: white; font-size: 32px;"></i>
+                    </div>
+                    <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1
                     </div>
                 </div>
-                <!-- 하단 속도계 초록색 막대 -->
-                <div style="display:flex; align-items:flex-end; gap:2px; height: 10px; margin-top: 4px; z-index:3;">
-                    <div style="width:5px; height:4px; background:#22c55e;"></div>
-                    <div style="width:5px; height:6px; background:#22c55e;"></div>
-                    <div
-                        style="width:5px; height:8px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
+
+                <!-- NEW 자동차 뒤로 이동 블록 -->
+                <div class="spike-block bg-pink" draggable="true" data-action="car_backward"
+                    style="background: #f472b6;">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 자동차 후진 아래쪽 화살표 -->
+                        <i class="fas fa-arrow-down" style="color: white; font-size: 32px;"></i>
                     </div>
-                    <div
-                        style="width:5px; height:10px; background:white; border: 1px solid #22c55e; box-sizing:border-box;">
-                    </div>
-                </div>
-            </div>
-            <div class="block-param" data-val="40"><i class="fas fa-chevron-down"></i></div>
-        </div>
-
-        <!-- NEW 자동차 앞으로 이동 블록 -->
-        <div class="spike-block bg-pink" draggable="true" data-action="car_forward" style="background: #f472b6;">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 자동차 전진 위쪽 화살표 -->
-                <i class="fas fa-arrow-up" style="color: white; font-size: 32px;"></i>
-            </div>
-            <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
-
-        <!-- NEW 자동차 뒤로 이동 블록 -->
-        <div class="spike-block bg-pink" draggable="true" data-action="car_backward" style="background: #f472b6;">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 자동차 후진 아래쪽 화살표 -->
-                <i class="fas fa-arrow-down" style="color: white; font-size: 32px;"></i>
-            </div>
-            <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
-
-        <!-- NEW 자동차 좌회전 블록 -->
-        <div class="spike-block bg-pink" draggable="true" data-action="car_left" style="background: #f472b6;">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 자동차 좌회전 화살표 -->
-                <i class="fas fa-undo" style="color: white; font-size: 32px;"></i>
-            </div>
-            <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
-
-        <!-- NEW 자동차 우회전 블록 -->
-        <div class="spike-block bg-pink" draggable="true" data-action="car_right" style="background: #f472b6;">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 자동차 우회전 화살표 -->
-                <i class="fas fa-redo" style="color: white; font-size: 32px;"></i>
-            </div>
-            <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
-
-        <!-- NEW 모터 시계방향 작동 블록 -->
-        <div class="spike-block bg-blue" draggable="true" data-action="motor_cw" style="background: #0284c7;">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 모터 방향 아이콘 조합 (시계) -->
-                <div
-                    style="position:relative; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transform: scale(1.5);">
-                    <!-- 녹색 시계방향 화살표 -->
-                    <i class="fas fa-redo" style="color: #22c55e; font-size: 24px; position:absolute; z-index:1;"></i>
-                    <!-- 중앙 모터 디스크 -->
-                    <div
-                        style="width: 16px; height: 16px; background: white; border-radius: 50%; z-index: 2; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display:flex; justify-content:center; align-items:center;">
-                        <div
-                            style="position:absolute; top:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
-                        </div>
-                        <div
-                            style="position:absolute; bottom:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
-                        </div>
-                        <div
-                            style="position:absolute; left:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
-                        </div>
-                        <div
-                            style="position:absolute; right:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
-                        </div>
-                        <i class="fas fa-plus" style="color: #0284c7; font-size: 8px; font-weight: 900;"></i>
+                    <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1
                     </div>
                 </div>
-            </div>
-            <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
 
-        <!-- NEW 모터 반시계방향 작동 블록 -->
-        <div class="spike-block bg-blue" draggable="true" data-action="motor_ccw" style="background: #0284c7;">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 모터 방향 아이콘 조합 (반시계) -->
-                <div
-                    style="position:relative; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transform: scale(1.5);">
-                    <!-- 녹색 반시계방향 화살표 -->
-                    <i class="fas fa-undo" style="color: #22c55e; font-size: 24px; position:absolute; z-index:1;"></i>
-                    <!-- 중앙 모터 디스크 -->
-                    <div
-                        style="width: 16px; height: 16px; background: white; border-radius: 50%; z-index: 2; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display:flex; justify-content:center; align-items:center;">
+                <!-- NEW 자동차 좌회전 블록 -->
+                <div class="spike-block bg-pink" draggable="true" data-action="car_left" style="background: #f472b6;">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 자동차 좌회전 화살표 -->
+                        <i class="fas fa-undo" style="color: white; font-size: 32px;"></i>
+                    </div>
+                    <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1
+                    </div>
+                </div>
+
+                <!-- NEW 자동차 우회전 블록 -->
+                <div class="spike-block bg-pink" draggable="true" data-action="car_right" style="background: #f472b6;">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 자동차 우회전 화살표 -->
+                        <i class="fas fa-redo" style="color: white; font-size: 32px;"></i>
+                    </div>
+                    <div class="block-param param-time" style="border-radius:16px; min-width:32px; padding:2px 8px;">1
+                    </div>
+                </div>
+
+                <!-- NEW 모터 시계방향 작동 블록 -->
+                <div class="spike-block bg-blue" draggable="true" data-action="motor_cw" style="background: #0284c7;">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 모터 방향 아이콘 조합 (시계) -->
                         <div
-                            style="position:absolute; top:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                            style="position:relative; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transform: scale(1.5);">
+                            <!-- 녹색 시계방향 화살표 -->
+                            <i class="fas fa-redo"
+                                style="color: #22c55e; font-size: 24px; position:absolute; z-index:1;"></i>
+                            <!-- 중앙 모터 디스크 -->
+                            <div
+                                style="width: 16px; height: 16px; background: white; border-radius: 50%; z-index: 2; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display:flex; justify-content:center; align-items:center;">
+                                <div
+                                    style="position:absolute; top:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <div
+                                    style="position:absolute; bottom:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <div
+                                    style="position:absolute; left:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <div
+                                    style="position:absolute; right:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <i class="fas fa-plus" style="color: #0284c7; font-size: 8px; font-weight: 900;"></i>
+                            </div>
                         </div>
+                    </div>
+                    <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
+                </div>
+
+                <!-- NEW 모터 반시계방향 작동 블록 -->
+                <div class="spike-block bg-blue" draggable="true" data-action="motor_ccw" style="background: #0284c7;">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 모터 방향 아이콘 조합 (반시계) -->
                         <div
-                            style="position:absolute; bottom:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                            style="position:relative; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transform: scale(1.5);">
+                            <!-- 녹색 반시계방향 화살표 -->
+                            <i class="fas fa-undo"
+                                style="color: #22c55e; font-size: 24px; position:absolute; z-index:1;"></i>
+                            <!-- 중앙 모터 디스크 -->
+                            <div
+                                style="width: 16px; height: 16px; background: white; border-radius: 50%; z-index: 2; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display:flex; justify-content:center; align-items:center;">
+                                <div
+                                    style="position:absolute; top:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <div
+                                    style="position:absolute; bottom:2px; left:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <div
+                                    style="position:absolute; left:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <div
+                                    style="position:absolute; right:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                                </div>
+                                <i class="fas fa-plus" style="color: #0284c7; font-size: 8px; font-weight: 900;"></i>
+                            </div>
                         </div>
+                    </div>
+                    <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
+                </div>
+
+                <!-- NEW 모터 멈춤 블록 -->
+                <div class="spike-block bg-blue" draggable="true" data-action="motor_stop" style="background: #0284c7;">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 중앙 모터 디스크 -->
                         <div
-                            style="position:absolute; left:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                            style="width: 20px; height: 20px; background: white; border-radius: 50%; z-index: 1; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display:flex; justify-content:center; align-items:center; transform: scale(1.5);">
+                            <div
+                                style="position:absolute; top:2px; left:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
+                            </div>
+                            <div
+                                style="position:absolute; bottom:2px; left:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
+                            </div>
+                            <div
+                                style="position:absolute; left:2px; top:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
+                            </div>
+                            <div
+                                style="position:absolute; right:2px; top:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
+                            </div>
+                            <i class="fas fa-plus" style="color: #0284c7; font-size: 8px; font-weight: 900;"></i>
+
+                            <!-- 빨간 멈춤 표시 오버레이 -->
+                            <div
+                                style="position:absolute; bottom:-3px; right:-3px; width:12px; height:12px; background:#ef4444; border-radius:50%; display:flex; justify-content:center; align-items:center; z-index:2; box-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                                <div style="width:5px; height:5px; background:white; border-radius: 1px;"></div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 3. 진보라(라이트 매트릭스) 추가 -->
+                <div class="spike-block bg-purple" draggable="true" data-action="matrix_pixel">
+                    <div
+                        style="display: flex; flex-wrap: wrap; gap: 2px; width: 34px; height: 34px; background: #6b21a8; padding: 2px; border-radius: 6px; z-index: 5; pointer-events: none; margin-left: -5px; box-sizing: border-box; box-shadow: inset 0 0 0 1px #581c87; position: relative;">
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+                        <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
+
+                    </div>
+
+                    <!-- 통합 메뉴 팝업 트리거 (우측에 위치) -->
+                    <div class="block-param param-unified"
+                        style="border-radius:50%; width: 24px; height: 24px; display:flex; justify-content:center; align-items:center; background: white; left: 50%; transform: translateX(-50%); margin-left: 0;"
+                        data-val="2">
+                        <i class="fas fa-chevron-down" style="font-size:12px; color:#475569;"></i>
+                    </div>
+                </div>
+
+                <div class="category-divider"></div>
+
+                <!-- NEW 음악 (사운드 플레이) 블록 -->
+                <div class="spike-block bg-purple" draggable="true" data-action="sound_play">
+                    <div class="block-icon"
+                        style="display:flex; align-items:center; justify-content:center; position:relative; margin-left: -5px;">
+                        <!-- 스피커 라우드 아이콘 -->
+                        <i class="fas fa-volume-up" style="color: white; font-size: 28px;"></i>
+                        <!-- 연두색 음표 아이콘 -->
+                        <i class="fas fa-music"
+                            style="color: #4ade80; font-size: 16px; position:absolute; right: -8px; top:-6px; text-shadow: 1px 1px 0 #166534;"></i>
+                    </div>
+                    <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
+                </div>
+
+                <div class="category-divider"></div>
+
+                <!-- NEW 반복 루프 블록 -->
+                <div class="spike-block bg-orange" draggable="true" data-action="control_repeat">
+                    <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
+                        <!-- 루프 화살표 아이콘 -->
+                        <i class="fas fa-undo"
+                            style="color: white; font-size: 32px; transform: scaleX(-1) rotate(-30deg);"></i>
+                    </div>
+                    <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">4</div>
+                </div>
+
+                <!-- NEW 무한 루프 블록 -->
+                <div class="spike-block bg-orange loop-block" draggable="true" data-action="control_forever">
+                    <div class="loop-block-head">
+                        <i class="fas fa-sync-alt" style="color: white; font-size: 32px;"></i>
+                    </div>
+                    <div class="loop-block-bottom"></div>
+                    <div class="loop-block-tail">
                         <div
-                            style="position:absolute; right:2px; top:6.5px; width:3px; height:3px; border-radius:50%; background:#0284c7;">
+                            style="position:absolute; right:8px; bottom:25px; color:rgba(255,255,255,0.7); font-size:14px;">
+                            <i class="fas fa-sync-alt"></i>
                         </div>
-                        <i class="fas fa-plus" style="color: #0284c7; font-size: 8px; font-weight: 900;"></i>
                     </div>
+                    <div class="block-stack loop-inner-stack"></div>
                 </div>
-            </div>
-            <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
 
-        <!-- NEW 모터 멈춤 블록 -->
-        <div class="spike-block bg-blue" draggable="true" data-action="motor_stop" style="background: #0284c7;">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 중앙 모터 디스크 -->
-                <div
-                    style="width: 20px; height: 20px; background: white; border-radius: 50%; z-index: 1; position:relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display:flex; justify-content:center; align-items:center; transform: scale(1.5);">
-                    <div
-                        style="position:absolute; top:2px; left:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
-                    </div>
-                    <div
-                        style="position:absolute; bottom:2px; left:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
-                    </div>
-                    <div
-                        style="position:absolute; left:2px; top:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
-                    </div>
-                    <div
-                        style="position:absolute; right:2px; top:8px; width:4px; height:4px; border-radius:50%; background:#0284c7;">
-                    </div>
-                    <i class="fas fa-plus" style="color: #0284c7; font-size: 8px; font-weight: 900;"></i>
+                <div class="category-divider"></div>
 
-                    <!-- 빨간 멈춤 표시 오버레이 -->
-                    <div
-                        style="position:absolute; bottom:-3px; right:-3px; width:12px; height:12px; background:#ef4444; border-radius:50%; display:flex; justify-content:center; align-items:center; z-index:2; box-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-                        <div style="width:5px; height:5px; background:white; border-radius: 1px;"></div>
+                <!-- NEW AI 제스처 이벤트 블록 (보라색) -->
+                <div class="spike-block" draggable="true" data-action="event_ai_gesture" style="background: #a855f7;">
+                    <div class="block-icon"
+                        style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+                        <div style="color: #6ee7b7; font-size: 16px; position:absolute; top:-10px;">
+                            <i class="fas fa-wifi" style="transform: rotate(-45deg);"></i>
+                        </div>
+                        <div style="color: white; font-size: 18px; z-index: 2; margin-top: 5px;">
+                            <i class="fas fa-hand-sparkles"></i>
+                        </div>
                     </div>
+                    <div class="block-param" data-val="1">
+                        <i class="fas fa-hand-paper" style="color:#64748b;"></i>
+                    </div>
+                    <style>
+                        .spike-block[data-action="event_ai_gesture"] {
+                            border-radius: 35px 16px 16px 35px;
+                            width: 80px;
+                        }
+
+                        .spike-block[data-action="event_ai_gesture"]::before {
+                            display: none;
+                        }
+
+                        .spike-block[data-action="event_ai_gesture"]::after {
+                            background: #a855f7 !important;
+                        }
+
+                        .spike-block[data-action="event_ai_gesture"] .block-icon {
+                            margin-left: -5px;
+                            font-size: 32px;
+                        }
+                    </style>
                 </div>
-            </div>
-        </div>
-
-        <!-- 3. 진보라(라이트 매트릭스) 추가 -->
-        <div class="spike-block bg-purple" draggable="true" data-action="matrix_pixel">
-            <div
-                style="display: flex; flex-wrap: wrap; gap: 2px; width: 34px; height: 34px; background: #6b21a8; padding: 2px; border-radius: 6px; z-index: 5; pointer-events: none; margin-left: -5px; box-sizing: border-box; box-shadow: inset 0 0 0 1px #581c87; position: relative;">
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
-                <div style="background: #581c87; width: 8px; height: 8px; border-radius: 1px;"></div>
 
             </div>
 
-            <!-- 통합 메뉴 팝업 트리거 (우측에 위치) -->
-            <div class="block-param param-unified"
-                style="border-radius:50%; width: 24px; height: 24px; display:flex; justify-content:center; align-items:center; background: white; left: 50%; transform: translateX(-50%); margin-left: 0;"
-                data-val="2">
-                <i class="fas fa-chevron-down" style="font-size:12px; color:#475569;"></i>
-            </div>
-        </div>
-
-        <div class="category-divider"></div>
-
-        <!-- NEW 음악 (사운드 플레이) 블록 -->
-        <div class="spike-block bg-purple" draggable="true" data-action="sound_play">
-            <div class="block-icon"
-                style="display:flex; align-items:center; justify-content:center; position:relative; margin-left: -5px;">
-                <!-- 스피커 라우드 아이콘 -->
-                <i class="fas fa-volume-up" style="color: white; font-size: 28px;"></i>
-                <!-- 연두색 음표 아이콘 -->
-                <i class="fas fa-music"
-                    style="color: #4ade80; font-size: 16px; position:absolute; right: -8px; top:-6px; text-shadow: 1px 1px 0 #166534;"></i>
-            </div>
-            <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">1</div>
-        </div>
-
-        <div class="category-divider"></div>
-
-        <!-- NEW 반복 루프 블록 -->
-        <div class="spike-block bg-orange" draggable="true" data-action="control_repeat">
-            <div class="block-icon" style="display:flex; align-items:center; justify-content:center;">
-                <!-- 루프 화살표 아이콘 -->
-                <i class="fas fa-undo" style="color: white; font-size: 32px; transform: scaleX(-1) rotate(-30deg);"></i>
-            </div>
-            <div class="block-param" style="border-radius:16px; min-width:32px; padding:2px 8px;">4</div>
-        </div>
-
-        <!-- NEW 무한 루프 블록 -->
-        <div class="spike-block bg-orange loop-block" draggable="true" data-action="control_forever">
-            <div class="loop-block-head">
-                <i class="fas fa-sync-alt" style="color: white; font-size: 32px;"></i>
-            </div>
-            <div class="loop-block-bottom"></div>
-            <div class="loop-block-tail">
-                <div style="position:absolute; right:8px; bottom:25px; color:rgba(255,255,255,0.7); font-size:14px;">
-                    <i class="fas fa-sync-alt"></i>
-                </div>
-            </div>
-            <div class="block-stack loop-inner-stack"></div>
-        </div>
-
-        <div class="category-divider"></div>
-
-        <!-- NEW AI 제스처 이벤트 블록 (보라색) -->
-        <div class="spike-block" draggable="true" data-action="event_ai_gesture" style="background: #a855f7;">
-            <div class="block-icon" style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
-                <div style="color: #6ee7b7; font-size: 16px; position:absolute; top:-10px;">
-                    <i class="fas fa-wifi" style="transform: rotate(-45deg);"></i>
-                </div>
-                <div style="color: white; font-size: 18px; z-index: 2; margin-top: 5px;">
-                    <i class="fas fa-hand-sparkles"></i>
-                </div>
-            </div>
-            <div class="block-param" data-val="1">
-                 <i class="fas fa-hand-paper" style="color:#64748b;"></i>
-            </div>
-            <style>
-                .spike-block[data-action="event_ai_gesture"] { border-radius: 35px 16px 16px 35px; width: 80px; }
-                .spike-block[data-action="event_ai_gesture"]::before { display: none; }
-                .spike-block[data-action="event_ai_gesture"]::after { background: #a855f7 !important; }
-                .spike-block[data-action="event_ai_gesture"] .block-icon { margin-left: -5px; font-size: 32px; }
-            </style>
-        </div>
-
-    </div>
-    
-    </div> <!-- 우측 워크스페이스 컨테이너 닫기 -->
+        </div> <!-- 우측 워크스페이스 컨테이너 닫기 -->
     </div> <!-- 전체 스플릿 컨테이너 닫기 -->
 
     <script>
@@ -2997,7 +3044,7 @@
                 await window.parent.connectBluetooth();
             } catch (e) {
                 console.error("SPA 프록시 블루투스 연결 실패", e);
-                alert("❌ 블루투스 연결 실패: " + e.message + "\n\n반드시 바탕화면의 [app.html]을 통해 실행하셔야 합니다!");
+                alert("❌ 블루투스 연결 취소 또는 실패 (" + e.message + ")\n👉 레고 스파이크 전원이 켜져있는지(파란불 깜빡임) 확인 후 다시 시도해주세요!");
             }
         }
 
@@ -3028,10 +3075,10 @@
             const validStacks = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).filter(stack => {
                 const firstBlock = stack.querySelector('.workspace-item');
                 const action = firstBlock ? firstBlock.getAttribute('data-action') : '';
-                
+
                 if (triggerAction === 'gui') {
                     // GUI "실행" 버튼 클릭 시에는 AI 제스처 개별 트리거 스택은 무시 
-                    if (action === 'event_ai_gesture') return false; 
+                    if (action === 'event_ai_gesture') return false;
                     return action === 'start' || action.startsWith('event_');
                 } else {
                     // 시스템(AI 락다운 머신)에서 특정 제스처로 트리거했을 때
@@ -3083,16 +3130,23 @@ global_motor_speed = 40
 def rm(v):
   try:
     import motor
-    # 파란색 모터 블록은 오직 A(0)번 포트만 제어합니다.
-    try: motor.set_duty_cycle(0, int(v * 100))
-    except:
-      try: motor.run(0, int(v * 100))
-      except: pass
+    for i in range(6):
+      try:
+        motor.set_duty_cycle(i, int(v * 100))
+        break
+      except:
+        try:
+          motor.run(i, int(v * 100))
+          break
+        except: pass
   except:
-    pA = getattr(hub.port, 'A', None)
-    if pA and hasattr(pA, 'motor'):
-      try: pA.motor.pwm(int(v))
-      except: pass
+    for pName in ['A','B','C','D','E','F']:
+      p = getattr(hub.port, pName, None)
+      if p and hasattr(p, 'motor'):
+        try:
+          p.motor.pwm(int(v))
+          break
+        except: pass
 
 def sm():
   try:
@@ -3196,7 +3250,7 @@ print("BrickSync Sandbox Run")
                             let p0_sign = (action === 'car_forward' || action === 'car_right') ? '-' : '';
                             let p1_sign = (action === 'car_forward' || action === 'car_left') ? '' : '-';
                             pyCode += `${indent}dm(${p0_sign}global_motor_speed, ${p1_sign}global_motor_speed)\n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            
+
                             let fws = action === 'car_forward' ? 'UP' : action === 'car_backward' ? 'DOWN' : action === 'car_left' ? 'LEFT' : 'RIGHT';
                             localActionsQueue.push({ action: 'STEER_' + fws, delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
@@ -3205,22 +3259,18 @@ print("BrickSync Sandbox Run")
                             break;
                         case 'motor_cw':
                             pyCode += `${indent}rm(global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'MWHEEL_RIGHT', delay: cumulativeDelayMs });
+                            localActionsQueue.push({ action: 'motor_cw', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_ccw':
                             pyCode += `${indent}rm(-global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'MWHEEL_LEFT', delay: cumulativeDelayMs });
+                            localActionsQueue.push({ action: 'motor_ccw', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_stop':
                             pyCode += `${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_UP', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_DOWN', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_LEFT', delay: cumulativeDelayMs });
@@ -3340,7 +3390,7 @@ print("BrickSync Sandbox Run")
                 localActionsQueue.forEach(item => {
                     setTimeout(() => {
                         if (window.bleEngineRunCounter !== currentRunId) return; // 실행 종료/취소 감지
-                        try { window.parent.sendWebSocketAction({ action: item.action }); } catch(e){}
+                        try { window.parent.sendWebSocketAction({ action: item.action }); } catch (e) { }
                     }, item.delay);
                 });
             }
@@ -3497,19 +3547,13 @@ print("BrickSync Sandbox Run")
                                 if (window.bleEngineRunCounter !== currentRunId) return;
 
                                 if (cmd.action === 'motor' || cmd.action === 'motor_cw' || cmd.action === 'motor_ccw' || cmd.action.startsWith('motor_stop')) {
-                                    if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'MWHEEL_RIGHT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'MWHEEL_LEFT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_cw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_ccw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_generic') try { 
-                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); 
-                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); 
-                                    } catch (e) { }
+                                    if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'motor_cw' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'motor_ccw' }); } catch (e) { }
                                     let speedInt = Math.round(cmd.speed);
                                     let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
-                                    for (let p = 0; p < 2; p++) {
+                                    for (let p = 0; p < 6; p++) {
                                         const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
-                                        if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
+                                        if (!dev || dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, speedHex])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
                                         break; // 전문가 패치: 파란색(단일 모터) 블록은 가장 먼저 인식된 모터 1개만 돌리고 루프 탈출
@@ -3858,8 +3902,8 @@ print("BrickSync Sandbox Run")
                     닫기
                 </button>
             </div>
-            </div>
         </div>
+    </div>
     </div>
 
     <!-- 🚀 AI CAMERA ENGINE (Seesaw Protection System) 🚀 -->
@@ -3869,7 +3913,7 @@ print("BrickSync Sandbox Run")
         let net;
         let aiLoopRunning = false;
         let aiConfidenceThreshold = 0.85; // 신뢰도 85% 이상만 캡처
-        
+
         let lastTriggeredAiGesture = -1; // 댐 스위치 상태락다운 변수
         let candidateAiGesture = -1; // 현재 프레임의 연속 후보
         let consecutiveAiFrames = 0; // 연속 감지 프레임 카운터
@@ -3919,14 +3963,14 @@ print("BrickSync Sandbox Run")
                     const img = await webcamElement;
                     const activation = net.infer(img, 'conv_preds');
                     const result = await classifier.predictClass(activation);
-                    
+
                     if (result.confidences[result.label] > aiConfidenceThreshold) {
                         const detectedGesture = parseInt(result.label);
                         const labels = ['주먹 (Rock)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
                         const icons = ['fa-hand-rock', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
-                        
+
                         currentGestureLabel.innerHTML = `<i class="fas ${icons[detectedGesture]}"></i> ${labels[detectedGesture]} (${Math.round(result.confidences[result.label] * 100)}%)`;
-                        
+
                         // 🔒 시소 이펙트 철통 방어 (연속 프레임 교차 검증) 🔒
                         // 사유: 학습 데이터가 적을 때 1~2프레임 단위로 예측이 요동치는(Flicker) 현상 방지. 최소 10프레임 이상 연속 일치해야만 통과.
                         if (candidateAiGesture === detectedGesture) {
@@ -3954,7 +3998,7 @@ print("BrickSync Sandbox Run")
             const activation = net.infer(webcamElement, 'conv_preds');
             classifier.addExample(activation, classId);
             examplesCount[classId]++;
-            
+
             document.getElementById('count-rock').innerText = `${examplesCount[0]}개`;
             document.getElementById('count-paper').innerText = `${examplesCount[1]}개`;
             document.getElementById('count-scissors').innerText = `${examplesCount[2]}개`;
@@ -3965,4 +4009,5 @@ print("BrickSync Sandbox Run")
         setTimeout(app, 1500);
     </script>
 </body>
+
 </html>

@@ -28,7 +28,7 @@
 			"maxSocialPartySize": 16,
 			"allowJoinInProgress": true,
 			"allowSquadFillOption": false,
-			"islandQueuePrivacy": "Public",
+			"islandQueuePrivacy": "Unrestricted",
 			"minPlayers": 1,
 			"overtimePlayerTarget": 1,
 			"queueMainDuration": 5,

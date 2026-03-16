@@ -2962,16 +2962,23 @@ global_motor_speed = 40
 def rm(v):
   try:
     import motor
-    # 파란색 모터 블록은 오직 A(0)번 포트만 제어합니다.
-    try: motor.set_duty_cycle(0, int(v * 100))
-    except:
-      try: motor.run(0, int(v * 100))
-      except: pass
+    for i in range(6):
+      try:
+        motor.set_duty_cycle(i, int(v * 100))
+        break
+      except:
+        try:
+          motor.run(i, int(v * 100))
+          break
+        except: pass
   except:
-    pA = getattr(hub.port, 'A', None)
-    if pA and hasattr(pA, 'motor'):
-      try: pA.motor.pwm(int(v))
-      except: pass
+    for pName in ['A','B','C','D','E','F']:
+      p = getattr(hub.port, pName, None)
+      if p and hasattr(p, 'motor'):
+        try:
+          p.motor.pwm(int(v))
+          break
+        except: pass
 
 def sm():
   try:
@@ -3084,22 +3091,18 @@ print("BrickSync Sandbox Run")
                             break;
                         case 'motor_cw':
                             pyCode += `${indent}rm(global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'MWHEEL_RIGHT', delay: cumulativeDelayMs });
+                            localActionsQueue.push({ action: 'motor_cw', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_ccw':
                             pyCode += `${indent}rm(-global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'MWHEEL_LEFT', delay: cumulativeDelayMs });
+                            localActionsQueue.push({ action: 'motor_ccw', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_stop':
                             pyCode += `${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_UP', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_DOWN', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_LEFT', delay: cumulativeDelayMs });
@@ -3372,19 +3375,13 @@ print("BrickSync Sandbox Run")
                                 if (window.bleEngineRunCounter !== currentRunId) return;
 
                                 if (cmd.action === 'motor' || cmd.action === 'motor_cw' || cmd.action === 'motor_ccw' || cmd.action.startsWith('motor_stop')) {
-                                    if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'MWHEEL_RIGHT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'MWHEEL_LEFT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_cw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_ccw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_generic') try { 
-                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); 
-                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); 
-                                    } catch (e) { }
+                                    if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'motor_cw' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'motor_ccw' }); } catch (e) { }
                                     let speedInt = Math.round(cmd.speed);
                                     let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
-                                    for (let p = 0; p < 2; p++) {
+                                    for (let p = 0; p < 6; p++) {
                                         const dev = window.parent.hubDevices ? window.parent.hubDevices[p] : undefined;
-                                        if (dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
+                                        if (!dev || dev === 64 || dev === 61 || dev === 62 || dev === 63) continue;
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, speedHex])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
                                         break; // 전문가 패치: 파란색(단일 모터) 블록은 가장 먼저 인식된 모터 1개만 돌리고 루프 탈출
