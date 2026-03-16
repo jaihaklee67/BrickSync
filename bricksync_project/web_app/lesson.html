@@ -3095,18 +3095,22 @@ print("BrickSync Sandbox Run")
                             break;
                         case 'motor_cw':
                             pyCode += `${indent}rm(global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'motor_cw', delay: cumulativeDelayMs });
+                            localActionsQueue.push({ action: 'MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
+                            localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_ccw':
                             pyCode += `${indent}rm(-global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'motor_ccw', delay: cumulativeDelayMs });
+                            localActionsQueue.push({ action: 'MWHEEL_LEFT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
+                            localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_stop':
                             pyCode += `${indent}sm() \n`;
+                            localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
+                            localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_UP', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_DOWN', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_LEFT', delay: cumulativeDelayMs });
@@ -3379,8 +3383,14 @@ print("BrickSync Sandbox Run")
                                 if (window.bleEngineRunCounter !== currentRunId) return;
 
                                 if (cmd.action === 'motor' || cmd.action === 'motor_cw' || cmd.action === 'motor_ccw' || cmd.action.startsWith('motor_stop')) {
-                                    if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'motor_cw' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'motor_ccw' }); } catch (e) { }
+                                    if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'MWHEEL_RIGHT' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'MWHEEL_LEFT' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_stop_cw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_stop_ccw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_stop_generic') try { 
+                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); 
+                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); 
+                                    } catch (e) { }
                                     let speedInt = Math.round(cmd.speed);
                                     let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
                                     for (let p = 0; p < 6; p++) {
