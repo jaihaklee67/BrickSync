@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrickSync - 교사 대시보드 (Zero-Latency)</title>
+    <!-- 폰트: 한글은 Noto Sans, 영문은 Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js 데이터 시각화 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+            background-color: #0f172a; /* 다크 테마 기반 */
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 40px;
+            /* 배경 격자 패턴으로 해커/관제탑 느낌 극대화 */
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-area i {
+            font-size: 2.5rem;
+            color: #38bdf8;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #475569;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .card-value {
+            font-size: 3rem;
+            font-weight: 900;
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+
+        .card-unit {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        /* 라이브 로그 터미널 창 */
+        .log-terminal {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 25px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: 'Outfit', monospace;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .log-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 10px;
+            font-family: 'Outfit', monospace;
+            font-size: 0.95rem;
+        }
+
+        .log-list::-webkit-scrollbar { width: 6px; }
+        .log-list::-webkit-scrollbar-track { background: transparent; }
+        .log-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .log-item {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            border-left: 3px solid #334155;
+            animation: slideIn 0.3s ease-out;
+            color: #cbd5e1;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-item.motor { border-color: #38bdf8; }
+        .log-item.motor .tag { color: #38bdf8; font-weight: 700; }
+        
+        .log-item.sensor { border-color: #a855f7; }
+        .log-item.sensor .tag { color: #a855f7; font-weight: 700; }
+
+        .log-item.system { border-color: #10b981; }
+        .log-item.system .tag { color: #10b981; font-weight: 700; }
+        
+        /* 차트 영역 */
+        .chart-container {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 25px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-area">
+            <i class="fas fa-satellite-dish"></i>
+            <div>
+                <div class="title">BrickSync 실시간 관제 센터</div>
+                <div class="subtitle">Multi-Thread Broadcast Architecture 기반 Zero-Latency 모니터링</div>
+            </div>
+        </div>
+        <div class="status-badge">
+            <div class="dot"></div>
+            메인 게임 프로세스와 100% 무결점 분리 연동 중
+        </div>
+    </div>
+
+    <!-- 핵심 지표 (3개 카드) -->
+    <div class="grid-container">
+        <div class="card">
+            <div class="card-header"><i class="far fa-clock" style="color:#eab308;"></i> 순수 집중 학습 시간</div>
+            <div class="card-value" id="val-time">00:00:00</div>
+        </div>
+        <div class="card">
+            <div class="card-header"><i class="fas fa-cogs" style="color:#38bdf8;"></i> 블록 로직 실행(모터) 누적</div>
+            <div class="card-value"><span id="val-blocks">0</span><span class="card-unit">회</span></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><i class="fas fa-wave-square" style="color:#a855f7;"></i> 물리 교구 센서 상호작용</div>
+            <div class="card-value"><span id="val-sensors">0</span><span class="card-unit">회</span></div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <!-- 라이브 로그 터미널 -->
+        <div class="log-terminal">
+            <div class="log-header">
+                <span><i class="fas fa-terminal"></i> BroadcastChannel 수신 패킷 터미널</span>
+                <span style="color:#10b981;">● Listening on port: 브라우저 내부 메모리망</span>
+            </div>
+            <ul class="log-list" id="activity-log">
+                <li class="log-item system">
+                    <span class="tag">[SYSTEM]</span> 관제 센터 스레드가 게임 스레드와 통신망을 수립했습니다. 신호 대기 중...
+                </li>
+            </ul>
+        </div>
+
+        <!-- 실시간 차트 -->
+        <div class="chart-container">
+            <div class="card-header"><i class="fas fa-chart-line" style="color:#f43f5e;"></i> 분당 상호작용 빈도수 (APM)</div>
+            <div style="flex: 1; position: relative;">
+                <canvas id="apmChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 교육 데이터 통계 로직
+        // ==========================================
+        let sessionStart = Date.now();
+        let statBlocks = 0;
+        let statSensors = 0;
+        
+        let chartData = Array(10).fill(0); // 최근 10분에 대한 데이터
+
+        // 1초마다 타이머 렌더링
+        setInterval(() => {
+            const diff = Math.floor((Date.now() - sessionStart) / 1000);
+            const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+            const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+            const s = String(diff % 60).padStart(2, '0');
+            document.getElementById('val-time').textContent = `${h}:${m}:${s}`;
+        }, 1000); // 뷰 업데이트는 1초마다 하더라도, 데이터를 받는 건 실시간임.
+
+        // ==========================================
+        // 2. BroadcastChannel 통신부 (핵심: 0ms 딜레이 기술)
+        // ==========================================
+        // 'bricksync_monitor'라는 브라우저 내부 무전 채널 주파수를 맞춥니다.
+        const monitorChannel = new BroadcastChannel('bricksync_monitor');
+
+        // 송신팀(lesson.html)으로부터 메시지가 들어왔을 때 트리거
+        monitorChannel.onmessage = function(event) {
+            const data = event.data; // { type: 'motor'|'sensor', msg: '어떤 동작인지' }
+            
+            // 1. 데이터 카운트 증가
+            if(data.type === 'motor' || data.type === 'ACTION') {
+                statBlocks++;
+                document.getElementById('val-blocks').textContent = statBlocks;
+            } else if (data.type === 'sensor' || data.type === 'SENSOR') {
+                statSensors++;
+                document.getElementById('val-sensors').textContent = statSensors;
+            }
+
+            // 차트 데이터용 (현재 분(minute)의 카운트 올리기)
+            chartData[chartData.length - 1]++;
+            
+            // 2. 로그 리스트에 UI 추가
+            addLogItem(data.type, data.msg);
+        };
+
+        function addLogItem(type, text) {
+            const list = document.getElementById('activity-log');
+            const li = document.createElement('li');
+            const timeStr = new Date().toLocaleTimeString('ko-KR');
+            
+            // 구분하기 쉽게 클래스 부여
+            let cssClass = 'system';
+            let tagStr = '[SYSTEM]';
+            if(type === 'motor' || type === 'ACTION') { cssClass = 'motor'; tagStr = '[MOTOR]'; }
+            if(type === 'sensor' || type === 'SENSOR') { cssClass = 'sensor'; tagStr = '[SENSOR]'; }
+
+            li.className = `log-item ${cssClass}`;
+            li.innerHTML = `<span style="color:#64748b;">[${timeStr}]</span> <span class="tag">${tagStr}</span> ${text}`;
+            
+            list.insertBefore(li, list.children[0]);
+
+            // 오버플로우 메모리 누수 방지
+            if(list.children.length > 50) {
+                list.removeChild(list.lastChild);
+            }
+        }
+
+        // ==========================================
+        // 3. 차트 (Chart.js)
+        // ==========================================
+        const ctx = document.getElementById('apmChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(244, 63, 94, 0.5)'); // 분홍빛 그라데이션
+        gradient.addColorStop(1, 'rgba(244, 63, 94, 0.0)');
+
+        const apmChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['-9분', '-8분', '-7분', '-6분', '-5분', '-4분', '-3분', '-2분', '-1분', '현재'],
+                datasets: [{
+                    label: '조작 빈도(회/분)',
+                    data: chartData,
+                    borderColor: '#f43f5e',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    tension: 0.4, // 부드러운 곡선
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#f43f5e',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }, // 깔끔하게 범례 숨김
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', stepSize: 5 }, beginAtZero: true }
+                },
+                animation: { duration: 500 } // 부드러운 차트 갱신
+            }
+        });
+
+        // 1분(60초)마다 차트 배열을 한 칸씩 왼쪽으로 밀어내고 최신 데이터를 0으로 초기화
+        setInterval(() => {
+            chartData.shift(); // 맨 앞 버림
+            chartData.push(0); // 맨 뒤에 새 공간 확보
+            apmChart.update();
+        }, 60000);
+        
+        // 차트 스무스 애니메이션용 (1초마다 업데이트만 침)
+        setInterval(() => { apmChart.update(); }, 2000);
+
+    </script>
+</body>
+</html>

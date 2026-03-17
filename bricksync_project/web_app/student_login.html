@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrickSync - AI 학습단원 입장</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', 'Outfit', sans-serif; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% -20%, #312e81 0%, #0f172a 70%);
+        }
+        .login-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 50px 40px;
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+        }
+        .brand {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #facc15;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 40px;
+        }
+        .input-group {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            color: #cbd5e1;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        .input-box {
+            position: relative;
+        }
+        .input-box i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        .input-box input {
+            width: 100%;
+            background: #020617;
+            border: 2px solid #334155;
+            padding: 16px 16px 16px 50px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-box input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4f46e5, #9333ea);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 10px 20px rgba(147, 51, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(147, 51, 234, 0.5);
+        }
+        .skip-link {
+            display: block;
+            margin-top: 25px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .skip-link:hover {
+            color: #cbd5e1;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="brand">BrickSync</div>
+        <div class="subtitle">AI 코딩 및 포트나이트 통합 제어 플랫폼</div>
+
+        <div class="input-group">
+            <label for="studentName">학생 이름</label>
+            <div class="input-box">
+                <i class="fas fa-user-astronaut"></i>
+                <input type="text" id="studentName" placeholder="예: 김민준" autocomplete="off" onkeypress="if(event.key === 'Enter') login()">
+            </div>
+        </div>
+
+        <button class="btn-submit" onclick="login()">
+            <i class="fas fa-rocket"></i> 워크스페이스 입장
+        </button>
+
+        <!-- 게스트 접속 버튼: 이름을 모으고 싶지 않거나, 테스트 목적일 때 사용 -->
+        <a href="lesson.html" class="skip-link" onclick="guestLogin(event)">로그인 없이 게스트로 구동 환경 테스트하기</a>
+    </div>
+
+    <!-- 무결점 2시간 타이머 (로컬스토리지) 스크립트 -->
+    <script>
+        function login() {
+            const nameInput = document.getElementById('studentName');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                nameInput.style.borderColor = '#f43f5e';
+                setTimeout(() => nameInput.style.borderColor = '#334155', 500);
+                nameInput.focus();
+                return;
+            }
+
+            // [1] 시소 이펙트 0% 보장을 위한 백엔드 배제 구조 (URL 노출 X)
+            // 브라우저의 전역 메모리(localStorage)에 2시간 TTL(Time-to-Live) 태그 생접
+            const sessionData = {
+                name: name,
+                expires: Date.now() + (2 * 60 * 60 * 1000)
+            };
+            
+            try {
+                localStorage.setItem('bricksync_student_session', JSON.stringify(sessionData));
+            } catch(e) { console.error("Storage Error - 진행은 가능합니다."); }
+            
+            // [2] lesson.html 원본 파일로 깨끗하게 진입 (파라미터 증발 방지 및 코드 수정 0% 연동)
+            window.location.href = 'lesson.html';
+        }
+
+        function guestLogin(e) {
+            e.preventDefault();
+            try {
+                // 게스트는 이전 세션을 지우고 들어갑니다. lesson.html은 익명으로 안전하게 처리합니다.
+                localStorage.removeItem('bricksync_student_session');
+            } catch(e) {}
+            window.location.href = 'lesson.html';
+        }
+    </script>
+</body>
+</html>
