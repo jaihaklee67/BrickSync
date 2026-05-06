@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>BrickSync Platform (SPA)</title>
+    <!-- 폰트 적용 -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 모든 페이지는 이 iframe 안에서 전환되며, 블루투스는 부모 창인 여기서 영구 유지됩니다. -->
+    <iframe id="main-frame"
+        allow="bluetooth; window-placement; microphone; camera; midi; usb; display-capture"></iframe>
+    <script>
+        // SPA 내부 페이지 상태 유지 (새로고침 시 마지막 화면 복원)
+        (function () {
+            let lastPage = sessionStorage.getItem('brickSyncLastPage') || 'intro.html';
+            // 쿼리 파라미터가 이미 있는지 확인하여 캐시 무력화 구문 추가
+            const sep = lastPage.includes('?') ? '&' : '?';
+            document.getElementById('main-frame').src = lastPage + sep + 'v=' + new Date().getTime();
+        })();
+    </script>
+
+    <script>
+        // === [글로벌 SPA 상태 및 코어 통신 엔진] ===
+        window.connectionType = null;
+        window.rxCharacteristic = null;
+        window.txCharacteristic = null;
+        window.port = null;
+        window.writer = null;
+        window.activeStates = { LEFT: false, RIGHT: false, UP: false, DOWN: false };
+        window.initialX = null;
+        window.initialY = null;
+
+        let ws;
+
+        // --- 1. 파이썬 로컬 서버 통신 (자동 재연결 적용) ---
+        function connectWebSocket() {
+            let protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            let wsUrl = protocol + window.location.host + "/ws";
+            ws = new WebSocket(wsUrl);
+            ws.onopen = () => {
+                console.log("✔️ 백그라운드 키보드 서버 접속 성공!");
+                updateWsUI(true);
+            };
+            ws.onerror = () => { };
+            ws.onclose = () => {
+                updateWsUI(false);
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function updateWsUI(isConnected) {
+            const iframe = document.getElementById("main-frame").contentWindow;
+            if (iframe && iframe.document.getElementById('status')) {
+                const statusEl = iframe.document.getElementById('status');
+                if (isConnected) {
+                    statusEl.innerHTML = "<b>🟢 로컬 서버(포트나이트 연동) 연결 완료</b>";
+                    statusEl.style.color = "#10b981";
+                } else {
+                    statusEl.innerHTML = "<b>🔴 로컬 브릿지 서버(server.py) 연결 안 됨</b>";
+                    statusEl.style.color = "#ef4444";
+                }
+            }
+        }
+
+        connectWebSocket();
+
+        // iframe 내에서 웹소켓에 직접 접근할 수 있도록 노출
+        window.sendWebSocketAction = function (actionObj) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(actionObj));
+            }
+        };
+
+        function sendCommand(actionName) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: actionName }));
+            }
+        }
+
+        // UI 상태 업데이트를 Iframe 내부 요소로 전달
+        function updateUI(status) {
+            const iframe = document.getElementById("main-frame").contentWindow;
+            if (!iframe) return;
+
+            // lesson.html 용 UI 업데이트
+            if (iframe.document.getElementById('hubStatusText')) {
+                const dot = iframe.document.getElementById('hubStatusDot');
+                const txt = iframe.document.getElementById('hubStatusText');
+                if (status === 'BLE') {
+                    if (dot) {
+                        dot.style.background = '#3b82f6';
+                        dot.style.boxShadow = '0 0 8px rgba(59, 130, 246, 0.4)';
+                    }
+                    txt.innerText = '블루투스 연결됨';
+                    txt.style.color = '#3b82f6';
+                } else if (status === 'USB') {
+                    if (dot) {
+                        dot.style.background = '#10b981';
+                        dot.style.boxShadow = '0 0 8px rgba(16, 185, 129, 0.4)';
+                    }
+                    txt.innerText = 'USB 연결됨';
+                    txt.style.color = '#10b981';
+                } else if (status === 'DISCONNECT') {
+                    if (dot) {
+                        dot.style.background = '#e5e7eb';
+                        dot.style.boxShadow = 'none';
+                    }
+                    txt.innerText = '연결 끊김';
+                    txt.style.color = '#6b7280';
+                }
+            }
+
+            // index.html 용 UI 업데이트
+            if (iframe.document.getElementById('status')) {
+                const statusEl = iframe.document.getElementById('status');
+                if (status === 'BLE') {
+                    statusEl.innerText = '블루투스 연결됨';
+                    statusEl.style.color = '#3b82f6';
+                } else if (status === 'USB') {
+                    statusEl.innerText = 'USB 연결됨';
+                    statusEl.style.color = '#10b981';
+                } else if (status === 'DISCONNECT') {
+                    statusEl.innerText = '연결 끊김';
+                    statusEl.style.color = '#6b7280';
+                }
+            }
+        }
+
+        // --- 2. Web Bluetooth 및 USB 통신 영역 ---
+        window.writeToHub = async function (data) {
+            let buffer = (typeof data === 'string') ? new TextEncoder().encode(data) : data;
+
+            if (window.connectionType === 'USB') {
+                if (!window.writer) window.writer = window.port.writable.getWriter();
+                await window.writer.write(buffer);
+                window.writer.releaseLock();
+                window.writer = null;
+            } else if (window.connectionType === 'BLE') {
+                for (let i = 0; i < buffer.byteLength; i += 20) {
+                    let chunk = buffer.slice(i, i + 20);
+                    if (window.txCharacteristic) {
+                        try {
+                            await window.txCharacteristic.writeValueWithoutResponse(chunk);
+                        } catch (e) {
+                            console.log("BLE Write Error (GATT overload, retrying)", e);
+                        }
+                        // 시스템 BLE 큐 확보를 위해 청크 당 대기
+                        await new Promise(r => setTimeout(r, 15));
+                    }
+                }
+            }
+        };
+
+        window.connectUSB = async function () {
+            try {
+                window.port = await navigator.serial.requestPort();
+                await window.port.open({ baudRate: 115200 });
+                window.connectionType = 'USB';
+                updateUI('USB');
+                await window.writeToHub('\x03\x03');
+                readLoopUSB();
+            } catch (error) {
+                console.error("USB 연결 오류:", error);
+            }
+        };
+
+        window.connectBluetooth = async function () {
+            try {
+                const LEGO_HUB_SERVICE_ID = '00001623-1212-efde-1623-785feabcd123';
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [LEGO_HUB_SERVICE_ID] }],
+                    optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']
+                });
+                await connectBluetoothDevice(device);
+                return true;
+            } catch (error) {
+                if (error.name === 'NetworkError') {
+                    alert("블루투스 접속 오류: 기기가 꺼져있거나 다른 장치와 연결되어 있습니다.");
+                } else if (error.name !== 'NotFoundError') {
+                    console.error("Bluetooth 오류:", error);
+                }
+                window.connectionType = null;
+                throw error;
+            }
+        };
+
+        async function connectBluetoothDevice(device) {
+            const LEGO_HUB_SERVICE_ID = '00001623-1212-efde-1623-785feabcd123';
+            const LEGO_HUB_CHARACTERISTIC_ID = '00001624-1212-efde-1623-785feabcd123';
+
+            if (!device.hasDisconnectListener) {
+                device.addEventListener('gattserverdisconnected', () => {
+                    window.connectionType = null;
+                    updateUI('DISCONNECT');
+                    // 백그라운드 자동 복구 시도 루프 시작
+                    setTimeout(() => startBackgroundReconnect(device), 3000);
+                });
+                device.hasDisconnectListener = true;
+            }
+
+            const server = await device.gatt.connect();
+            await new Promise(r => setTimeout(r, 1000));
+
+            const service = await server.getPrimaryService(LEGO_HUB_SERVICE_ID).catch(() => server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e'));
+            window.rxCharacteristic = await service.getCharacteristic(LEGO_HUB_CHARACTERISTIC_ID).catch(() => service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e'));
+            window.txCharacteristic = window.rxCharacteristic;
+
+            window.connectionType = 'BLE';
+            updateUI('BLE');
+
+            await window.txCharacteristic.startNotifications();
+            window.txCharacteristic.addEventListener('characteristicvaluechanged', handleBLEData);
+
+            // 모든 포트를 무조건 센서 감지 모드(Mode 0)로 강제 구독
+            for (let p = 0; p < 6; p++) {
+                const subscribeMsg = new Uint8Array([10, 0, 0x41, p, 0, 1, 0, 0, 0, 1]);
+                try { await window.txCharacteristic.writeValueWithoutResponse(subscribeMsg); } catch (e) { }
+                await new Promise(r => setTimeout(r, 30));
+            }
+        }
+
+        async function startBackgroundReconnect(device) {
+            if (window.connectionType) return;
+            try {
+                await connectBluetoothDevice(device);
+                console.log("SPA 백그라운드 자동 복원 성공!");
+            } catch (e) {
+                setTimeout(() => startBackgroundReconnect(device), 2000);
+            }
+        }
+
+        // =================================================================================
+        // 안티그라비티 전역 제스처 복원 기법 (iframe 밖/안 어디든 클릭해도 반응하도록)
+        // =================================================================================
+        let isSilentReconnecting = false;
+        async function silentReconnectAttempt() {
+            if (window.connectionType || isSilentReconnecting || !navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+            try {
+                const devices = await navigator.bluetooth.getDevices();
+                if (devices.length > 0) {
+                    isSilentReconnecting = true;
+                    try { await connectBluetoothDevice(devices[0]); }
+                    catch (err) { }
+                    finally { isSilentReconnecting = false; }
+                }
+            } catch (error) { }
+        }
+
+        document.body.addEventListener('pointerdown', silentReconnectAttempt, { capture: true });
+        // iframe 내부에서 클릭이 일어날 때도 부모창이 알아채서 복구하도록 트리거 바인딩 (onload마다 갱신)
+        document.getElementById('main-frame').addEventListener('load', function () {
+            // 현재 이동한 페이지를 세션에 저장하여 새로고침(F5) 시에도 유지
+            try {
+                const currentFile = this.contentWindow.location.pathname.split('/').pop();
+                if (currentFile && currentFile !== 'app.html') {
+                    sessionStorage.setItem('brickSyncLastPage', currentFile);
+                }
+            } catch (e) { }
+
+            // iframe 페이지 렌더링 후 상태 동기화를 위해 UI 1회 자동 업데이트
+            if (window.connectionType !== null) {
+                updateUI(window.connectionType);
+            }
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                updateWsUI(ws.readyState === WebSocket.OPEN);
+            }
+            try {
+                this.contentWindow.document.body.addEventListener('pointerdown', silentReconnectAttempt, { capture: true });
+            } catch (e) { }
+        });
+
+        function handleBLEData(event) {
+            const value = event.target.value;
+            if (value.byteLength < 3) return;
+            const msgType = value.getUint8(2);
+
+            if (msgType === 0x04 && value.byteLength >= 7) {
+                const portID = value.getUint8(3);
+                const eventType = value.getUint8(4);
+                if (!window.hubDevices) window.hubDevices = {};
+
+                if (eventType === 0x01) {
+                    const ioType = value.getUint16(5, true);
+                    window.hubDevices[portID] = ioType;
+
+                    if (ioType === 57 || ioType === 59 || ioType === 61) {
+                        const subscribeMsg = new Uint8Array([10, 0, 0x41, portID, 0, 1, 0, 0, 0, 1]);
+                        if (window.txCharacteristic) window.txCharacteristic.writeValueWithoutResponse(subscribeMsg).catch(e => { });
+                    }
+                } else if (eventType === 0x00) {
+                    delete window.hubDevices[portID];
+                }
+            } else if (msgType === 0x45) {
+                const portID = value.getUint8(3);
+                if (!window.sensorData) window.sensorData = {};
+
+                // 허브 내장 자이로/가속도 센서 (Port 99)
+                if (portID === 99 && value.byteLength >= 8) {
+                    const rawX = value.getInt16(4, true);
+                    const rawY = value.getInt16(6, true);
+                    const threshold = (Math.abs(rawX) > 100 || Math.abs(rawY) > 100) ? 250 : 25;
+
+                    if (window.initialX === null || window.initialY === null) {
+                        window.initialX = rawX;
+                        window.initialY = rawY;
+                        return;
+                    }
+
+                    const adjX = rawX - window.initialX;
+                    const adjY = rawY - window.initialY;
+
+                    let x_state = "CENTER_X", y_state = "CENTER_Y";
+                    if (adjY > threshold) y_state = "TILT_UP"; else if (adjY < -threshold) y_state = "TILT_DOWN";
+                    if (adjX > threshold) x_state = "TILT_RIGHT"; else if (adjX < -threshold) x_state = "TILT_LEFT";
+
+                    updateState("LEFT", x_state === "TILT_LEFT", "STEER_LEFT", "STOP_LEFT");
+                    updateState("RIGHT", x_state === "TILT_RIGHT", "STEER_RIGHT", "STOP_RIGHT");
+                    updateState("UP", y_state === "TILT_UP", "STEER_UP", "STOP_UP");
+                    updateState("DOWN", y_state === "TILT_DOWN", "STEER_DOWN", "STOP_DOWN");
+                }
+                // 외부 센서: 컬러 센서(61) 등
+                else if (portID < 6 && value.byteLength === 5) {
+                    const colorVal = value.getInt8(4);
+                    window.sensorData[portID] = colorVal; // 스파이크 내부의 색상 코드 번호 (0~10)
+                }
+            }
+        }
+
+        function updateState(direction, isPressed, activateCmd, deactivateCmd) {
+            if (isPressed && !window.activeStates[direction]) {
+                sendCommand(activateCmd);
+                window.activeStates[direction] = true;
+                logToIframe("🎮 " + activateCmd);
+            } else if (!isPressed && window.activeStates[direction]) {
+                sendCommand(deactivateCmd);
+                window.activeStates[direction] = false;
+                logToIframe("🛑 " + deactivateCmd);
+            }
+        }
+
+        function logToIframe(msg) {
+            const iframe = document.getElementById("main-frame").contentWindow;
+            if (iframe && iframe.addLog) {
+                iframe.addLog(msg);
+            }
+        }
+
+        async function readLoopUSB() {
+            const textDecoder = new TextDecoderStream();
+            const readableStreamClosed = window.port.readable.pipeTo(textDecoder.writable);
+            const reader = textDecoder.readable.getReader();
+            let buffer = "";
+            try {
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) { reader.releaseLock(); break; }
+                    if (value) {
+                        buffer += value;
+                        let lines = buffer.split('\n');
+                        buffer = lines.pop();
+                        processLines(lines);
+                    }
+                }
+            } catch (error) { }
+        }
+
+        function processLines(lines) {
+            for (let line of lines) {
+                line = line.trim();
+                if (line.length === 0) continue;
+                logToIframe("RAW: " + line);
+                if (line.includes("MSG_ITEM_GRANT")) {
+                    console.log("🎁 허브 메시지 감지 -> 우클릭 발사!");
+                    try { window.sendWebSocketAction({ action: "ITEM_GRANT_REWARD" }); } catch (e) { }
+                }
+                if (line.includes("|")) {
+                    const parts = line.split("|");
+                    const x_state = parts[0] || "", y_state = parts[1] || "";
+                    updateState("LEFT", x_state.includes("TILT_LEFT"), "STEER_LEFT", "STOP_LEFT");
+                    updateState("RIGHT", x_state.includes("TILT_RIGHT"), "STEER_RIGHT", "STOP_RIGHT");
+                    updateState("UP", y_state.includes("TILT_UP"), "STEER_UP", "STOP_UP");
+                    updateState("DOWN", y_state.includes("TILT_DOWN"), "STEER_DOWN", "STOP_DOWN");
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

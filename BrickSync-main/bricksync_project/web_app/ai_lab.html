@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrickSync - AI 학습 부분</title>
+    <!-- 폰트 적용 -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Lucide 아이콘 로드 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- TensorFlow.js 및 특성 추출(MobileNet), 분류기(KNN) 로드 (절대 로컬 연산 전용) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(108deg, #6c1f86 0%, #6c1f86 52%, #eab308 52%, #eab308 100%);
+            color: #1e293b;
+            overflow: hidden;
+        }
+
+        .dashboard-container {
+            width: 85%;
+            max-width: 1400px;
+            height: 85vh;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            display: flex;
+            overflow: hidden;
+            animation: dashboardEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes dashboardEnter {
+            from { opacity: 0; transform: scale(0.98) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* 왼쪽 메뉴 영역. index.html과 동일한 스타일 */
+        .sidebar {
+            width: 260px;
+            padding: 50px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .menu-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 0 25px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #334155;
+            font-weight: 500;
+            font-size: 1.1rem;
+            text-decoration: none;
+            width: max-content;
+            min-width: 160px;
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 16px;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item.active {
+            background: #ffffff;
+            font-weight: 700;
+            color: #1e293b;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-item.active .menu-icon {
+            color: #ff8c00;
+        }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            flex: 1;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+        }
+
+        /* AI 학습 레이아웃 (좌우 50:50) */
+        .ai-layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            height: 100%;
+        }
+
+        /* 좌측: 웹캠 및 제어 영역 */
+        .video-panel {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .camera-screen {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background-color: #000;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* 우측: 학습 클래스 영역 */
+        .class-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .class-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .class-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .class-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .data-count {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #38bdf8;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #0ea5e9;
+            transform: translateY(-2px);
+        }
+
+        .train-btn {
+            background: #10b981;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            margin-top: auto;
+        }
+
+        .train-btn:hover {
+            background: #059669;
+        }
+
+        .warning-text {
+            color: #ef4444;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-top: 15px;
+            background: rgba(254, 226, 226, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 네비게이션 사이드바 -->
+        <div class="sidebar">
+            <ul class="menu-list">
+                <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;" class="menu-item" id="btn-home">
+                    <i data-lucide="home" class="menu-icon"></i> 홈
+                </a>
+                <li class="menu-item" id="btn-learning" onclick="location.href='index.html?v='+new Date().getTime()">
+                    <i data-lucide="book-open" class="menu-icon"></i> 학습단원
+                </li>
+                <!-- 독립적인 AI 구역 (현재 활성화 상태) -->
+                <li class="menu-item active" id="btn-ai">
+                    <i data-lucide="bot" class="menu-icon"></i> AI 학습단원
+                </li>
+                <a href="#" onclick="location.href='workspace.html?v='+new Date().getTime(); return false;" class="menu-item">
+                    <i data-lucide="monitor" class="menu-icon"></i> 워크스페이스
+                </a>
+                <li class="menu-item">
+                    <i data-lucide="blocks" class="menu-icon"></i> 프로젝트
+                </li>
+                <a href="#" onclick="window.open('dashboard_v2.html?v=' + new Date().getTime(), '_blank'); return false;" class="menu-item">
+                    <i data-lucide="layout-dashboard" class="menu-icon"></i>
+                    교사/학부모용 대시보드
+                </a>
+            </ul>
+        </div>
+
+        <!-- 메인 콘텐츠 구역 -->
+        <div class="main-content">
+            <h2 class="header-title">
+                <i data-lucide="brain-circuit" style="width: 28px; height: 28px; color: #6c1f86;"></i> 
+                AI 모델 학습 설계소 (Isolated Environment)
+            </h2>
+            <div class="divider"></div>
+
+            <div class="ai-layout-grid">
+                <!-- 제 1구역: 카메라 뷰어 -->
+                <div class="video-panel">
+                    <div class="camera-screen" id="camera-screen-container">
+                        <!-- 카메라 영상 출력부 대기 위치 -->
+                        <span id="camera-placeholder" style="color: #94a3b8; font-weight: 600;">[ 웹캠 화면 출력 영역 ]</span>
+                        <video id="webcam-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                    </div>
+                    <button class="action-btn" id="btn-start-camera" style="background: #475569;"><i data-lucide="video"></i> 카메라 켜기</button>
+                    <div class="warning-text">
+                        본 AI 학습 모듈은 포트나이트 연동(블루프린트) 및<br>
+                        블록 코딩 시스템과 물리적으로 완전히 분리된 상태로 실행됩니다.
+                    </div>
+                </div>
+
+                <!-- 제 2구역: 머신러닝 데이터 구축 -->
+                <div class="class-panel">
+                    <div class="class-card">
+                        <div class="class-info">
+                            <div class="class-title">Class 1: 주먹 (바위)</div>
+                            <div class="data-count" id="count-class1">수집된 데이터: 0 장</div>
+                        </div>
+                        <button class="action-btn" id="btn-add-class1" disabled>데이터 녹화</button>
+                    </div>
+
+                    <div class="class-card">
+                        <div class="class-info">
+                            <div class="class-title">Class 2: 보자기 (보)</div>
+                            <div class="data-count" id="count-class2">수집된 데이터: 0 장</div>
+                        </div>
+                        <button class="action-btn" id="btn-add-class2" disabled>데이터 녹화</button>
+                    </div>
+
+                    <div class="class-card">
+                        <div class="class-info">
+                            <div class="class-title">Class 3: 가위</div>
+                            <div class="data-count" id="count-class3">수집된 데이터: 0 장</div>
+                        </div>
+                        <button class="action-btn" id="btn-add-class3" disabled>데이터 녹화</button>
+                    </div>
+
+                    <div class="class-card" style="opacity: 0.8; background: rgba(226, 232, 240, 0.5);">
+                        <div class="class-info">
+                            <div class="class-title">Class 4: 없음(None)</div>
+                            <div class="data-count" id="count-class4">배경 사진 및 오작동 방지용: 0 장</div>
+                        </div>
+                        <button class="action-btn" id="btn-add-class4" style="background:#64748b;" disabled>데이터 녹화</button>
+                    </div>
+
+                    <button class="action-btn train-btn" id="btn-train" disabled>
+                        모델 시작하기 (먼저 카메라를 켜세요)
+                    </button>
+                    
+                    <!-- AI 판단 결과값 화면 (외부 전송 0%) -->
+                    <div style="margin-top: 10px; background: #fff; padding: 20px; border-radius: 12px; border: 2px solid #6c1f86; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <span style="font-size: 1.1rem; color: #64748b; font-weight: 700;">현재 AI의 추측 예측:</span><br>
+                        <span id="ai-prediction-text" style="font-size: 2.5rem; font-weight: 900; color: #6c1f86; display: block; margin-top: 10px;">- 대기 중 -</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 아이콘 렌더링 -->
+    <script>
+        lucide.createIcons();
+    </script>
+    
+    <!-- AI 교육 전용 격리 스크립트 -->
+    <script>
+        // 1. UI 객체 연결
+        const btnStartCamera = document.getElementById('btn-start-camera');
+        const videoElement = document.getElementById('webcam-video');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        
+        const btnAddClass1 = document.getElementById('btn-add-class1');
+        const btnAddClass2 = document.getElementById('btn-add-class2');
+        const btnAddClass3 = document.getElementById('btn-add-class3');
+        const btnAddClass4 = document.getElementById('btn-add-class4');
+        const btnTrain = document.getElementById('btn-train');
+        
+        const countClass1 = document.getElementById('count-class1');
+        const countClass2 = document.getElementById('count-class2');
+        const countClass3 = document.getElementById('count-class3');
+        const countClass4 = document.getElementById('count-class4');
+        const predictionText = document.getElementById('ai-prediction-text');
+
+        // 2. 머신러닝 코어 변수 (절대 로컬 변수. 외부 반출 없음)
+        let classifier;
+        let featureExtractor; // mobilenet 객체와의 이름 충돌 방지를 위해 변수명 변경
+        let isPredicting = false;
+        
+        // 각 클래스별 수집 횟수 카운터
+        let classCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+        // [중요: 외부망 차단 보증]
+        // 이 스크립트에는 WebSocket(포트나이트 연동) 및 Blockly.inject(블록 코딩 렌더링) 코드가 원천적으로 존재하지 않습니다.
+        // 그러므로 이 페이지에서는 시소 이펙트 또는 블록 버그가 일어날 기술적 확률이 0%입니다.
+
+        // 3. 구글 AI 모델 다운로드 로드
+        async function loadModels() {
+            try {
+                predictionText.innerText = "로딩 중... (TensorFlow)";
+                classifier = knnClassifier.create();
+                // 웹캠 사진의 이목구비(특징)를 찾아주는 모델 로드 (자동 리사이징 및 텐서 변환 지원)
+                // 전역 객체인 mobilenet 패키지의 load() 함수 사용
+                featureExtractor = await mobilenet.load();
+                predictionText.innerText = "AI 로딩 완료! 카메라를 켜세요.";
+                console.log("로컬 AI 두뇌 장착 완료");
+            } catch (err) {
+                console.error(err);
+                predictionText.innerText = "모델 로드 실패. 인터넷을 확인하세요.";
+            }
+        }
+        
+        // 브라우저 켜자마자 AI 두뇌 설치 (비동기)
+        loadModels();
+
+        // 4. 순수 로컬 카메라 작동 로직
+        btnStartCamera.addEventListener('click', async () => {
+            try {
+                // 사용자의 브라우저에서 '카메라 권한'만 조용히 요청합니다.
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480 },
+                    audio: false // 마이크 불필요
+                });
+                
+                // 권한을 얻으면 화면에 영상을 틉니다.
+                videoElement.srcObject = stream;
+                
+                // 대기 글자를 숨기고 진짜 비디오를 보여줍니다.
+                cameraPlaceholder.style.display = 'none';
+                videoElement.style.display = 'block';
+                
+                // 버튼 예쁘게 비활성화 (이미 켰으므로)
+                btnStartCamera.innerHTML = '<i data-lucide="video-off"></i> 카메라 켜짐 (안전 모드)';
+                btnStartCamera.style.background = '#10b981'; // 초록색 변경
+                btnStartCamera.disabled = true;
+                
+                // 데이터 수집 버튼들 활성화
+                btnAddClass1.disabled = false;
+                btnAddClass2.disabled = false;
+                btnAddClass3.disabled = false;
+                btnAddClass4.disabled = false;
+                btnTrain.disabled = false;
+                btnTrain.innerText = "테스트 모드 켜기 (Predict)";
+
+                lucide.createIcons();
+                console.log("웹캠 켜짐. UEFN 연결 없음.");
+            } catch (err) {
+                console.error("카메라 접근 에러:", err);
+                alert("카메라를 켤 수 없습니다. 크롬 설정에서 권한을 허용해주세요!");
+            }
+        });
+
+        // 5. 사진 찍어서 AI 두뇌에 우겨넣는 함수 (버튼 누르고 있을 때 여러 장)
+        function addExample(classId) {
+            if (!featureExtractor) {
+                console.log("아직 모델이 로딩되지 않았습니다.");
+                return;
+            }
+            if (videoElement.readyState !== 4) {
+                console.log("카메라가 아직 준비되지 않았습니다.");
+                return; // 비디오 스트림이 준비 안됨
+            }
+            try {
+                // 카메라 화면 캡처
+                const tfImg = tf.browser.fromPixels(videoElement);
+                // 사진을 머신러닝이 이해할 수 있는 수학적 특징 공간(Logits)으로 변환
+                // infer(tfImg, true)는 내부적으로 이미지를 224x224로 자르고 정규화하는 작업을 수행합니다.
+                const logits = featureExtractor.infer(tfImg, true);
+                
+                // 변환된 특징과 이름표(정답)를 분류기에 저장
+                classifier.addExample(logits, classId);
+                
+                // 사용한 이미지 메모리에서 삭제 (컴퓨터 렉 방지)
+                tfImg.dispose();
+                
+                // 카운터 올리고 UI 업데이트
+                classCounts[classId]++;
+                if(classId === 1) countClass1.innerText = `수집된 데이터: ${classCounts[1]} 장 (바위)`;
+                else if(classId === 2) countClass2.innerText = `수집된 데이터: ${classCounts[2]} 장 (보)`;
+                else if(classId === 3) countClass3.innerText = `수집된 데이터: ${classCounts[3]} 장 (가위)`;
+                else if(classId === 4) countClass4.innerText = `오작동 방지용: ${classCounts[4]} 장 (없음)`;
+            } catch (err) {
+                console.error("데이터 수집 중 에러 발생:", err);
+            }
+        }
+
+        // 버튼 계속 누르고 있으면 연사 촬영되도록 설정 (즉시 수집 후 반복)
+        function setupButton(btn, classId) {
+            let intervalId;
+            btn.addEventListener('mousedown', () => { 
+                addExample(classId); // 클릭 즉시 1장 찰칵!
+                intervalId = setInterval(() => addExample(classId), 100); // 이후 0.1초마다 연사
+            });
+            btn.addEventListener('mouseup', () => clearInterval(intervalId));
+            btn.addEventListener('mouseleave', () => clearInterval(intervalId));
+            
+            // 모바일 터치 대응
+            btn.addEventListener('touchstart', (e) => { 
+                e.preventDefault(); 
+                addExample(classId);
+                intervalId = setInterval(() => addExample(classId), 100); 
+            });
+            btn.addEventListener('touchend', (e) => { 
+                e.preventDefault(); 
+                clearInterval(intervalId); 
+            });
+        }
+
+        setupButton(btnAddClass1, 1);
+        setupButton(btnAddClass2, 2);
+        setupButton(btnAddClass3, 3);
+        setupButton(btnAddClass4, 4);
+
+        // 6. 결과 추측 (예측 무한루프)
+        async function predictWebcam() {
+            if (classifier.getNumClasses() > 0) {
+                // 비디오 캡처 및 특성 추출
+                const tfImg = tf.browser.fromPixels(videoElement);
+                const logits = featureExtractor.infer(tfImg, true);
+                
+                // 예측
+                const res = await classifier.predictClass(logits);
+                
+                // UI 화면 렌더링 업데이트
+                if(res.label == "1") {
+                    predictionText.innerText = `👊 주먹 (확률: ${(res.confidences[1] * 100).toFixed(0)}%)`;
+                } else if (res.label == "2") {
+                    predictionText.innerText = `🖐️ 보자기 (확률: ${(res.confidences[2] * 100).toFixed(0)}%)`;
+                } else if (res.label == "3") {
+                    predictionText.innerText = `✌️ 가위 (확률: ${(res.confidences[3] * 100).toFixed(0)}%)`;
+                } else if (res.label == "4") {
+                    predictionText.innerText = `없음 (배경)`;
+                }
+                
+                tfImg.dispose(); // 렉 방지용 메모리 정리
+            }
+            
+            // 무한 루프. 단, 이 루프는 화면 UI만 바꾸고 외부로 신호를 안 보냄(시소 0%)
+            if (isPredicting) {
+                requestAnimationFrame(predictWebcam);
+            }
+        }
+
+        // 7. 예측 시작 / 정지 버튼
+        btnTrain.addEventListener('click', () => {
+            if (!isPredicting) {
+                if (classifier.getNumClasses() === 0) {
+                    alert("데이터를 먼저 수집해주세요!");
+                    return;
+                }
+                isPredicting = true;
+                btnTrain.innerText = "테스트 모드 종료하기";
+                btnTrain.style.background = "#ef4444"; // 빨간색
+                predictWebcam();
+            } else {
+                isPredicting = false;
+                btnTrain.innerText = "테스트 모드 켜기 (Predict)";
+                btnTrain.style.background = "#10b981"; // 초록색
+                predictionText.innerText = "- 대기 중 -";
+            }
+        });
+
+    </script>
+</body>
+</html>

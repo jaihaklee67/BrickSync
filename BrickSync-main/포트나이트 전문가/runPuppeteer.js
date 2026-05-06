@@ -1,0 +1,1 @@
+const puppeteer = require('puppeteer'); (async()={const b=await puppeteer.launch(); const p=await b.newPage(); p.on('pageerror', e=>console.log('PG_ERR:',e.message)); await p.goto('http://localhost:8000/lesson.html'); await b.close();})();  

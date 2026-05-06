@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrickSync - 메인 메뉴</title>
+    <!-- 폰트: 한글은 Noto Sans, 영문은 Outfit -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- 깃허브 오픈소스 기반 심플 라인 아이콘 (Lucide) 로드 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 요청하신 이미지처럼 약간 비스듬한 스플릿(105도) 배경에 등고선(Topography) 패턴 오버레이 적용 */
+            background:
+                /* 부드러운 하얀색 등고선 패턴 오버레이 */
+                url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 0h2v20H9V0zm25.134.84l1.414 1.414-14.14 14.14-1.414-1.414 14.14-14.14zm44.732 0l1.414 1.414-14.14 14.14-1.414-1.414 14.14-14.14zM111 0h2v20h-2V0zM35.636 11.364l1.414-1.414-14.14-14.14-1.414 1.414 14.14 14.14zM100.864 11.364l1.414-1.414-14.14-14.14-1.414 1.414 14.14 14.14zM0 9v2h20V9H0zm100 0v2h20V9h-20zm-10.743 27.257l1.414-1.414 14.14 14.14-1.414 1.414-14.14-14.14zM11.364 35.636l1.414-1.414 14.14 14.14-1.414 1.414-14.14-14.14zM0 100v2h20v-2H0zm100 0v2h20v-2h-20zm-10.743 27.257l1.414-1.414 14.14 14.14-1.414 1.414-14.14-14.14zM11.364 100.864l1.414-1.414 14.14 14.14-1.414 1.414-14.14-14.14z' fill='rgba(255,255,255,0.06)' fill-rule='evenodd'/%3E%3C/svg%3E"),
+                /* 퍼플 & 옐로우 비스듬한 배경 */
+                linear-gradient(108deg, #6c1f86 0%, #6c1f86 52%, #eab308 52%, #eab308 100%);
+            background-size: 151px 151px, cover;
+            background-repeat: repeat, no-repeat;
+            overflow: hidden;
+            color: #1e293b;
+        }
+
+        /* 프리미엄 글래스모피즘(반투명 유리) 대시보드 */
+        .dashboard-container {
+            width: 85%;
+            max-width: 1400px;
+            height: 85vh;
+            /* 디자인처럼 은은한 반투명 흰색 막을 깔아줍니다 */
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            display: flex;
+            overflow: hidden;
+
+            /* 대시보드 부드러운 등장 애니메이션 */
+            opacity: 0;
+            transform: scale(0.98) translateY(20px);
+            animation: dashboardEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes dashboardEnter {
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* ================= 왼쪽 메뉴 사이드바 ================= */
+        .sidebar {
+            width: 260px;
+            padding: 50px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* 중간 경계선을 없애고 자연스럽게 융화되게 처리 */
+        }
+
+        .menu-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 0 25px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #334155;
+            font-weight: 500;
+            font-size: 1.1rem;
+            text-decoration: none;
+            /* 텍스트 너비에 맞춰서 배경이 채워지도록 설정 */
+            width: max-content;
+            min-width: 160px;
+        }
+
+        /* 심플 라인 아이콘 */
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 16px;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover {
+            color: #1e293b;
+        }
+
+        .menu-item:hover .menu-icon {
+            color: #1e293b;
+        }
+
+        /* 활성화된 위치(홈)의 스타일 - 목업처럼 둥근 흰색 박스 */
+        .menu-item.active {
+            background: #ffffff;
+            font-weight: 700;
+            color: #1e293b;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-item.active .menu-icon {
+            color: #ff8c00;
+            /* 포인트 컬러(오렌지/옐로우)를 아이콘에만 부여 */
+        }
+
+        .bottom-menu {
+            padding: 0 25px;
+        }
+
+
+        /* ================= 오른쪽 메인 화면 영역 ================= */
+        .main-content {
+            flex: 1;
+            padding: 60px 80px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* 1) 상단 소개 배너 박스 (이미지의 큰 회색 박스 영역) */
+        .banner-section {
+            width: 100%;
+            height: 40%;
+            min-height: 250px;
+            /* 흐릿한 화이트 그라데이션 적용 */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            /* 텍스트를 오른쪽으로 */
+            padding: 50px 60px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+        }
+
+        .banner-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.6;
+            text-align: right;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+
+        /* 2) 섹션 구분 얇은 실선 */
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.15);
+            margin-bottom: 40px;
+        }
+
+        /* 3) 하단 "내 프로젝트" 타이틀 영역 */
+        .projects-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .projects-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .new-project-btn {
+            background: transparent;
+            border: none;
+            color: #1e293b;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .new-project-btn:hover {
+            color: #69227F;
+            transform: scale(1.05);
+        }
+
+        /* 4) 프로젝트 카드 3개가 들어가는 그리드 레이아웃 */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .project-card {
+            height: 180px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 5) 학습 콘텐츠 2x2 그리드 레이아웃 (두번째 이미지 참조) */
+        .learning-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            display: none;
+            /* 기본 숨김 */
+        }
+
+        .learning-card {
+            background: rgba(248, 248, 250, 0.95);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-decoration: none;
+        }
+
+        .learning-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            background: #ffffff;
+        }
+
+        .learning-card-text {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1e293b;
+            text-align: center;
+            padding: 0 30px;
+            word-break: keep-all;
+            line-height: 1.4;
+        }
+
+        /* 오른쪽에 튀어나오는 라마 데코레이션 로고 (공식 에셋 없을 경우를 대비한 가상 배치용) */
+        .llama-deco {
+            position: absolute;
+            right: -20px;
+            bottom: -50px;
+            height: 80vh;
+            pointer-events: none;
+            z-index: 100;
+            filter: drop-shadow(-10px 10px 20px rgba(0, 0, 0, 0.3));
+        }
+
+        /* 전체화면 좌측 상단 레고 포트나이트 공식 로고 */
+        .top-logo {
+            position: absolute;
+            top: 35px;
+            left: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .top-logo img {
+            height: 36px;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+        }
+
+        .top-logo span {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 우측에 직접 전달해주신 레고 라마 이미지 사용 (assets 폴더 연동) -->
+    <img src="./assets/fortnite2.png" class="llama-deco"
+        onerror="this.src='https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMzEyMDdfMTA1%2FMDAxNzAxOTQxMTc4MzMy.hVndw1oE2rMhXv1lP8NnsfF0yvA9tQ9-9A_JqKxXnKcg.fM1RItB_EihgO9F7-7v_8bI9WqHwItz2bZ2qYc4oU2og.PNG.sjh912%2F2.png&type=sc960_832'">
+
+    <!-- 좌측 상단 전체화면 글로벌 로고 영역 -->
+    <div class="top-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg" alt="Lego Logo">
+        <span>FORTNITE</span>
+    </div>
+
+    <div class="dashboard-container">
+
+        <!-- 왼쪽 메뉴 영역 -->
+        <div class="sidebar">
+            <ul class="menu-list">
+                <li class="menu-item active" id="btn-home" onclick="showView('home')">
+                    <i data-lucide="home" class="menu-icon"></i>
+                    홈
+                </li>
+                <li class="menu-item" id="btn-learning" onclick="showView('learning')">
+                    <i data-lucide="book-open" class="menu-icon"></i>
+                    학습단원
+                </li>
+                <a href="#" onclick="location.href='ai_fusion.html?v=' + new Date().getTime(); return false;" class="menu-item" id="btn-ai">
+                    <i data-lucide="bot" class="menu-icon"></i>
+                    AI 학습단원
+                </a>
+                <a href="#" onclick="location.href='workspace.html?v=' + new Date().getTime(); return false;" class="menu-item">
+                    <i data-lucide="monitor" class="menu-icon"></i>
+                    워크스페이스
+                </a>
+                <li class="menu-item">
+                    <i data-lucide="blocks" class="menu-icon"></i>
+                    프로젝트
+                </li>
+                <a href="#" onclick="window.open('dashboard_v2.html?v=' + new Date().getTime(), '_blank'); return false;" class="menu-item">
+                    <i data-lucide="layout-dashboard" class="menu-icon"></i>
+                    교사/학부모용 대시보드
+                </a>
+            </ul>
+
+            <div class="bottom-menu">
+                <li class="menu-item" style="list-style:none;">
+                    <i data-lucide="settings" class="menu-icon"></i>
+                    설정
+                </li>
+            </div>
+        </div>
+
+        <!-- 오른쪽 메인 컨텐츠 영역 -->
+        <div class="main-content">
+
+            <!-- 홈 화면 뷰 -->
+            <div id="view-home" style="width: 100%; display: flex; flex-direction: column;">
+                <div class="banner-section">
+                    <div class="banner-text">
+                        레고 포트나이트 앱 소개<br>
+                        및 학습 관련 가이드 내용
+                    </div>
+                </div>
+
+                <!-- 가로선(디바이더) -->
+                <div class="divider"></div>
+
+                <div class="projects-header">
+                    <div class="projects-title">내 프로젝트</div>
+                    <button class="new-project-btn">+ 새 프로젝트</button>
+                </div>
+
+                <div class="projects-grid">
+                    <!-- 프로젝트 네모 카드 3개 -->
+                    <div class="project-card"></div>
+                    <div class="project-card"></div>
+                    <div class="project-card"></div>
+                </div>
+            </div>
+
+            <!-- 학습단원 화면 뷰 (2x2 그리드) -->
+            <div id="view-learning" class="learning-grid">
+                <div class="learning-card" onclick="location.href='mission.html?unit=1'">
+                    <span class="learning-card-text">1. 빛을 밝혀 마을 입구를 찾아라</span>
+                </div>
+                <div class="learning-card" onclick="location.href='mission.html?unit=2'">
+                    <span class="learning-card-text">2. 모터를 돌려 마을 풍차의 전력을 복구하라</span>
+                </div>
+                <div class="learning-card" onclick="location.href='mission.html?unit=3'">
+                    <span class="learning-card-text">3. 센서로 야생동물을 탐지하고 구출하라</span>
+                </div>
+                <div class="learning-card" onclick="location.href='mission.html?unit=4'">
+                    <span class="learning-card-text">4. 무한 반복 코드로 캣 아일랜드를 방어하라</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 뷰 전환 스크립트 -->
+    <script>
+        function showView(viewId) {
+            // 버튼 액티브 상태 변경
+            document.querySelectorAll('.menu-list .menu-item:not(a)').forEach(btn => btn.classList.remove('active'));
+            if (document.getElementById('btn-' + viewId)) {
+                document.getElementById('btn-' + viewId).classList.add('active');
+            }
+
+            // 화면 전환
+            document.getElementById('view-home').style.display = 'none';
+            document.getElementById('view-learning').style.display = 'none';
+
+            if (viewId === 'home') {
+                document.getElementById('view-home').style.display = 'flex';
+            } else if (viewId === 'learning') {
+                document.getElementById('view-learning').style.display = 'grid';
+            }
+        }
+    </script>
+
+
+    <!-- Lucide 아이콘 렌더링 스크립트 -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

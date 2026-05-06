@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>브릭싱크 (BrickSync) - 시작하기</title>
+    <!-- 고급스러운 폰트 적용 -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            /* 로딩바를 화면 하단부에 배치 */
+            align-items: center;
+            /* 전달해주신 레고 포트나이트 이미지를 꽉 차게 배경으로 설정 */
+            background-image: url('https://cdn2.unrealengine.com/lego-fortnite-social-1920x1080-68be5a5756df.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 80px;
+            /* 맨 아래에서 살짝 띄우기 위함 */
+        }
+
+        /* 텍스트 가독성을 위해 배경을 살짝 어둡게 깔아주는 오버레이 (선택사항) */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.8) 100%);
+            z-index: 1;
+        }
+
+        /* 배경 장식 애니메이션 효과 */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: 0;
+        }
+
+        .circle-1 {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            left: -200px;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .circle-2 {
+            width: 400px;
+            height: 400px;
+            bottom: -100px;
+            right: -100px;
+            animation: float 8s ease-in-out infinite reverse;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(30px, 30px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        .content-wrapper {
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 0 20px;
+        }
+
+        /* 타이틀 박스 (블러된 글래스 모피즘 효과) */
+        /* .title-container {
+            width: 100%;
+            height: 220px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 50px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+             등장 애니메이션
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        } */
+
+        /* .title-text {
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            네온 그라데이션 텍스트
+            background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        } */
+
+        /* .subtitle-text {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            font-weight: 400;
+            letter-spacing: 3px;
+        } */
+
+        /* 시작 버튼 */
+        .start-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .start-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 얇은 로딩 바 래퍼 (초기에는 숨김) */
+        .loading-wrapper {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 아주 얇고 세련된 로딩 바 박스 배경 */
+        .loading-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            /* 등장 애니메이션 */
+            opacity: 0;
+            animation: fadeIn 1s ease-in forwards;
+        }
+
+        /* 차오르는 프로그레스 바 */
+        .loading-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background: #fff;
+            z-index: 1;
+            transition: width 0.1s linear;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 상태 텍스트 (옵션, 로딩바 위에 띄움) */
+        .loading-text {
+            z-index: 10;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* 하단 저작권 텍스트 */
+        .copyright {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 둥둥 떠다니는 배경 장식 -->
+    <div class="bg-circle circle-1"></div>
+    <div class="bg-circle circle-2"></div>
+
+    <div class="content-wrapper">
+        <!-- 타이틀 영역 -->
+        <!-- <div class="title-container">
+            <div class="title-text">BrickSync</div>
+            <div class="subtitle-text">PHYSICAL × DIGITAL PLAYGROUND</div>
+        </div> -->
+
+        <!-- 시작 버튼 -->
+        <button class="start-btn" id="startBtn" onclick="startLoading()">시스템 접속</button>
+
+        <!-- 로딩 애니메이션 영역 (초기 숨김) -->
+        <div class="loading-wrapper" id="loadingWrapper">
+            <div class="loading-text" id="loadingText">시스템 로드 중...</div>
+
+            <!-- 얇은 로딩 바 영역 -->
+            <div class="loading-container" id="loadingBox">
+                <div class="loading-bar" id="loadingBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 저작권 영역 -->
+    <div class="copyright">
+        © 2026 BrickSync Platform. All rights reserved.
+    </div>
+
+    <script>
+        let isLoading = false;
+
+        function startLoading() {
+            if (isLoading) return;
+            isLoading = true;
+
+            // 버튼 숨기고 로딩바 띄우기
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('loadingWrapper').style.display = 'flex';
+            const loadingBar = document.getElementById('loadingBar');
+            const loadingText = document.getElementById('loadingText');
+            let progress = 0;
+
+            // 그럴싸한 가짜 로딩 애니메이션
+            const interval = setInterval(() => {
+                // 게임 진입처럼 빠르게 올라가도록 수정
+                progress += Math.random() * 5 + 1;
+
+                if (progress > 30 && progress < 40) loadingText.innerText = "서버 컨넥팅 중...";
+                if (progress > 60 && progress < 70) loadingText.innerText = "포트나이트 연동 준비 중...";
+                if (progress > 90 && progress < 99) loadingText.innerText = "완료 중...";
+
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    loadingText.innerText = "진입 중!";
+
+                    // index.html 로 부드럽게 넘어가기 위해 전체 화면 페이드아웃 설정
+                    document.body.style.transition = "opacity 0.4s ease-out";
+                    document.body.style.opacity = 0;
+
+                    // 0.4초 뒤에 메인 메뉴 앱(menu.html)으로 이동
+                    setTimeout(() => {
+                        window.location.href = "index.html?v=" + new Date().getTime();
+                    }, 400);
+                }
+
+                // 얇은 막대 너비 반영
+                loadingBar.style.width = progress + "%";
+            }, 100); // 0.1초마다 프로그레스 업데이트 (기존보다 2배 느리게 조정)
+        }
+    </script>
+</body>
+
+</html>
