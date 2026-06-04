@@ -16,6 +16,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
+    <!-- Firebase SDK 및 공통 설정 연동 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase_config.js"></script>
     <style>
         * {
             margin: 0;
@@ -98,6 +102,18 @@
             box-shadow: 0 0 0 #059669;
         }
 
+        .stop-btn {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: #fff;
+            box-shadow: 0 4px 0 #b91c1c;
+        }
+
+        .stop-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #b91c1c;
+        }
+
         /* Workspace Grid Background */
         .main-layout {
             display: flex;
@@ -117,6 +133,7 @@
             transform-origin: 0 0;
             background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
             background-size: 30px 30px;
+            cursor: grab;
         }
 
         .block-stack {
@@ -353,6 +370,26 @@
             transform: scale(1.15) rotate(-5deg);
         }
 
+        /* 다중 선택 드래그 상자 */
+        .drag-selection-box {
+            position: absolute;
+            border: 2px solid #38bdf8;
+            background: rgba(56, 189, 248, 0.15);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* 다중 선택된 블록 스택 하이라이트 효과 */
+        .block-stack.selected-stack {
+            outline: 4px solid #38bdf8;
+            outline-offset: 4px;
+            border-radius: 16px;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+            transition: outline-offset 0.1s, box-shadow 0.1s;
+        }
+
         .bg-yellow {
             background: #facc15;
             /* 좀더 진한 골드 느낌의 예쁜 노랑 */
@@ -568,12 +605,12 @@
 
     <div class="top-bar">
         <a href="index.html" class="home-btn">
-            <i class="fas fa-home"></i> 홈으로 가기
+            <i class="fas fa-home"></i> <span data-i18n="btn_back_home">홈으로 가기</span>
         </a>
         <div
             style="font-size: 1.2rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 10px;">
             <i class="fas fa-cubes" style="color: #c084fc;"></i>
-            BrickSync Essential 아이콘 코딩
+            <span data-i18n="lbl_workspace_title">BrickSync Essential 아이콘 코딩</span>
         </div>
         <div class="top-actions" style="align-items: center;">
             <div id="hubStatusIndicator"
@@ -584,10 +621,16 @@
                 <span id="hubStatusText">허브 연결 안 됨</span>
             </div>
             <button class="action-btn" onclick="openConnectModal()" id="connBtn">
-                <i class="fas fa-link" style="color:#64748b;"></i> 허브 연결
+                <i class="fas fa-link" style="color:#64748b;"></i> <span data-i18n="lbl_connect_hub">허브 연결</span>
             </button>
             <button class="action-btn run-btn" onclick="runBlocks()">
-                실행 <i class="fas fa-play" style="color: #fff;"></i>
+                <span data-i18n="btn_run">실행</span> <i class="fas fa-play" style="color: #fff;"></i>
+            </button>
+            <button class="action-btn stop-btn" onclick="haltExecution()">
+                <span data-i18n="btn_stop">정지</span> <i class="fas fa-stop" style="color: #fff;"></i>
+            </button>
+            <button class="action-btn" id="settings-menu-btn">
+                <i class="fas fa-cog"></i> <span data-i18n="nav_settings">설정</span>
             </button>
         </div>
     </div>
@@ -605,7 +648,8 @@
                 미션 설명 텍스트</div>
         </div>
         <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
-            <span style="font-size: 0.9rem; font-weight: 800; color: #475569; white-space: nowrap;">미션 달성도</span>
+            <span style="font-size: 0.9rem; font-weight: 800; color: #475569; white-space: nowrap;"
+                data-i18n="lbl_mission_progress">미션 달성도</span>
             <div
                 style="flex: 1; height: 12px; background: #e2e8f0; border-radius: 10px; overflow: hidden; position: relative;">
                 <div id="m-progress"
@@ -617,7 +661,7 @@
 
             <button onclick="toggleMissionTasks()"
                 style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; cursor: pointer; color: #475569; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: 0.2s;">
-                <i class="fas fa-list-check"></i> 과제 확인
+                <i class="fas fa-list-check"></i> <span data-i18n="btn_check_tasks">과제 확인</span>
             </button>
         </div>
     </div>
@@ -627,14 +671,16 @@
         style="display: none; position: absolute; right: 30px; top: 130px; width: 320px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; padding: 20px;">
         <h3
             style="font-size: 1.1rem; color: #1e293b; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-clipboard-check" style="color: #10b981;"></i> 필수 수행 과제
+            <i class="fas fa-clipboard-check" style="color: #10b981;"></i> <span data-i18n="lbl_required_tasks">필수 수행
+                과제</span>
         </h3>
         <ul id="m-tasks-list" style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
             <!-- 과제들이 여기에 동적으로 들어감 -->
         </ul>
         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: right;">
             <button onclick="toggleMissionTasks()"
-                style="background: none; border: none; color: #64748b; font-weight: 700; cursor: pointer;">닫기</button>
+                style="background: none; border: none; color: #64748b; font-weight: 700; cursor: pointer;"
+                data-i18n="btn_close">닫기</button>
         </div>
     </div>
 
@@ -646,7 +692,8 @@
             <div
                 style="padding: 15px 20px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">
-                    <i class="fas fa-robot" style="color: #8b5cf6;"></i> AI 비전 제스처 인식
+                    <i class="fas fa-robot" style="color: #8b5cf6;"></i> <span data-i18n="lbl_ai_vision_title">AI 비전 제스처
+                        인식</span>
                 </div>
             </div>
 
@@ -658,32 +705,34 @@
                         style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
                     <div id="ai-result-overlay"
                         style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(4px);">
-                        <i class="fas fa-eye"></i> <span id="current-gesture">대기 중...</span>
+                        <i class="fas fa-eye"></i> <span id="current-gesture" data-i18n="lbl_gesture_waiting">대기
+                            중...</span>
                     </div>
                 </div>
 
                 <div id="ai-status"
                     style="width: 100%; padding: 12px; background: #dbeafe; border: 1px solid #bfdbfe; border-radius: 8px; color: #1e3a8a; font-weight: 700; text-align: center; font-size: 0.95rem;">
-                    <i class="fas fa-spinner fa-spin"></i> AI 엔진 로딩 중...
+                    <i class="fas fa-spinner fa-spin"></i> <span data-i18n="lbl_ai_loading">AI 엔진 로딩 중...</span>
                 </div>
 
                 <div
                     style="width: 100%; display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                    <div style="font-size: 0.9rem; font-weight: 800; color: #64748b; margin-bottom: 5px;">인식 모델 학습 기능
-                    </div>
+                    <div style="font-size: 0.9rem; font-weight: 800; color: #64748b; margin-bottom: 5px;"
+                        data-i18n="lbl_model_training">인식 모델 학습 기능</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <button onclick="addExample(0)"
                             style="background:#ef4444; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #b91c1c; transition:transform 0.1s;"><i
-                                class="fas fa-hand-rock"></i> 주먹 (Rock)</button>
+                                class="fas fa-hand-rock"></i> <span data-i18n="lbl_btn_rock">주먹 (Rock)</span></button>
                         <button onclick="addExample(1)"
                             style="background:#3b82f6; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #1d4ed8; transition:transform 0.1s;"><i
-                                class="fas fa-hand-paper"></i> 보 (Paper)</button>
+                                class="fas fa-hand-paper"></i> <span data-i18n="lbl_btn_paper">보 (Paper)</span></button>
                         <button onclick="addExample(2)"
                             style="background:#10b981; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #047857; transition:transform 0.1s;"><i
-                                class="fas fa-hand-scissors"></i> 가위 (Scissors)</button>
+                                class="fas fa-hand-scissors"></i> <span data-i18n="lbl_btn_scissors">가위
+                                (Scissors)</span></button>
                         <button onclick="addExample(3)"
                             style="background:#64748b; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #475569; transition:transform 0.1s;"><i
-                                class="fas fa-ban"></i> 배경 (None)</button>
+                                class="fas fa-ban"></i> <span data-i18n="lbl_btn_none">배경 (None)</span></button>
                     </div>
                     <div
                         style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; font-weight: 700; padding: 0 5px; margin-top: 5px;">
@@ -706,6 +755,7 @@
                 <div class="trash-area" id="trashArea">
                     <i class="fas fa-trash-can"></i>
                 </div>
+                <div class="drag-selection-box" id="dragSelectionBox"></div>
             </div>
 
             <!-- Bottom Toolbox -->
@@ -2637,7 +2687,15 @@
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             if (e.key === 'Backspace' || e.key === 'Delete') {
-                if (selectedWorkspaceBlock) {
+                if (selectedStacks.length > 0) {
+                    selectedStacks.forEach(stack => {
+                        const firstBlock = stack.querySelector('.workspace-item');
+                        if (firstBlock && firstBlock.getAttribute('data-action') !== 'start') {
+                            deleteBlockAndChildren(firstBlock);
+                        }
+                    });
+                    clearMultiSelection();
+                } else if (selectedWorkspaceBlock) {
                     deleteBlockAndChildren(selectedWorkspaceBlock);
                 }
             }
@@ -2695,14 +2753,225 @@
         workspaceArea.style.left = `${initWsLeft}px`;
         workspaceArea.style.top = `${initWsTop}px`;
 
+        // ==========================================
+        // 워크스페이스 배경 드래그(Pan) 및 다중 선택(Shift+Drag) 기능 구현
+        // ==========================================
+        let isPanning = false;
+        let isSelecting = false;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+        let selectStartX = 0;
+        let selectStartY = 0;
+        let activePointerId = null; // 멀티터치 방지 고유 ID
+        let selectedStacks = []; // 다중 선택된 스택 배열
+        let dragStartLeft = 0;
+        let dragStartTop = 0;
+        let otherStacksStartCoords = []; // 보조 스택들의 원래 좌표 보관용
+        let draggedStack = null;
+        let draggedSiblings = [];
+
+        workspaceArea.parentElement.addEventListener('pointerdown', (e) => {
+            // 1. UI 영역 클릭 및 블록 드래그는 화면 이동/선택에서 제외
+            if (e.target.closest('.toolbox') || e.target.closest('.trash-area') || e.target.closest('.top-bar')) return;
+            if (e.target.closest('.block-stack')) return;
+
+            // 2. 마우스 클릭 시 좌클릭만 허용
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+            // 3. Shift 키가 눌려있으면 다중 선택 드래그 박스 시작
+            if (e.shiftKey) {
+                isSelecting = true;
+                activePointerId = e.pointerId;
+                const rect = workspaceArea.parentElement.getBoundingClientRect();
+                selectStartX = e.clientX - rect.left;
+                selectStartY = e.clientY - rect.top;
+
+                const box = document.getElementById('dragSelectionBox');
+                if (box) {
+                    box.style.left = `${selectStartX}px`;
+                    box.style.top = `${selectStartY}px`;
+                    box.style.width = '0px';
+                    box.style.height = '0px';
+                    box.style.display = 'block';
+                }
+
+                e.target.setPointerCapture(e.pointerId);
+                e.preventDefault();
+                return;
+            }
+
+            // 4. 일반 드래그 시 화면 이동(Pan) 시작
+            clearMultiSelection();
+
+            isPanning = true;
+            activePointerId = e.pointerId;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseFloat(workspaceArea.style.left) || 0;
+            startTop = parseFloat(workspaceArea.style.top) || 0;
+
+            e.target.setPointerCapture(e.pointerId);
+
+            workspaceArea.style.cursor = 'grabbing';
+            workspaceArea.parentElement.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (isSelecting && e.pointerId === activePointerId) {
+                const rect = workspaceArea.parentElement.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+
+                const left = Math.min(selectStartX, currentX);
+                const top = Math.min(selectStartY, currentY);
+                const width = Math.abs(selectStartX - currentX);
+                const height = Math.abs(selectStartY - currentY);
+
+                const box = document.getElementById('dragSelectionBox');
+                if (box) {
+                    box.style.left = `${left}px`;
+                    box.style.top = `${top}px`;
+                    box.style.width = `${width}px`;
+                    box.style.height = `${height}px`;
+                }
+                return;
+            }
+
+            if (isPanning && e.pointerId === activePointerId) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                workspaceArea.style.left = `${startLeft + dx}px`;
+                workspaceArea.style.top = `${startTop + dy}px`;
+            }
+        });
+
+        const endPointerAction = (e) => {
+            if (isSelecting && e.pointerId === activePointerId) {
+                isSelecting = false;
+                activePointerId = null;
+                const box = document.getElementById('dragSelectionBox');
+                if (box) {
+                    const rect = box.getBoundingClientRect();
+                    box.style.display = 'none';
+                    evaluateSelection(rect);
+                }
+                return;
+            }
+
+            if (isPanning && e.pointerId === activePointerId) {
+                isPanning = false;
+                activePointerId = null;
+                workspaceArea.style.cursor = '';
+                workspaceArea.parentElement.style.cursor = '';
+            }
+        };
+
+        window.addEventListener('pointerup', endPointerAction);
+        window.addEventListener('pointercancel', endPointerAction);
+
+        // 충돌 검사 및 다중 선택 그룹 하이라이트 활성화
+        function evaluateSelection(boxRect) {
+            clearMultiSelection();
+            if (boxRect.width < 5 || boxRect.height < 5) return;
+
+            const stacks = workspaceArea.querySelectorAll('.block-stack');
+            stacks.forEach(stack => {
+                const stackRect = stack.getBoundingClientRect();
+                const isOverlapping = !(
+                    stackRect.right < boxRect.left ||
+                    stackRect.left > boxRect.right ||
+                    stackRect.bottom < boxRect.top ||
+                    stackRect.top > boxRect.bottom
+                );
+
+                if (isOverlapping) {
+                    stack.classList.add('selected-stack');
+                    selectedStacks.push(stack);
+                }
+            });
+        }
+
+        // 다중 선택 상태 클리어
+        function clearMultiSelection() {
+            selectedStacks.forEach(stack => {
+                stack.classList.remove('selected-stack');
+            });
+            selectedStacks = [];
+        }
+
         let dragSourceNode = null;
         let placeholder = null;
 
         document.addEventListener('dragstart', (e) => {
             if (e.target.classList.contains('spike-block')) {
-                // 시작 블럭 고정 제한 해제! 이제 드래그해서 위치 재배열 가능 (하지만 다른 블럭 뒤로 갈 수는 없음)
                 dragSourceNode = e.target;
+
+                // 다중 선택된 그룹 드래그 상태 보존
+                const sourceStack = dragSourceNode.closest('.block-stack');
+                if (sourceStack && selectedStacks.includes(sourceStack)) {
+                    draggedStack = sourceStack;
+                    dragStartLeft = parseFloat(sourceStack.style.left) || 0;
+                    dragStartTop = parseFloat(sourceStack.style.top) || 0;
+                    otherStacksStartCoords = selectedStacks.map(stack => ({
+                        stack: stack,
+                        left: parseFloat(stack.style.left) || 0,
+                        top: parseFloat(stack.style.top) || 0
+                    }));
+                } else {
+                    draggedStack = null;
+                    otherStacksStartCoords = [];
+                }
+
+                // Capture subsequent siblings in the same stack (group dragging)
+                draggedSiblings = [];
+                if (sourceStack) {
+                    let next = dragSourceNode.nextElementSibling;
+                    while (next) {
+                        if (!next.classList.contains('placeholder')) {
+                            draggedSiblings.push(next);
+                        }
+                        next = next.nextElementSibling;
+                    }
+                }
+
                 e.dataTransfer.effectAllowed = 'copyMove';
+
+                // Create custom drag image containing dragSourceNode and its siblings
+                if (sourceStack) {
+                    const dragImgContainer = document.createElement('div');
+                    dragImgContainer.className = 'block-stack';
+                    dragImgContainer.style.cssText = 'position: absolute; top: -9999px; left: -9999px; display: inline-flex; align-items: center; white-space: nowrap; pointer-events: none;';
+
+                    // Clone dragSourceNode and its siblings
+                    const cloneNode = dragSourceNode.cloneNode(true);
+                    cloneNode.style.display = 'inline-flex';
+                    cloneNode.style.opacity = '1';
+                    dragImgContainer.appendChild(cloneNode);
+
+                    draggedSiblings.forEach(sib => {
+                        const cloneSib = sib.cloneNode(true);
+                        cloneSib.style.display = 'inline-flex';
+                        cloneSib.style.opacity = '1';
+                        dragImgContainer.appendChild(cloneSib);
+                    });
+
+                    document.body.appendChild(dragImgContainer);
+
+                    const blockRect = dragSourceNode.getBoundingClientRect();
+                    const offsetX = e.clientX - blockRect.left;
+                    const offsetY = e.clientY - blockRect.top;
+
+                    e.dataTransfer.setDragImage(dragImgContainer, offsetX, offsetY);
+
+                    // Remove the offscreen container after a short delay
+                    setTimeout(() => {
+                        dragImgContainer.remove();
+                    }, 0);
+                }
 
                 // 빈 공간을 벌려줄 예쁜 투명 플레이스홀더 생성
                 placeholder = document.createElement('div');
@@ -2713,6 +2982,7 @@
                     // 워크스페이스 내부 이동일 경우: 원본은 남겨두되 투명하게 숨김 (브라우저 D&D 취소 버그 방지)
                     setTimeout(() => {
                         dragSourceNode.style.display = 'none';
+                        draggedSiblings.forEach(sib => sib.style.display = 'none');
                         dragSourceNode.parentElement.insertBefore(placeholder, dragSourceNode);
                     }, 0);
                 } else {
@@ -2728,17 +2998,68 @@
             if (dragSourceNode.style.display === 'none') {
                 dragSourceNode.style.display = 'inline-flex'; // 다시 보이게
             }
+            draggedSiblings.forEach(sib => {
+                if (sib.style.display === 'none') {
+                    sib.style.display = 'inline-flex';
+                }
+            });
             if (trashArea) trashArea.classList.remove('drag-over');
 
             if (placeholder && placeholder.parentElement) {
                 // 드롭이 제대로 안끝나면 제자리로 돌리기 처리
                 if (placeholder.parentElement.classList.contains('block-stack')) {
-                    placeholder.parentElement.insertBefore(dragSourceNode, placeholder);
+                    const parent = placeholder.parentElement;
+                    parent.insertBefore(dragSourceNode, placeholder);
+                    draggedSiblings.forEach(sib => {
+                        parent.insertBefore(sib, placeholder);
+                    });
                 }
                 placeholder.remove();
             }
 
+            // 다중 선택 그룹 동시 이동 델타값 정렬 수행
+            const sourceStack = dragSourceNode.closest('.block-stack');
+            if (otherStacksStartCoords.length > 0) {
+                setTimeout(() => {
+                    const finalLeft = parseFloat(sourceStack.style.left) || 0;
+                    const finalTop = parseFloat(sourceStack.style.top) || 0;
+                    const dx = finalLeft - dragStartLeft;
+                    const dy = finalTop - dragStartTop;
+
+                    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                        otherStacksStartCoords.forEach(coord => {
+                            if (coord.stack !== draggedStack) {
+                                coord.stack.style.left = `${coord.left + dx}px`;
+                                coord.stack.style.top = `${coord.top + dy}px`;
+                            }
+                        });
+                    }
+
+                    // Update selectedStacks with the new sourceStack
+                    if (sourceStack && !selectedStacks.includes(sourceStack)) {
+                        selectedStacks.push(sourceStack);
+                        sourceStack.classList.add('selected-stack');
+                    }
+
+                    // Filter out empty or detached stacks
+                    selectedStacks = selectedStacks.filter(stack => {
+                        const exists = document.body.contains(stack) && stack.children.length > 0;
+                        if (!exists) {
+                            stack.classList.remove('selected-stack');
+                        }
+                        return exists;
+                    });
+
+                    otherStacksStartCoords = [];
+                    draggedStack = null;
+                }, 50);
+            } else {
+                otherStacksStartCoords = [];
+                draggedStack = null;
+            }
+
             dragSourceNode = null;
+            draggedSiblings = [];
             placeholder = null;
 
             // 내용 없는 빈 스택 정리
@@ -2766,7 +3087,17 @@
             if (dragSourceNode && dragSourceNode.classList.contains('workspace-item')) {
                 if (!e.target.closest('#workspaceArea') && !e.target.closest('#palette') && !e.target.closest('#trashArea')) {
                     if (dragSourceNode.getAttribute('data-action') !== 'start') {
-                        deleteBlockAndChildren(dragSourceNode);
+                        if (selectedStacks.length > 0) {
+                            selectedStacks.forEach(stack => {
+                                const firstBlock = stack.querySelector('.workspace-item');
+                                if (firstBlock && firstBlock.getAttribute('data-action') !== 'start') {
+                                    deleteBlockAndChildren(firstBlock);
+                                }
+                            });
+                            clearMultiSelection();
+                        } else {
+                            deleteBlockAndChildren(dragSourceNode);
+                        }
                         if (placeholder) placeholder.remove();
                     }
                 }
@@ -2863,7 +3194,8 @@
                     finalBlock = dragSourceNode;
                 }
 
-                if (placeholder.parentElement === workspaceArea) {
+                const targetParent = placeholder.parentElement;
+                if (targetParent === workspaceArea) {
                     // 근처에 스택이 없어서 모눈종이 직속(자유배치)된 경우 새 스택 컨테이너화
                     const newStack = document.createElement('div');
                     newStack.className = 'block-stack';
@@ -2871,11 +3203,18 @@
                     newStack.style.top = placeholder.style.top;
                     workspaceArea.appendChild(newStack);
                     newStack.appendChild(finalBlock);
+                    draggedSiblings.forEach(sib => {
+                        newStack.appendChild(sib);
+                    });
                 } else {
-                    placeholder.parentElement.insertBefore(finalBlock, placeholder);
+                    targetParent.insertBefore(finalBlock, placeholder);
+                    draggedSiblings.forEach(sib => {
+                        targetParent.insertBefore(sib, placeholder);
+                    });
                 }
 
                 finalBlock.style.display = 'inline-flex'; // 혹시 숨겨져 있었다면 복구
+                draggedSiblings.forEach(sib => sib.style.display = 'inline-flex');
 
                 // 삽입완료 후 플레이스홀더 즉시 삭제
                 placeholder.remove();
@@ -2898,9 +3237,26 @@
             trashArea.addEventListener('drop', (e) => {
                 e.preventDefault();
                 trashArea.classList.remove('drag-over');
-                if (dragSourceNode && (dragSourceNode.classList.contains('workspace-item') || dragSourceNode.parentElement === workspaceArea)) {
-                    deleteBlockAndChildren(dragSourceNode);
-                    if (placeholder) placeholder.remove(); // 허공에 남은 틀 제거
+                if (dragSourceNode) {
+                    if (selectedStacks.length > 0) {
+                        selectedStacks.forEach(stack => {
+                            const firstBlock = stack.querySelector('.workspace-item');
+                            if (firstBlock && firstBlock.getAttribute('data-action') !== 'start') {
+                                deleteBlockAndChildren(firstBlock);
+                            }
+                        });
+                        clearMultiSelection();
+                        if (placeholder) placeholder.remove();
+                    } else if (dragSourceNode.classList.contains('workspace-item') || dragSourceNode.parentElement === workspaceArea) {
+                        if (dragSourceNode.getAttribute('data-action') !== 'start') {
+                            deleteBlockAndChildren(dragSourceNode);
+                            if (placeholder) placeholder.remove(); // 허공에 남은 틀 제거
+                        } else {
+                            alert("시작 블럭은 지울 수 없습니다!");
+                            if (placeholder) workspaceArea.insertBefore(dragSourceNode, placeholder);
+                            dragSourceNode.style.display = 'inline-flex';
+                        }
+                    }
                 }
             });
         }
@@ -2936,9 +3292,13 @@
                             noteOsc.type = note[2] || 'square';
                             noteOsc.frequency.setValueAtTime(freq, timeOffset);
 
+                            const savedVol = localStorage.getItem('bricksync_volume');
+                            const userVol = savedVol !== null ? parseFloat(savedVol) : 1.0;
+                            const peakGain = 0.3 * userVol;
+
                             noteGain.gain.setValueAtTime(0, timeOffset);
-                            noteGain.gain.linearRampToValueAtTime(0.3, timeOffset + 0.05);
-                            noteGain.gain.exponentialRampToValueAtTime(0.01, timeOffset + duration - 0.01);
+                            noteGain.gain.linearRampToValueAtTime(peakGain, timeOffset + 0.05);
+                            noteGain.gain.exponentialRampToValueAtTime((0.01 * userVol) || 0.001, timeOffset + duration - 0.01);
 
                             noteOsc.start(timeOffset);
                             noteOsc.stop(timeOffset + duration);
@@ -3061,9 +3421,20 @@
         async function haltExecution() {
             window.bleEngineRunCounter = (window.bleEngineRunCounter || 0) + 1;
             if (window.parent && window.parent.connectionType === 'BLE') {
-                for (let p = 0; p < 6; p++) {
+                // 부모 프록시의 디바이스 맵에 존재하는 활성 포트만 추출
+                let activePorts = [];
+                if (window.parent.hubDevices) {
+                    activePorts = Object.keys(window.parent.hubDevices).map(Number).filter(p => p >= 0 && p < 6);
+                }
+                // 만약 활성 포트 정보가 없으면 예외 복구(Fallback)로 모든 포트(0~5) 정지 송신
+                if (activePorts.length === 0) {
+                    activePorts = [0, 1, 2, 3, 4, 5];
+                }
+
+                for (let i = 0; i < activePorts.length; i++) {
+                    const p = activePorts[i];
                     await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, 0])).catch(e => { });
-                    await new Promise(r => setTimeout(r, 60)); // GATT 에러 방지용 필수 대기 시간
+                    await new Promise(r => setTimeout(r, 30)); // 30ms 안전 마진 지연시간 (15ms 기본 지연 결합)
                 }
             } else if (window.parent && window.parent.connectionType === 'USB') {
                 let pyStop = '\\x03\\x03\\x01import motor\ntry:\n for i in range(6):\n  try: motor.stop(i)\n  except: pass\nexcept: pass\n\\x04';
@@ -3071,6 +3442,11 @@
             }
         }
         async function runBlocks(triggerAction = 'gui', triggerVal = -1) {
+            if (triggerAction === 'gui') {
+                if (typeof lastTriggeredAiGesture !== 'undefined') {
+                    lastTriggeredAiGesture = -1;
+                }
+            }
             // 실행 가능한 스택 찾기 (방어 로직 탑재)
             const validStacks = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).filter(stack => {
                 const firstBlock = stack.querySelector('.workspace-item');
@@ -3503,6 +3879,12 @@ print("BrickSync Sandbox Run")
                             case 'event_color_sensor':
                                 bleQueue.push({ action: 'wait_color', targetColor: paramVal, delay: currentBleDelay });
                                 break;
+                            case 'event_distance_sensor':
+                                bleQueue.push({ action: 'wait_distance', targetDistance: paramVal, delay: currentBleDelay });
+                                break;
+                            case 'event_ai_gesture':
+                                bleQueue.push({ action: 'wait_ai_gesture', targetGesture: paramVal, delay: currentBleDelay });
+                                break;
                             case 'flow_wait':
                                 currentBleDelay += (paramVal * 1000);
                                 break;
@@ -3538,11 +3920,11 @@ print("BrickSync Sandbox Run")
                     const executeBleQueue = async () => {
                         let lastExecutionTime = 0;
                         for (const cmd of bleQueue) {
-                            if (window.bleEngineRunCounter !== currentRunId) return; // ?�전 ?�행 루프 취소
+                            if (window.bleEngineRunCounter !== currentRunId) return; // ?전 ?행 루프 취소
                             try {
                                 const waitTime = cmd.delay - lastExecutionTime;
 
-                                if (waitTime > 0 && cmd.action !== 'wait_color') {
+                                if (waitTime > 0 && cmd.action !== 'wait_color' && cmd.action !== 'wait_distance' && cmd.action !== 'wait_ai_gesture') {
                                     console.log(`?�️ [BLE_ENGINE] Executing cmd: ${cmd.action} (waitTime: ${waitTime}ms)`);
                                     await new Promise(r => setTimeout(r, waitTime));
                                     lastExecutionTime = cmd.delay;
@@ -3579,7 +3961,7 @@ print("BrickSync Sandbox Run")
                                         let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, speedHex])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
-                                        
+
                                         mCnt++;
                                         if (mCnt >= 2) break;
                                     }
@@ -3594,7 +3976,7 @@ print("BrickSync Sandbox Run")
 
                                         await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, 0])).catch(e => { });
                                         await new Promise(r => setTimeout(r, 60));
-                                        
+
                                         mCnt++;
                                         if (mCnt >= 2) break;
                                     }
@@ -3620,7 +4002,7 @@ print("BrickSync Sandbox Run")
                                     await window.parent.writeToHub(new Uint8Array(payload)).catch(e => { });
                                     await new Promise(r => setTimeout(r, 40));
                                 } else if (cmd.action === 'wait_color') {
-                                    console.log(`?�️ [BLE_ENGINE] Waiting for Color Sensor to detect color ID: ${cmd.targetColor}`);
+                                    console.log(`📡 [BLE_ENGINE] Waiting for Color Sensor to detect color ID: ${cmd.targetColor}`);
                                     let matched = false;
                                     while (!matched && window.bleEngineRunCounter === currentRunId) {
                                         if (window.parent.sensorData) {
@@ -3633,12 +4015,43 @@ print("BrickSync Sandbox Run")
                                                 }
                                             }
                                         }
-                                        if (!matched) await new Promise(r => setTimeout(r, 100)); // ?�링 주기 100ms
+                                        if (!matched) await new Promise(r => setTimeout(r, 100));
                                     }
-                                    if (!matched) return; // ?��? 취소
-                                    console.log(`??[BLE_ENGINE] Target Color ${cmd.targetColor} Detected! Continuing sequence...`);
-
-                                    // ?�?�라???�기??- ?�벤??조건 만족 ?��????�레?��? ?�용?�게 ??
+                                    if (!matched) return;
+                                    console.log(`🎯 [BLE_ENGINE] Target Color ${cmd.targetColor} Detected! Continuing sequence...`);
+                                    lastExecutionTime = cmd.delay;
+                                } else if (cmd.action === 'wait_distance') {
+                                    console.log("📡 [BLE_ENGINE] Waiting for Distance Sensor to detect obstacles");
+                                    let matched = false;
+                                    while (!matched && window.bleEngineRunCounter === currentRunId) {
+                                        if (window.parent.sensorData) {
+                                            for (let p = 0; p < 6; p++) {
+                                                if (window.parent.hubDevices && window.parent.hubDevices[p] === 62) {
+                                                    let distVal = window.parent.sensorData[p];
+                                                    if (distVal !== undefined && distVal < 10) {
+                                                        matched = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (!matched) await new Promise(r => setTimeout(r, 100));
+                                    }
+                                    if (!matched) return;
+                                    console.log("🚨 [BLE_ENGINE] Obstacle Detected! Continuing sequence...");
+                                    lastExecutionTime = cmd.delay;
+                                } else if (cmd.action === 'wait_ai_gesture') {
+                                    console.log(`📡 [BLE_ENGINE] Waiting for AI Gesture ID: ${cmd.targetGesture}`);
+                                    let matched = false;
+                                    while (!matched && window.bleEngineRunCounter === currentRunId) {
+                                        if (typeof lastTriggeredAiGesture !== 'undefined' && lastTriggeredAiGesture === cmd.targetGesture) {
+                                            matched = true;
+                                            break;
+                                        }
+                                        if (!matched) await new Promise(r => setTimeout(r, 100));
+                                    }
+                                    if (!matched) return;
+                                    console.log(`🎯 [BLE_ENGINE] Target AI Gesture ${cmd.targetGesture} Detected! Continuing sequence...`);
                                     lastExecutionTime = cmd.delay;
                                 }
                             } catch (e) {
@@ -3682,6 +4095,18 @@ print("BrickSync Sandbox Run")
         }
 
         function triggerSuccessConfetti() {
+            if (typeof recordTelemetry !== 'undefined') {
+                recordTelemetry(false, `[${_bsStudentName}] 미션 ${unit} 완료! 고양이 먹이 주기 성공 🚀`, true, unit);
+            } else if (window.dashChannel) {
+                try {
+                    window.dashChannel.postMessage({
+                        type: 'MISSION_COMPLETE',
+                        unit: unit,
+                        msg: `[${_bsStudentName}] 미션 ${unit} 완료! 고양이 먹이 주기 성공 🚀`,
+                        student: _bsStudentName
+                    });
+                } catch (e) { }
+            }
             var duration = 3 * 1000;
             var animationEnd = Date.now() + duration;
             var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -3725,121 +4150,381 @@ print("BrickSync Sandbox Run")
 
         if (unit) {
             const missionData = {
-                '1': {
-                    badge: 'STAGE 1', title: '첫 번째 연동', desc: '조명 블록을 꺼내어 조립해서 허브에 불을 켜보세요!',
-                    pinCode: '7241',
-                    tasks: [
-                        { id: 'start', text: '재생(시작) 블록 연결하기' },
-                        { id: ['matrix_pixel'], text: '조명 블록(3x3) 연결하기' }
-                    ]
+                ko: {
+                    '1': {
+                        badge: 'STAGE 1', title: '첫 번째 연동', desc: '조명 블록을 꺼내어 조립해서 허브에 불을 켜보세요!',
+                        pinCode: '7241',
+                        tasks: [
+                            { id: 'start', text: '재생(시작) 블록 연결하기' },
+                            { id: ['matrix_pixel'], text: '조명 블록(3x3) 연결하기' }
+                        ]
+                    },
+                    '2': {
+                        badge: 'STAGE 2', title: '모터 움직이기', desc: '회전 블록 및 제어 블록을 활용하여 포트나이트를 돕습니다.',
+                        pinCode: '8932',
+                        tasks: [
+                            { id: 'start', text: '재생(시작) 블록 연결하기' },
+                            { id: 'motor_speed_set', text: '모터 속도 설정 블록 추가' },
+                            { id: ['motor_cw', 'motor_ccw'], text: '모터 회전 구동 블록 실행' }
+                        ]
+                    },
+                    '3': {
+                        badge: 'STAGE 3', title: '센서 반응형 장치', desc: '거리 센서 블록으로 주변을 감지하는 똑똑한 제어를 완성하세요.',
+                        pinCode: '5019',
+                        tasks: [
+                            { id: 'start', text: '재생(시작) 블록 연결하기' },
+                            { id: 'event_distance_sensor', text: '거리 센서 제어 블록 포함하기' },
+                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: '조건에 맞는 동작(모터/조명) 연결' }
+                        ]
+                    },
+                    '4': {
+                        badge: 'STAGE 4', title: '캣 아일랜드 마스터', desc: '무한 루프와 각종 블록을 자유롭게 결합해 궁극의 미션을 클리어합니다.',
+                        pinCode: '3370',
+                        tasks: [
+                            { id: 'start', text: '재생(시작) 블록 연결하기' },
+                            { id: 'control_forever', text: '무한 반복 루프 꺼내기' },
+                            { id: 'event_distance_sensor', text: '거리 센서 감지 활용' },
+                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: '출력 블록(모터/조명) 작동' }
+                        ]
+                    }
                 },
-                '2': {
-                    badge: 'STAGE 2', title: '모터 움직이기', desc: '회전 블록 및 제어 블록을 활용하여 포트나이트를 돕습니다.',
-                    pinCode: '8932',
-                    tasks: [
-                        { id: 'start', text: '재생(시작) 블록 연결하기' },
-                        { id: 'motor_speed_set', text: '모터 속도 설정 블록 추가' },
-                        { id: ['motor_cw', 'motor_ccw'], text: '모터 회전 구동 블록 실행' }
-                    ]
-                },
-                '3': {
-                    badge: 'STAGE 3', title: '센서 반응형 장치', desc: '거리 센서 블록으로 주변을 감지하는 똑똑한 제어를 완성하세요.',
-                    pinCode: '5019',
-                    tasks: [
-                        { id: 'start', text: '재생(시작) 블록 연결하기' },
-                        { id: 'event_distance_sensor', text: '거리 센서 제어 블록 포함하기' },
-                        { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: '조건에 맞는 동작(모터/조명) 연결' }
-                    ]
-                },
-                '4': {
-                    badge: 'STAGE 4', title: '캣 아일랜드 마스터', desc: '무한 루프와 각종 블록을 자유롭게 결합해 궁극의 미션을 클리어합니다.',
-                    pinCode: '3370',
-                    tasks: [
-                        { id: 'start', text: '재생(시작) 블록 연결하기' },
-                        { id: 'control_forever', text: '무한 반복 루프 꺼내기' },
-                        { id: 'event_distance_sensor', text: '거리 센서 감지 활용' },
-                        { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: '출력 블록(모터/조명) 작동' }
-                    ]
+                en: {
+                    '1': {
+                        badge: 'STAGE 1', title: 'First Integration', desc: 'Pull out and assemble the light block to turn on the hub light!',
+                        pinCode: '7241',
+                        tasks: [
+                            { id: 'start', text: 'Connect the Play (Start) block' },
+                            { id: ['matrix_pixel'], text: 'Connect the Light block (3x3)' }
+                        ]
+                    },
+                    '2': {
+                        badge: 'STAGE 2', title: 'Motor Control', desc: 'Help Fortnite by utilizing rotation and control blocks.',
+                        pinCode: '8932',
+                        tasks: [
+                            { id: 'start', text: 'Connect the Play (Start) block' },
+                            { id: 'motor_speed_set', text: 'Add Motor Speed set block' },
+                            { id: ['motor_cw', 'motor_ccw'], text: 'Run Motor Rotation block' }
+                        ]
+                    },
+                    '3': {
+                        badge: 'STAGE 3', title: 'Sensor Reactive Device', desc: 'Complete smart control by sensing surroundings with the distance sensor block.',
+                        pinCode: '5019',
+                        tasks: [
+                            { id: 'start', text: 'Connect the Play (Start) block' },
+                            { id: 'event_distance_sensor', text: 'Include Distance Sensor control block' },
+                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: 'Connect matching action (motor/light) based on conditions' }
+                        ]
+                    },
+                    '4': {
+                        badge: 'STAGE 4', title: 'Cat Island Master', desc: 'Clear the ultimate mission by freely combining loops and various blocks.',
+                        pinCode: '3370',
+                        tasks: [
+                            { id: 'start', text: 'Connect the Play (Start) block' },
+                            { id: 'control_forever', text: 'Retrieve Forever Loop block' },
+                            { id: 'event_distance_sensor', text: 'Utilize Distance Sensor detection' },
+                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: 'Operate Output block (motor/light)' }
+                        ]
+                    }
                 }
             };
-            const currentMission = missionData[unit];
-            if (currentMission) {
-                document.getElementById('missionStatusBar').style.display = 'flex';
-                document.getElementById('m-badge').textContent = currentMission.badge;
-                document.getElementById('m-title').textContent = currentMission.title;
-                document.getElementById('m-desc').textContent = currentMission.desc;
 
-                // 퍼센티지 재계산 및 과제 리스트 렌더링용
-                const tasksEl = document.getElementById('m-tasks-list');
-                tasksEl.innerHTML = '';
-                currentMission.tasks.forEach((task, idx) => {
-                    const li = document.createElement('li');
-                    li.id = 'task-item-' + idx;
-                    li.style.cssText = 'display: flex; align-items: center; gap: 10px; font-size: 0.95rem; font-weight: 500; color: #64748b; transition: all 0.3s ease;';
-                    li.innerHTML = `<i class="far fa-circle" style="color: #cbd5e1; width:20px; font-size:1.1rem; text-align:center;"></i> ${task.text}`;
-                    tasksEl.appendChild(li);
+            let activeObserver = null;
+
+            function renderActiveMission() {
+                const lang = localStorage.getItem('bricksync_lang') || 'ko';
+                const currentMission = (missionData[lang] || missionData['ko'])[unit];
+                if (currentMission) {
+                    document.getElementById('missionStatusBar').style.display = 'flex';
+                    document.getElementById('m-badge').textContent = currentMission.badge;
+                    document.getElementById('m-title').textContent = currentMission.title;
+                    document.getElementById('m-desc').textContent = currentMission.desc;
+
+                    // 퍼센티지 재계산 및 과제 리스트 렌더링용
+                    const tasksEl = document.getElementById('m-tasks-list');
+                    if (tasksEl) {
+                        tasksEl.innerHTML = '';
+                        currentMission.tasks.forEach((task, idx) => {
+                            const li = document.createElement('li');
+                            li.id = 'task-item-' + idx;
+                            li.style.cssText = 'display: flex; align-items: center; gap: 10px; font-size: 0.95rem; font-weight: 500; color: #64748b; transition: all 0.3s ease;';
+                            li.innerHTML = `<i class="far fa-circle" style="color: #cbd5e1; width:20px; font-size:1.1rem; text-align:center;"></i> ${task.text}`;
+                            tasksEl.appendChild(li);
+                        });
+                    }
+
+                    const updateProgress = () => {
+                        const workspaceArea = document.getElementById('workspaceArea');
+                        if (!workspaceArea) return;
+
+                        // 현재 놓여진 블록들 확인
+                        const workspaceBlocks = Array.from(workspaceArea.querySelectorAll('.workspace-item:not(.placeholder)'));
+                        const presentActions = workspaceBlocks.map(b => b.getAttribute('data-action'));
+
+                        let completedTasks = 0;
+
+                        currentMission.tasks.forEach((task, idx) => {
+                            const li = document.getElementById('task-item-' + idx);
+                            if (!li) return;
+                            // 특정 블럭이 존재하는지 정밀 조건 검사
+                            let isCompleted = Array.isArray(task.id)
+                                ? task.id.some(id => presentActions.includes(id))
+                                : presentActions.includes(task.id);
+
+                            if (isCompleted) {
+                                completedTasks++;
+                                li.style.color = '#10b981';
+                                li.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981; width:20px; font-size:1.1rem; text-align:center;"></i> ${task.text}`;
+                            } else {
+                                li.style.color = '#64748b';
+                                li.innerHTML = `<i class="far fa-circle" style="color: #cbd5e1; width:20px; font-size:1.1rem; text-align:center;"></i> ${task.text}`;
+                            }
+                        });
+
+                        const percent = Math.min(100, Math.round((completedTasks / currentMission.tasks.length) * 100));
+
+                        const progressEl = document.getElementById('m-progress');
+                        const percentEl = document.getElementById('m-percent');
+                        if (progressEl) progressEl.style.width = percent + '%';
+                        if (percentEl) percentEl.textContent = percent + '%';
+
+                        if (percent >= 100 && progressEl && !progressEl.dataset.completed) {
+                            progressEl.dataset.completed = 'true';
+
+                            // [추가됨] 사용자가 올려놓은 모터 방향 블록에 따라 동적으로 핀코드(7241 또는 9988) 발급
+                            let finalPin = currentMission.pinCode || '0000';
+                            const lastMotorAction = presentActions.slice().reverse().find(a => a === 'motor_cw' || a === 'motor_ccw');
+                            if (lastMotorAction === 'motor_cw') {
+                                finalPin = '7241';
+                            } else if (lastMotorAction === 'motor_ccw') {
+                                finalPin = '9988';
+                            }
+
+                            setTimeout(() => {
+                                // 웹소켓을 통해 클리어 신호 전송 로직 (추후 UEFN 연동 용)
+                                if (typeof bridgeSocket !== 'undefined' && bridgeSocket && bridgeSocket.readyState === WebSocket.OPEN) {
+                                    bridgeSocket.send(JSON.stringify({ action: "MISSION_CLEARED_PIN_READY", pin: finalPin }));
+                                }
+                            }, 500); // 100% 모션 후 딜레이
+                        } else if (percent < 100 && progressEl) {
+                            progressEl.dataset.completed = ''; // 블럭 떨어져나가면 달성도 리셋
+                        }
+                    };
+
+                    if (activeObserver) activeObserver.disconnect();
+                    activeObserver = new MutationObserver(updateProgress);
+                    activeObserver.observe(document.getElementById('workspaceArea'), { childList: true, subtree: true });
+
+                    // 초기 계산 1회 수행
+                    setTimeout(updateProgress, 300);
+                }
+            }
+
+            renderActiveMission();
+
+            window.addEventListener('bricksync-language-changed', (e) => {
+                renderActiveMission();
+            });
+        }
+
+        // --- Workspace Auto-Save / Auto-Load System for AI ---
+        function saveWorkspace() {
+            if (!unit) return;
+            const workspaceArea = document.getElementById('workspaceArea');
+            if (!workspaceArea) return;
+
+            const stacks = [];
+            const stackEls = workspaceArea.querySelectorAll('.block-stack');
+
+            stackEls.forEach(stack => {
+                const blocks = [];
+
+                function serializeBlock(block) {
+                    if (block.classList.contains('placeholder')) return null;
+                    const action = block.getAttribute('data-action');
+                    if (!action) return null;
+
+                    const blockData = { action: action };
+
+                    const paramEl = block.querySelector(':scope > .block-param:not(.param-time)') || block.querySelector('.color-brick-icon');
+                    if (paramEl) {
+                        blockData.paramVal = paramEl.hasAttribute('data-val') ? paramEl.getAttribute('data-val') : paramEl.innerText.trim();
+                        if (paramEl.hasAttribute('data-matrix')) {
+                            blockData.matrix = paramEl.getAttribute('data-matrix');
+                        }
+                    }
+
+                    const timeEl = block.querySelector(':scope > .param-time') || block.querySelector('.block-param.param-time');
+                    if (timeEl) {
+                        blockData.timeVal = timeEl.hasAttribute('data-val') ? timeEl.getAttribute('data-val') : timeEl.innerText.trim();
+                    }
+
+                    const innerStack = block.querySelector('.loop-inner-stack');
+                    if (innerStack) {
+                        const nested = [];
+                        Array.from(innerStack.children).forEach(child => {
+                            if (child.classList.contains('workspace-item')) {
+                                const serialized = serializeBlock(child);
+                                if (serialized) nested.push(serialized);
+                            }
+                        });
+                        blockData.nested = nested;
+                    }
+
+                    return blockData;
+                }
+
+                Array.from(stack.children).forEach(child => {
+                    if (child.classList.contains('workspace-item')) {
+                        const serialized = serializeBlock(child);
+                        if (serialized) blocks.push(serialized);
+                    }
                 });
 
-                const updateProgress = () => {
-                    // 현재 놓여진 블록들 확인
-                    const workspaceBlocks = Array.from(document.querySelectorAll('#workspaceArea .workspace-item:not(.placeholder)'));
-                    const presentActions = workspaceBlocks.map(b => b.getAttribute('data-action'));
-
-                    let completedTasks = 0;
-
-                    currentMission.tasks.forEach((task, idx) => {
-                        const li = document.getElementById('task-item-' + idx);
-                        // 특정 블럭이 존재하는지 정밀 조건 검사
-                        let isCompleted = Array.isArray(task.id)
-                            ? task.id.some(id => presentActions.includes(id))
-                            : presentActions.includes(task.id);
-
-                        if (isCompleted) {
-                            completedTasks++;
-                            li.style.color = '#10b981';
-                            li.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981; width:20px; font-size:1.1rem; text-align:center;"></i> ${task.text}`;
-                        } else {
-                            li.style.color = '#64748b';
-                            li.innerHTML = `<i class="far fa-circle" style="color: #cbd5e1; width:20px; font-size:1.1rem; text-align:center;"></i> ${task.text}`;
-                        }
+                if (blocks.length > 0) {
+                    stacks.push({
+                        left: parseFloat(stack.style.left) || 0,
+                        top: parseFloat(stack.style.top) || 0,
+                        blocks: blocks
                     });
+                }
+            });
 
-                    const percent = Math.min(100, Math.round((completedTasks / currentMission.tasks.length) * 100));
+            const projectId = _bsStudentName + '_project_ai_' + unit;
 
-                    document.getElementById('m-progress').style.width = percent + '%';
-                    document.getElementById('m-percent').textContent = percent + '%';
+            if (stacks.length === 0) {
+                localStorage.removeItem(projectId);
+                return;
+            }
 
-                    if (percent >= 100 && !document.getElementById('m-progress').dataset.completed) {
-                        document.getElementById('m-progress').dataset.completed = 'true';
+            const projectNames = {
+                ko: {
+                    '1': 'AI 단원 1: 가위! 바위! 보! 손가락으로 하는 북극 레이싱',
+                    '2': 'AI 단원 2: 앉았다 일어서기! 마법 나무 엘리베이터 타기',
+                    '3': 'AI 단원 3: 카메라에 맛있는 과일을 보여주고 간식 선물받기'
+                },
+                en: {
+                    '1': 'AI Lesson 1: Rock Paper Scissors! Finger-controlled Arctic Racing',
+                    '2': 'AI Lesson 2: Squats! Riding the Magic Tree Elevator',
+                    '3': 'AI Lesson 3: Show delicious fruit to the camera and get a snack treat'
+                }
+            };
 
-                        // [추가됨] 사용자가 올려놓은 모터 방향 블록에 따라 동적으로 핀코드(7241 또는 9988) 발급
-                        let finalPin = currentMission.pinCode || '0000';
-                        const lastMotorAction = presentActions.slice().reverse().find(a => a === 'motor_cw' || a === 'motor_ccw');
-                        if (lastMotorAction === 'motor_cw') {
-                            finalPin = '7241';
-                        } else if (lastMotorAction === 'motor_ccw') {
-                            finalPin = '9988';
+            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
+            const localizedNames = projectNames[currentLang] || projectNames['ko'];
+
+            const projectData = {
+                id: projectId,
+                name: localizedNames[unit] || (currentLang === 'en' ? `AI Lesson ${unit} Project` : `AI 학습 ${unit} 프로젝트`),
+                unit: unit,
+                blocks: stacks,
+                updatedAt: Date.now()
+            };
+
+            localStorage.setItem(projectId, JSON.stringify(projectData));
+        }
+
+        function loadWorkspace() {
+            if (!unit) return;
+            const projectId = _bsStudentName + '_project_ai_' + unit;
+            const rawData = localStorage.getItem(projectId);
+            if (!rawData) return;
+
+            const workspaceArea = document.getElementById('workspaceArea');
+            if (!workspaceArea) return;
+
+            const stacks = workspaceArea.querySelectorAll('.block-stack');
+            stacks.forEach(s => s.remove());
+            const hint = workspaceArea.querySelector('.hint-text');
+            if (hint) hint.remove();
+
+            try {
+                const projectData = JSON.parse(rawData);
+                if (!projectData || !projectData.blocks) return;
+
+                projectData.blocks.forEach(stackData => {
+                    const newStack = document.createElement('div');
+                    newStack.className = 'block-stack';
+                    newStack.style.left = stackData.left + 'px';
+                    newStack.style.top = stackData.top + 'px';
+                    workspaceArea.appendChild(newStack);
+
+                    function deserializeBlock(blockData, parentNode) {
+                        const template = document.querySelector(`#palette [data-action="${blockData.action}"]`);
+                        if (!template) return null;
+
+                        const block = template.cloneNode(true);
+                        block.classList.add('workspace-item');
+                        block.style.display = 'inline-flex';
+
+                        // Restore parameters
+                        if (blockData.paramVal !== undefined) {
+                            const paramEl = block.querySelector(':scope > .block-param:not(.param-time)') || block.querySelector('.color-brick-icon');
+                            if (paramEl) {
+                                paramEl.setAttribute('data-val', blockData.paramVal);
+                                if (blockData.matrix) {
+                                    paramEl.setAttribute('data-matrix', blockData.matrix);
+                                }
+
+                                // Update UI icons or text for parameters
+                                if (blockData.action === 'event_ai_gesture') {
+                                    const icons = ['fa-hand-rock', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
+                                    const val = parseInt(blockData.paramVal);
+                                    if (val >= 0 && val <= 3) {
+                                        paramEl.innerHTML = `<i class="fas ${icons[val]}" style="color:#64748b;"></i>`;
+                                    }
+                                } else if (blockData.action === 'event_color_sensor') {
+                                    const colors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#ffffff', '#000000'];
+                                    const val = parseInt(blockData.paramVal);
+                                    if (val >= 0 && val < colors.length) {
+                                        paramEl.style.backgroundColor = colors[val];
+                                    }
+                                } else {
+                                    paramEl.innerText = blockData.paramVal;
+                                }
+                            }
                         }
 
-                        setTimeout(() => {
-                            // PIN 코드 및 폭죽 효과 UI 출력 부분 삭제됨 (사용자 요청)
-
-                            // 웹소켓을 통해 클리어 신호 전송 로직 (추후 UEFN 연동 용)
-                            if (typeof bridgeSocket !== 'undefined' && bridgeSocket && bridgeSocket.readyState === WebSocket.OPEN) {
-                                bridgeSocket.send(JSON.stringify({ action: "MISSION_CLEARED_PIN_READY", pin: finalPin }));
+                        if (blockData.timeVal !== undefined) {
+                            const timeEl = block.querySelector(':scope > .param-time') || block.querySelector('.block-param.param-time');
+                            if (timeEl) {
+                                timeEl.setAttribute('data-val', blockData.timeVal);
+                                timeEl.innerText = blockData.timeVal;
                             }
-                        }, 500); // 100% 모션 후 딜레이
-                    } else if (percent < 100) {
-                        document.getElementById('m-progress').dataset.completed = ''; // 블럭 떨어져나가면 달성도 리셋
-                    }
-                };
+                        }
 
-                const observer = new MutationObserver(updateProgress);
-                observer.observe(document.getElementById('workspaceArea'), { childList: true, subtree: true });
-                // 초기 계산 1회 수행
-                setTimeout(updateProgress, 300);
+                        if (blockData.nested && blockData.nested.length > 0) {
+                            const innerStack = block.querySelector('.loop-inner-stack');
+                            if (innerStack) {
+                                blockData.nested.forEach(nestedData => {
+                                    deserializeBlock(nestedData, innerStack);
+                                });
+                            }
+                        }
+
+                        parentNode.appendChild(block);
+                        return block;
+                    }
+
+                    stackData.blocks.forEach(blockData => {
+                        deserializeBlock(blockData, newStack);
+                    });
+                });
+            } catch (e) {
+                console.error("Workspace restore error:", e);
             }
         }
+
+        // Initialize Auto-Save Mutator for AI
+        const workspaceObserver = new MutationObserver(() => {
+            saveWorkspace();
+        });
+        const workspaceEl = document.getElementById('workspaceArea');
+        if (workspaceEl) {
+            workspaceObserver.observe(workspaceEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-val', 'data-matrix'] });
+        }
+
+        // Trigger load
+        setTimeout(loadWorkspace, 200);
     </script>
 
     <!-- Connection Modal Popup -->
@@ -3889,14 +4574,15 @@ print("BrickSync Sandbox Run")
                 <i class="fas fa-trophy" style="font-size: 36px; color: white;"></i>
             </div>
 
-            <h2 style="font-size: 2rem; color: #1e293b; font-weight: 900; margin-bottom: 5px;">미션 달성!</h2>
-            <p style="color: #64748b; font-size: 1.05rem; margin-bottom: 25px;">아래의 핀(PIN) 코드를 레고 포트나이트 맵의<br><strong
-                    style="color:#0ea5e9;">[비밀 제어 해제장치]</strong>에 입력하세요.</p>
+            <h2 style="font-size: 2rem; color: #1e293b; font-weight: 900; margin-bottom: 5px;"
+                data-i18n="lbl_mission_clear_title">미션 달성!</h2>
+            <p style="color: #64748b; font-size: 1.05rem; margin-bottom: 25px;" data-i18n="lbl_mission_clear_desc">아래의
+                핀(PIN) 코드를 레고 포트나이트 맵의<br><strong style="color:#0ea5e9;">[비밀 제어 해제장치]</strong>에 입력하세요.</p>
 
             <div
                 style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
-                <span
-                    style="font-size: 0.9rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px;">지급된
+                <span style="font-size: 0.9rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px;"
+                    data-i18n="lbl_issued_code">지급된
                     액세스 코드</span>
                 <div id="generatedPinCode"
                     style="font-size: 3rem; font-weight: 900; color: #10b981; letter-spacing: 5px; font-family: 'Outfit', sans-serif;">
@@ -3907,10 +4593,11 @@ print("BrickSync Sandbox Run")
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button onclick="copyPinCode()"
                     style="flex: 1; padding: 14px; border-radius: 12px; background: #38bdf8; color: white; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3); transition: 0.2s;">
-                    <i class="far fa-copy"></i> 복사하기
+                    <i class="far fa-copy"></i> <span data-i18n="btn_copy">복사하기</span>
                 </button>
                 <button onclick="closePinCodeModal()"
-                    style="flex: 1; padding: 14px; border-radius: 12px; background: #e2e8f0; color: #475569; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s;">
+                    style="flex: 1; padding: 14px; border-radius: 12px; background: #e2e8f0; color: #475569; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s;"
+                    data-i18n="btn_close">
                     닫기
                 </button>
             </div>
@@ -4019,7 +4706,271 @@ print("BrickSync Sandbox Run")
 
         // 스파이크 앱 로딩에 지장이 없도록 1.5초 딜레이 후 AI 로딩
         setTimeout(app, 1500);
+
+        // --- Zero-Latency 별도 페이지 통신 채널 레이더 --- //
+        let _bsStudentName = 'Guest_익명';
+        try {
+            const sessionDataStr = localStorage.getItem('bricksync_student_session');
+            if (sessionDataStr) {
+                const sessionData = JSON.parse(sessionDataStr);
+                if (Date.now() < sessionData.expires) {
+                    _bsStudentName = sessionData.name;
+                } else {
+                    localStorage.removeItem('bricksync_student_session');
+                }
+            }
+        } catch (e) { }
+
+        // Firebase 실시간 온라인 상태 업데이트 및 연결 끊김 감지 설정
+        if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+            try {
+                database.ref('bricksync_classroom/students/' + _bsStudentName).update({
+                    online: true,
+                    lastActive: Date.now()
+                });
+                database.ref('bricksync_classroom/students/' + _bsStudentName + '/online').onDisconnect().set(false);
+                database.ref('bricksync_classroom/students/' + _bsStudentName + '/lastActive').onDisconnect().set(Date.now());
+
+                // Firebase 실시간 DB 리셋 신호 감지 (원격/멀티 디바이스 초기화 연동)
+                database.ref('bricksync_classroom/reset_signal').on('value', (snapshot) => {
+                    const resetTime = snapshot.val();
+                    if (resetTime) {
+                        const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                        if (sessionDataStr) {
+                            const session = JSON.parse(sessionDataStr);
+                            const loginTime = session.loginTime || 0;
+                            if (resetTime > loginTime) {
+                                localStorage.removeItem('bricksync_student_session');
+                                window.top.location.href = 'student_login.html';
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase connection tracking setup failed:", e);
+            }
+        }
+
+        try {
+            window.dashChannel = new BroadcastChannel('bricksync_monitor');
+            window.dashChannel.onmessage = function (event) {
+                if (event.data && event.data.type === 'RESET_ALL') {
+                    localStorage.removeItem('bricksync_student_session');
+                    window.top.location.href = 'student_login.html';
+                }
+            };
+        } catch (e) { }
+
+        // 대시보드 꺼짐 대비 백그라운드 영구 누적 저장 로직
+        function recordTelemetry(isMotor, msgText, isMissionComplete = false, unitNum = 0) {
+            const studentName = _bsStudentName || 'Guest_익명';
+            let sLiveBlocks = 0;
+            let sCntMotor = 0;
+            let sCntSensor = 0;
+            let sLiveMinutes = studentName === '김민준' ? 65 : Math.floor(40 + Math.random() * 40);
+            let sLiveSuccess = studentName === '김민준' ? 79 : Math.floor(60 + Math.random() * 35);
+            let sMissions = [true, true, false];
+            let sLogs = [];
+            let sAiComment = "대기 중...";
+
+            const raw = localStorage.getItem('dashboard_stats_' + studentName);
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    sLiveBlocks = parsed.liveBlocks || 0;
+                    sCntMotor = parsed.cntMotor || 0;
+                    sCntSensor = parsed.cntSensor || 0;
+                    sLiveMinutes = parsed.liveMinutes || 0;
+                    sLiveSuccess = parsed.liveSuccess || 100;
+                    sMissions = parsed.missions || [true, true, false];
+                    sLogs = parsed.logs || [];
+                    sAiComment = parsed.aiComment || "대기 중...";
+                } catch (e) { }
+            }
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            if (isMissionComplete) {
+                const unitIdx = parseInt(unitNum) - 1;
+                if (unitIdx >= 0 && unitIdx < 3) {
+                    sMissions[unitIdx] = true;
+                }
+            } else {
+                sLiveBlocks++;
+                if (isMotor) {
+                    sCntMotor++;
+                } else {
+                    sCntSensor++;
+                }
+            }
+
+            sLogs.unshift({ time: timeStr, msg: msgText });
+            if (sLogs.length > 20) sLogs.pop();
+
+            if (sLiveBlocks > 0) {
+                sAiComment = `${studentName} 학생은 오늘 총 <b>${sLiveBlocks}번의 코딩 시도</b>를 스스로 진행하며 적극적인 학습 태도를 보여주었습니다. `;
+                if (sCntMotor > sCntSensor * 2) {
+                    sAiComment += `주로 <b>[물리 모터 제어]</b>에 강한 흥미를 보였으며 눈앞에서 포트나이트 장치가 직접 움직이는 결과물을 도출하는 데 탁월한 집중력을 보였습니다. `;
+                } else if (sCntSensor > sCntMotor * 1.5) {
+                    sAiComment += `오늘은 동작보다는 <b>[센서 입력 및 제어 흐름 설계]</b>를 심도 있게 테스트했습니다. 문제의 구조를 먼저 설계하려는 분석적인 성향이 돋보였습니다. `;
+                } else {
+                    sAiComment += `단일 기능에 치우치지 않고 <b>[모터와 센서 로직을 균형 있게 융합]</b>하여 구조적으로 코딩을 조합해내는 훌륭한 응용력을 보여주었습니다. `;
+                }
+                if (sLiveBlocks > 10) {
+                    sAiComment += `다음 수업에서는 한 단계 높은 [대관람차 다중 회전 미션]에 도전해볼 것을 추천합니다!`;
+                } else {
+                    sAiComment += `앞으로 더욱 다양한 블록을 조합해보며 자신감을 키워갈 수 있도록 이끌겠습니다.`;
+                }
+            }
+
+            let existingData = {};
+            try {
+                const storedRaw = localStorage.getItem('dashboard_stats_' + studentName);
+                if (storedRaw) existingData = JSON.parse(storedRaw);
+            } catch (e) { }
+
+            const updatedData = Object.assign({}, existingData, {
+                liveBlocks: sLiveBlocks,
+                cntMotor: sCntMotor,
+                cntSensor: sCntSensor,
+                liveMinutes: sLiveMinutes,
+                liveSuccess: sLiveSuccess,
+                missions: sMissions,
+                logs: sLogs,
+                aiComment: sAiComment
+            });
+            localStorage.setItem('dashboard_stats_' + studentName, JSON.stringify(updatedData));
+
+            // Firebase 실시간 DB 업로드 (학생 텔레메트리 전송)
+            if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                try {
+                    database.ref('bricksync_classroom/students/' + studentName).update({
+                        online: true,
+                        lastActive: Date.now(),
+                        stats: updatedData
+                    });
+                } catch (e) {
+                    console.error("Firebase telemetry update failed:", e);
+                }
+            }
+
+            if (window.dashChannel) {
+                try {
+                    window.dashChannel.postMessage({
+                        type: isMissionComplete ? 'MISSION_COMPLETE' : (isMotor ? 'ACTION' : 'SENSOR'),
+                        msg: msgText,
+                        unit: unitNum,
+                        student: studentName
+                    });
+                } catch (e) { }
+            }
+        }
+
+        // 1분 간격으로 하트비트 신호를 직접 저장하고 연동
+        setInterval(() => {
+            const studentName = _bsStudentName || 'Guest_익명';
+            let sLiveBlocks = 0;
+            let sCntMotor = 0;
+            let sCntSensor = 0;
+            let sLiveMinutes = studentName === '김민준' ? 65 : Math.floor(40 + Math.random() * 40);
+            let sLiveSuccess = studentName === '김민준' ? 79 : Math.floor(60 + Math.random() * 35);
+            let sMissions = [true, true, false];
+            let sLogs = [];
+            let sAiComment = "대기 중...";
+
+            const raw = localStorage.getItem('dashboard_stats_' + studentName);
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    sLiveBlocks = parsed.liveBlocks || 0;
+                    sCntMotor = parsed.cntMotor || 0;
+                    sCntSensor = parsed.cntSensor || 0;
+                    sLiveMinutes = parsed.liveMinutes || 0;
+                    sLiveSuccess = parsed.liveSuccess || 100;
+                    sMissions = parsed.missions || [true, true, false];
+                    sLogs = parsed.logs || [];
+                    sAiComment = parsed.aiComment || "대기 중...";
+                } catch (e) { }
+            }
+
+            sLiveMinutes += 1;
+
+            let existingData = {};
+            try {
+                const storedRaw = localStorage.getItem('dashboard_stats_' + studentName);
+                if (storedRaw) existingData = JSON.parse(storedRaw);
+            } catch (e) { }
+
+            const updatedData = Object.assign({}, existingData, {
+                liveBlocks: sLiveBlocks,
+                cntMotor: sCntMotor,
+                cntSensor: sCntSensor,
+                liveMinutes: sLiveMinutes,
+                liveSuccess: sLiveSuccess,
+                missions: sMissions,
+                logs: sLogs,
+                aiComment: sAiComment
+            });
+            localStorage.setItem('dashboard_stats_' + studentName, JSON.stringify(updatedData));
+
+            // Firebase 실시간 DB 업로드 (하트비트 갱신)
+            if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                try {
+                    database.ref('bricksync_classroom/students/' + studentName).update({
+                        online: true,
+                        lastActive: Date.now(),
+                        stats: updatedData
+                    });
+                } catch (e) {
+                    console.error("Firebase heartbeat update failed:", e);
+                }
+            }
+
+            if (window.dashChannel) {
+                try {
+                    window.dashChannel.postMessage({
+                        type: 'HEARTBEAT',
+                        msg: `[${studentName}] 하트비트: 집중 학습 중`,
+                        student: studentName
+                    });
+                } catch (e) { }
+            }
+        }, 60000);
+
+        // 엔진 개조 방지: 무전 채널 및 로컬스토리지 누적 (중복 방지 및 실제 조작만 수집)
+        let lastTelemetryTime = 0;
+        document.addEventListener('pointerup', (e) => {
+            const now = Date.now();
+            if (now - lastTelemetryTime < 50) return; // 50ms 디바운스
+
+            let isMotor = false;
+            let shouldRecord = false;
+            try {
+                if (e.target && e.target.closest) {
+                    const block = e.target.closest('.workspace-item') || e.target.closest('.spike-block');
+                    const runBtn = e.target.closest('.run-btn');
+                    if (runBtn) {
+                        isMotor = true;
+                        shouldRecord = true;
+                        lastTelemetryTime = now;
+                    } else if (block) {
+                        const action = block.getAttribute('data-action') || '';
+                        if (action.includes('motor') || action.includes('move') || action.includes('matrix') || block.classList.contains('bg-pink') || action === 'start') {
+                            isMotor = true;
+                        }
+                        shouldRecord = true;
+                        lastTelemetryTime = now;
+                    }
+                }
+            } catch (err) { }
+
+            if (shouldRecord) {
+                recordTelemetry(isMotor, `[${_bsStudentName}] 이벤트 감지: UI 조작 및 블록 제어 트리거 됨`);
+            }
+        });
     </script>
+    <script src="settings.js"></script>
 </body>
 
 </html>

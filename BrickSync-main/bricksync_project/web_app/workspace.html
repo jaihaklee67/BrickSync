@@ -2,6 +2,17 @@
 <html lang="ko">
 
 <head>
+    <!-- 최상위 윈도우 자동 래핑 리다이렉트 스크립트 -->
+    <script>
+        if (window === window.parent) {
+            let currentPage = window.location.pathname.split('/').pop() + window.location.search;
+            if (!currentPage || currentPage.startsWith('?')) {
+                currentPage = 'index.html' + window.location.search;
+            }
+            sessionStorage.setItem('brickSyncLastPage', currentPage);
+            window.location.href = 'app.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -303,35 +314,35 @@
             <ul class="menu-list">
                 <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;" class="menu-item">
                     <i data-lucide="home" class="menu-icon"></i>
-                    홈
+                    <span data-i18n="nav_home">홈</span>
                 </a>
                 <a href="#" onclick="location.href='lesson.html?v='+new Date().getTime(); return false;" class="menu-item">
                     <i data-lucide="book-open" class="menu-icon"></i>
-                    학습단원
+                    <span data-i18n="nav_lessons">학습단원</span>
                 </a>
                 <a href="#" onclick="location.href='ai_fusion.html?v='+new Date().getTime(); return false;" class="menu-item" id="btn-ai">
                     <i data-lucide="bot" class="menu-icon"></i>
-                    AI 학습단원
+                    <span data-i18n="nav_ai_lessons">AI 학습단원</span>
                 </a>
                 <!-- 활성 메뉴: 워크스페이스 -->
                 <li class="menu-item active">
                     <i data-lucide="monitor" class="menu-icon"></i>
-                    워크스페이스
+                    <span data-i18n="nav_workspace">워크스페이스</span>
                 </li>
                 <li class="menu-item">
                     <i data-lucide="blocks" class="menu-icon"></i>
-                    프로젝트
+                    <span data-i18n="nav_projects">프로젝트</span>
                 </li>
                 <a href="#" onclick="window.open('dashboard_v2.html?v=' + new Date().getTime(), '_blank'); return false;" class="menu-item">
                     <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                    교사/학부모용 대시보드
+                    <span data-i18n="nav_dashboard">교사/학부모용 대시보드</span>
                 </a>
             </ul>
 
             <div class="bottom-menu">
-                <li class="menu-item" style="list-style:none;">
+                <li class="menu-item" id="settings-menu-btn" style="list-style:none;">
                     <i data-lucide="settings" class="menu-icon"></i>
-                    설정
+                    <span data-i18n="nav_settings">설정</span>
                 </li>
             </div>
         </div>
@@ -480,6 +491,7 @@ while True:
             }
         }
     </script>
+    <script src="settings.js"></script>
 </body>
 
 </html>

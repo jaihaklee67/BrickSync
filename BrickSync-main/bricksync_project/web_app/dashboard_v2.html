@@ -7,6 +7,10 @@
     <!-- 폰트: Noto Sans KR (한글), Outfit (영문/숫자) -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK 및 공통 설정 연동 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase_config.js"></script>
     <style>
         :root {
             --bg-dark: #230844;
@@ -447,15 +451,15 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <div class="page-title">
+            <div class="page-title" style="display: flex; align-items: center; gap: 15px;">
                 교사/학부모 대시보드
+                <button onclick="resetAllStats()" style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.4); color: #f43f5e; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.background='rgba(244, 63, 94, 0.2)'" onmouseout="this.style.background='rgba(244, 63, 94, 0.1)'">
+                    <i class="fas fa-trash-alt"></i> 전체 데이터 초기화
+                </button>
                 <span style="font-size: 1rem; color: #94a3b8; font-weight: 500; margin-left: 10px;">학생 선택</span>
             </div>
             <div class="student-selector">
-                <div class="student-pill active">김민준</div>
-                <div class="student-pill">이서연</div>
-                <div class="student-pill">박지호</div>
-                <div class="student-pill">최예은</div>
+                <!-- 동적으로 채워짐 -->
             </div>
         </div>
 
@@ -473,8 +477,8 @@
             </div>
             <div class="panel stat-card">
                 <div class="title">스스로 오류 해결</div>
-                <div class="value">100<span>%</span></div>
-                <div class="change neutral">- 분석 대기중</div>
+                <div class="value"><span id="live-self-solve">0</span><span>%</span></div>
+                <div class="change neutral" id="live-self-solve-sub">- 분석 대기중</div>
             </div>
             <div class="panel stat-card">
                 <div class="title">포트나이트 미션</div>
@@ -547,15 +551,15 @@
                 <div class="panel-heading">지난 수업 대비 성장</div>
                 <div class="growth-row">
                     <span>코딩 복잡도</span>
-                    <span class="growth-val">+23%</span>
+                    <span class="growth-val" id="growth-complexity">+0%</span>
                 </div>
                 <div class="growth-row">
                     <span>미션 완료 속도</span>
-                    <span class="growth-val">+15%</span>
+                    <span class="growth-val" id="growth-speed">+0%</span>
                 </div>
                 <div class="growth-row">
                     <span>집중 시간</span>
-                    <span class="growth-val">+12분</span>
+                    <span class="growth-val" id="growth-time">+0분</span>
                 </div>
             </div>
 
@@ -615,153 +619,495 @@
 
     </div>
 
-    <!-- Zero Latency Scripts (MOCK) -->
+    <!-- Zero Latency Scripts (MOCK & LIVE PERSISTENT) -->
     <script>
         // 날짜 세팅
         const today = new Date();
         document.getElementById('current-date').textContent = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
 
         // ==========================================
-        // 라이브 시연을 위한 수신부 (시소 이펙트 0%, 100% 리얼타임)
+        // 라이브 시연을 위한 수신부 및 영구 저장소 연동
         // ==========================================
         let liveBlocks = 0;
         let cntMotor = 0;
         let cntSensor = 0;
+        let currentMissions = [true, true, false];
+        let currentLogs = [];
+
+        function getMissionText(index) {
+            const texts = [
+                "자동차 앞으로 3초 이동",
+                "컬러 센서로 신호등 제어",
+                "대관람차 5바퀴 회전"
+            ];
+            return texts[index] || "";
+        }
+
+        function updateMissionsUI() {
+            const missionItems = document.querySelectorAll('.mission-item');
+            if (missionItems.length >= 3) {
+                for (let i = 0; i < 3; i++) {
+                    const item = missionItems[i];
+                    const isCompleted = currentMissions[i];
+                    item.innerHTML = isCompleted ? 
+                        `<i class="fas fa-check-circle check"></i> ${getMissionText(i)}` : 
+                        `<i class="far fa-circle circle"></i> ${getMissionText(i)}`;
+                }
+            }
+            const completedCount = currentMissions.filter(Boolean).length;
+            const missionValueCard = document.querySelector('.stat-card:nth-child(4) .value');
+            if (missionValueCard) {
+                missionValueCard.innerHTML = `${completedCount}<span>/3</span>`;
+            }
+            const missionStatusCard = document.querySelector('.stat-card:nth-child(4) .change');
+            if (missionStatusCard) {
+                const statuses = ['시작 전', '진행 중', '우수 완료', '마스터!'];
+                missionStatusCard.innerText = statuses[completedCount] || '진행 중';
+            }
+        }
+
+        function renderLogsUI() {
+            const list = document.getElementById('activity-log');
+            if (!list) return;
+            if (currentLogs.length === 0) {
+                list.innerHTML = `<li class="log-item"><span class="time">00:00</span> <span class="msg" style="color:#64748b;">대기 중... (학생이 코딩을 시작하면 기록됩니다)</span></li>`;
+                return;
+            }
+            list.innerHTML = "";
+            currentLogs.forEach(log => {
+                const li = document.createElement('li');
+                li.className = 'log-item highlight';
+                li.innerHTML = `<span class="time">${log.time}</span> <span class="msg">[LIVE] ${log.msg}</span>`;
+                list.appendChild(li);
+            });
+        }
+
+        function loadDashboardData(studentName) {
+            if (!studentName) {
+                setDefaultStats('');
+                return;
+            }
+            if (document.getElementById('report-name')) {
+                document.getElementById('report-name').innerText = studentName + ' 학생';
+            }
+            const raw = localStorage.getItem('dashboard_stats_' + studentName);
+            if (raw) {
+                try {
+                    const data = JSON.parse(raw);
+                    liveBlocks = data.liveBlocks || 0;
+                    cntMotor = data.cntMotor || 0;
+                    cntSensor = data.cntSensor || 0;
+                    
+                    document.getElementById('live-blocks').innerText = liveBlocks;
+                    document.getElementById('cnt-motor').innerText = cntMotor;
+                    document.getElementById('cnt-sensor').innerText = cntSensor;
+                    
+                    const total = liveBlocks || 1;
+                    document.getElementById('bar-motor').style.width = Math.min((cntMotor / total) * 100, 100) + '%';
+                    document.getElementById('bar-sensor').style.width = Math.min((cntSensor / total) * 100, 100) + '%';
+                    
+                    const cntOther = (liveBlocks - cntMotor - cntSensor > 0) ? liveBlocks - cntMotor - cntSensor : 0;
+                    if (document.getElementById('cnt-other')) {
+                        document.getElementById('cnt-other').innerText = cntOther;
+                        document.getElementById('bar-other').style.width = Math.min((cntOther / total) * 100, 100) + '%';
+                    }
+                    
+                    const liveMinutes = data.liveMinutes || 0;
+                    document.getElementById('live-minutes').innerText = liveMinutes;
+                    document.getElementById('report-time').innerText = liveMinutes + '분';
+                    document.getElementById('live-success').innerText = data.liveSuccess || 100;
+                    document.getElementById('report-success').innerText = (data.liveSuccess || 100) + '%';
+                    
+                    // 스스로 오류 해결 및 지난 수업 대비 성장 동적 매핑 (On-the-fly 계산)
+                    const selfSolve = liveBlocks > 0 ? 100 : 0;
+                    const selfSolveSub = liveBlocks > 0 ? '분석 완료' : '- 분석 대기중';
+                    const growthComplexity = liveBlocks > 0 ? '+23%' : '+0%';
+                    const growthSpeed = liveBlocks > 0 ? '+15%' : '+0%';
+                    const growthTime = liveBlocks > 0 ? `+${liveMinutes + 12}분` : '+0분';
+
+                    document.getElementById('live-self-solve').innerText = selfSolve;
+                    document.getElementById('live-self-solve-sub').innerText = selfSolveSub;
+                    document.getElementById('growth-complexity').innerText = growthComplexity;
+                    document.getElementById('growth-speed').innerText = growthSpeed;
+                    document.getElementById('growth-time').innerText = growthTime;
+
+                    currentMissions = data.missions || [false, false, false];
+                    currentLogs = data.logs || [];
+                    
+                    document.getElementById('ai-comment').innerHTML = data.aiComment || "대기 중...";
+                    document.getElementById('alert-text-block').innerText = `가장 많이 쓴 블록 분류: ${cntMotor > cntSensor ? '모터 구동계' : '센서 제어계'}`;
+                } catch (e) {
+                    console.error(e);
+                    setDefaultStats(studentName);
+                }
+            } else {
+                setDefaultStats(studentName);
+            }
+            updateMissionsUI();
+            renderLogsUI();
+        }
+
+        function setDefaultStats(studentName) {
+            liveBlocks = 0;
+            cntMotor = 0;
+            cntSensor = 0;
+            document.getElementById('live-minutes').innerText = 0;
+            document.getElementById('report-time').innerText = '0분';
+            document.getElementById('live-blocks').innerText = 0;
+            document.getElementById('live-success').innerText = 100;
+            document.getElementById('report-success').innerText = '100%';
+            
+            // 스스로 오류 해결 초기화
+            if (document.getElementById('live-self-solve')) {
+                document.getElementById('live-self-solve').innerText = '0';
+            }
+            if (document.getElementById('live-self-solve-sub')) {
+                document.getElementById('live-self-solve-sub').innerText = '- 분석 대기중';
+            }
+            
+            // 지난 수업 대비 성장 초기화
+            if (document.getElementById('growth-complexity')) {
+                document.getElementById('growth-complexity').innerText = '+0%';
+            }
+            if (document.getElementById('growth-speed')) {
+                document.getElementById('growth-speed').innerText = '+0%';
+            }
+            if (document.getElementById('growth-time')) {
+                document.getElementById('growth-time').innerText = '+0분';
+            }
+            
+            currentMissions = [false, false, false];
+            currentLogs = [];
+            document.getElementById('ai-comment').innerText = "학생이 블록 코딩을 시작하면 해당 세션의 로그를 AI가 자동 분석하여 맞춤형 코멘트를 이곳에 작성합니다. (대기 중...)";
+            
+            const total = liveBlocks || 1;
+            document.getElementById('cnt-motor').innerText = cntMotor;
+            document.getElementById('cnt-sensor').innerText = cntSensor;
+            document.getElementById('bar-motor').style.width = Math.min((cntMotor / total) * 100, 100) + '%';
+            document.getElementById('bar-sensor').style.width = Math.min((cntSensor / total) * 100, 100) + '%';
+            if (document.getElementById('cnt-other')) {
+                document.getElementById('cnt-other').innerText = 0;
+                document.getElementById('bar-other').style.width = '0%';
+            }
+            document.getElementById('alert-text-block').innerText = "블록 실행 시 분석 데이터가 채워집니다.";
+        }
 
         try {
             const monitorChannel = new BroadcastChannel('bricksync_monitor');
             monitorChannel.onmessage = function(event) {
                 const data = event.data; 
                 
-                // 학생 "김민준" 탭이 선택되어 있을 때만 데이터를 실시간 반영하는 연출
-                // 만약 이서연 탭을 보고 있다면 내 데이터는 화면에 안 보이고 뒤에서 굴러가기만 함.
-                const isActiveMinjun = document.querySelectorAll('.student-pill')[0].classList.contains('active');
+                const activePill = document.querySelector('.student-pill.active');
+                const activeStudentName = activePill ? activePill.innerText : '';
                 
-                // 블록 횟수 실시간 증가 (화면 렉 없음)
-                if(data.type === 'motor' || data.type === 'ACTION') {
-                    liveBlocks++;
-                    cntMotor++;
-                    
-                    if(isActiveMinjun) {
-                        document.getElementById('live-blocks').innerText = liveBlocks;
-                        document.getElementById('cnt-motor').innerText = cntMotor;
-                        // 통계 프로그레스 바 최신화 구현
-                        const total = liveBlocks || 1; 
-                        document.getElementById('bar-motor').style.width = Math.min((cntMotor / total) * 100, 100) + '%';
-                        document.getElementById('bar-sensor').style.width = Math.min((cntSensor / total) * 100, 100) + '%';
-                        
-                        document.getElementById('alert-text-block').innerText = `가장 많이 쓴 블록 분류: ${cntMotor > cntSensor ? '모터 구동계' : '센서 제어계'}`;
-                    }
-                } else if(data.type === 'sensor' || data.type === 'SENSOR') {
-                    cntSensor++;
-                    liveBlocks++;
-                    if(isActiveMinjun) {
-                        document.getElementById('cnt-sensor').innerText = cntSensor;
-                        document.getElementById('live-blocks').innerText = liveBlocks;
-                        const total = liveBlocks || 1;
-                        document.getElementById('bar-sensor').style.width = Math.min((cntSensor / total) * 100, 100) + '%';
-                        document.getElementById('bar-motor').style.width = Math.min((cntMotor / total) * 100, 100) + '%';
-                    }
-                } else {
-                    // 기타 분류되지 않은 블록
-                    const cntOther = (liveBlocks - cntMotor - cntSensor > 0) ? liveBlocks - cntMotor - cntSensor : 0;
-                    if(isActiveMinjun && document.getElementById('cnt-other')) {
-                        document.getElementById('cnt-other').innerText = cntOther;
-                        const total = liveBlocks || 1;
-                        document.getElementById('bar-other').style.width = Math.min((cntOther / total) * 100, 100) + '%';
-                    }
-                }
+                let senderName = data.student || '';
+                if (!senderName) return;
 
-                // 로그 터미널 맨 위에 꽂아넣기 (누구 탭을 보든 로그는 전체 학급이 뜬다는 설정)
-                const list = document.getElementById('activity-log');
-                const li = document.createElement('li');
-                li.className = 'log-item highlight';
-                const now = new Date();
-                const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                // 오프라인 동적 학생 추가 연동 (데이터 수신 시 셀렉터에 없으면 자동 추가)
+                if (typeof isFirebaseOnline === 'undefined' || !isFirebaseOnline) {
+                    addOfflineStudent(senderName);
+                }
                 
-                let msgText = "이벤트 수신";
-                if(data.type === 'motor' || data.type === 'ACTION') msgText = "물리 모터/장치 통신 발송 됨";
-                if(data.type === 'sensor' || data.type === 'SENSOR') msgText = "UI/UX 상호작용 및 센서 작동 됨";
-                if(data.msg) msgText = data.msg;
-
-                li.innerHTML = `<span class="time">${timeStr}</span> <span class="msg">[LIVE] ${msgText}</span>`;
-                if(list.children[0] && list.children[0].innerText.includes("대기 중...")) {
-                    list.innerHTML = '';
-                }
-                list.insertBefore(li, list.children[0]);
-
-                if(list.children.length > 20) {
-                    list.removeChild(list.lastChild);
-                }
-
-                // --- AI 맞춤형 코멘트 실시간 자동 생성 엔진 (딜레이 0ms) ---
-                if(isActiveMinjun && document.getElementById('ai-comment')) {
-                    document.getElementById('report-time').innerText = `${liveBlocks} 블록`;
-                    
-                    let aiText = `오늘 총 <b>${liveBlocks}번의 코딩 시도</b>를 스스로 진행하며 적극적인 학습 태도를 보여주었습니다. `;
-                    
-                    // 모터/센서 비율에 따른 지능형 성향 분석
-                    if(cntMotor > cntSensor * 2) {
-                        aiText += `주로 <b>[물리 모터 제어]</b>에 강한 흥미를 보였으며 눈앞에서 포트나이트 자동차가 직접 움직이는 결과물을 도출하는 데 탁월한 집중력을 보였습니다. `;
-                    } else if(cntSensor > cntMotor * 1.5) {
-                        aiText += `오늘은 동작보다는 <b>[센서 입력 및 제어 흐름 설계]</b>를 심도 있게 테스트했습니다. 문제의 구조를 먼저 설계하려는 분석적인 성향이 돋보였습니다. `;
-                    } else if(liveBlocks > 5) {
-                        aiText += `단일 기능에 치우치지 않고 <b>[모터와 센서 로직을 균형 있게 융합]</b>하여 구조적으로 코딩을 조합해내는 훌륭한 응용력을 보여주었습니다. `;
-                    }
-                    
-                    // 성취도 및 다음 수업 제언
-                    if(liveBlocks > 10) {
-                        aiText += `다음 수업에서는 한 단계 높은 [대관람차 다중 회전 미션]에 도전해볼 것을 추천합니다!`;
-                    } else {
-                        aiText += `앞으로 더욱 다양한 블록을 조합해보며 자신감을 키워갈 수 있도록 이끌겠습니다.`;
-                    }
-                    
-                    document.getElementById('ai-comment').innerHTML = aiText;
+                if (senderName === activeStudentName) {
+                    loadDashboardData(senderName);
                 }
             };
         } catch(e) {
             console.log("BroadcastChannel API를 지원하지 않는 환경입니다.");
         }
 
-        // ==========================================
-        // 데모 연출(Mock)을 위한 라이브 증진 효과
-        // ==========================================
-        // 학생 탭 클릭 시 시뮬레이션 연출 (기능 시연용 무결점 더미 데이터)
-        const pills = document.querySelectorAll('.student-pill');
-        pills.forEach(pill => {
-            pill.addEventListener('click', () => {
-                pills.forEach(p => p.classList.remove('active'));
-                pill.classList.add('active');
-                
-                // 데이터 셔플 흉내내기 (김민준은 고정값으로 돌아가고, 나머지는 랜덤 돌림)
-                const studentName = pill.innerText;
-                document.getElementById('report-name').innerText = studentName + ' 학생';
-                
-                if (studentName === '김민준') {
-                    document.getElementById('live-minutes').innerText = 65;
-                    document.getElementById('report-time').innerText = '65분';
-                    document.getElementById('live-blocks').innerText = liveBlocks;
-                    document.getElementById('live-success').innerText = 79;
-                } else {
-                    const randMin = Math.floor(40 + Math.random() * 40);
-                    const randBlock = Math.floor(10 + Math.random() * 30);
-                    const randSuccess = Math.floor(60 + Math.random() * 35);
+        // Firebase 실시간 DB 리스너 추가
+        if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+            try {
+                database.ref('bricksync_classroom/students').on('value', (snapshot) => {
+                    const students = snapshot.val() || {};
                     
-                    document.getElementById('live-minutes').innerText = randMin;
-                    document.getElementById('report-time').innerText = randMin + '분';
-                    document.getElementById('live-blocks').innerText = randBlock;
-                    document.getElementById('live-success').innerText = randSuccess;
-                    document.getElementById('report-success').innerText = randSuccess + '%';
+                    // 1. 현재 화면에 활성화된 학생 정보 가져오기
+                    const activePill = document.querySelector('.student-pill.active');
+                    let activeStudentName = activePill ? activePill.innerText : '';
+                    
+                    // 2. 가입/접속된 학생들을 기반으로 선택 칩들을 동적 렌더링 (20~30명 확장 대응)
+                    const studentNames = Object.keys(students).sort();
+                    const selector = document.querySelector('.student-selector');
+                    if (selector) {
+                        selector.innerHTML = ''; // 기존 리스트 비우기
+                        
+                        if (studentNames.length > 0) {
+                            // 현재 보고있던 활성 학생이 전체 리스트에 없으면 첫 번째 학생으로 보정
+                            if (!activeStudentName || !studentNames.includes(activeStudentName)) {
+                                let sessionStudentName = '';
+                                try {
+                                    const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                                    if (sessionDataStr) {
+                                        const sessionData = JSON.parse(sessionDataStr);
+                                        if (sessionData && sessionData.name && (!sessionData.expires || Date.now() < sessionData.expires)) {
+                                            sessionStudentName = sessionData.name;
+                                        }
+                                    }
+                                } catch(e) {}
+                                
+                                if (sessionStudentName && studentNames.includes(sessionStudentName)) {
+                                    activeStudentName = sessionStudentName;
+                                } else {
+                                    activeStudentName = studentNames[0];
+                                }
+                            }
+                            
+                            studentNames.forEach(name => {
+                                const pill = document.createElement('div');
+                                pill.className = 'student-pill';
+                                if (name === activeStudentName) {
+                                    pill.classList.add('active');
+                                }
+                                pill.innerText = name;
+                                
+                                // 최근 1분(60000ms) 이내에 online이 true이고 활동 기록이 있는 경우에만 초록색 온라인 라이트 켬
+                                const studentData = students[name];
+                                const isOnline = studentData && studentData.online && (Date.now() - (studentData.lastActive || 0) < 60000);
+                                
+                                if (isOnline) {
+                                    pill.style.borderLeft = "4px solid #10b981";
+                                    pill.style.paddingLeft = "16px";
+                                } else {
+                                    pill.style.borderLeft = "none";
+                                    pill.style.paddingLeft = "20px";
+                                }
+                                
+                                // 클릭 시 해당 학생의 데이터를 동적 바인딩 및 로그 출력
+                                pill.addEventListener('click', () => {
+                                    document.querySelectorAll('.student-pill').forEach(p => p.classList.remove('active'));
+                                    pill.classList.add('active');
+                                    document.getElementById('report-name').innerText = name + ' 학생';
+                                    
+                                    // 데이터 동적 로드
+                                    loadDashboardData(name);
+                                    
+                                    // 학생 데이터 전환 로그
+                                    const list = document.getElementById('activity-log');
+                                    const now = new Date();
+                                    const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                                    const li = document.createElement('li');
+                                    li.className = 'log-item';
+                                    li.innerHTML = `<span class="time">${timeStr}</span> <span class="msg">${name} 학생 데이터 로드 완료</span>`;
+                                    if (list.children[0] && list.children[0].innerText.includes("대기 중...")) {
+                                        list.innerHTML = '';
+                                    }
+                                    list.insertBefore(li, list.children[0]);
+                                });
+                                
+                                selector.appendChild(pill);
+                            });
+                        } else {
+                            // 학생이 한 명도 없는 경우 (초기화 직후 등)
+                            selector.innerHTML = '<span style="color: #94a3b8; font-size: 0.9rem; padding: 8px 10px;">접속한 학생 없음</span>';
+                            setDefaultStats('');
+                            document.getElementById('report-name').innerText = '대기 중...';
+                        }
+                    }
+
+                    // 3. 모든 학생의 클라우드 데이터를 로컬 스토리지에 즉시 동기화 (오프라인 캐시 & 백업 보장)
+                    for (const name in students) {
+                        if (students[name] && students[name].stats) {
+                            localStorage.setItem('dashboard_stats_' + name, JSON.stringify(students[name].stats));
+                        }
+                    }
+
+                    // 4. 현재 띄워진 활성 학생의 정보가 실시간으로 수신되면 화면 갱신
+                    if (activeStudentName && students[activeStudentName] && students[activeStudentName].stats) {
+                        loadDashboardData(activeStudentName);
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase database listener registration failed:", e);
+            }
+        }
+
+        // --- 오프라인 동적 학생 및 초기화 메인 로직 --- //
+        let studentList = [];
+        try {
+            const savedList = localStorage.getItem('dashboard_students_list');
+            if (savedList) {
+                studentList = JSON.parse(savedList);
+            } else {
+                localStorage.setItem('dashboard_students_list', JSON.stringify(studentList));
+            }
+        } catch (e) {}
+
+        function addOfflineStudent(name) {
+            if (!studentList.includes(name)) {
+                studentList.push(name);
+                studentList.sort();
+                try {
+                    localStorage.setItem('dashboard_students_list', JSON.stringify(studentList));
+                } catch(e) {}
+                rebuildStudentSelectorOffline();
+            }
+        }
+
+        function rebuildStudentSelectorOffline() {
+            if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                return; // 온라인 모드일 때는 Firebase 리스너가 우선하므로 리턴
+            }
+            const selector = document.querySelector('.student-selector');
+            if (!selector) return;
+            
+            const activePill = selector.querySelector('.student-pill.active');
+            let activeStudentName = activePill ? activePill.innerText : '';
+            
+            selector.innerHTML = '';
+            
+            if (studentList.length === 0) {
+                selector.innerHTML = '<span style="color: #94a3b8; font-size: 0.9rem; padding: 8px 10px;">접속한 학생 없음</span>';
+                setDefaultStats('');
+                document.getElementById('report-name').innerText = '대기 중...';
+                return;
+            }
+            
+            if (!activeStudentName || !studentList.includes(activeStudentName)) {
+                let sessionStudentName = '';
+                try {
+                    const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                    if (sessionDataStr) {
+                        const sessionData = JSON.parse(sessionDataStr);
+                        if (sessionData && sessionData.name && (!sessionData.expires || Date.now() < sessionData.expires)) {
+                            sessionStudentName = sessionData.name;
+                        }
+                    }
+                } catch(e) {}
+                
+                if (sessionStudentName && studentList.includes(sessionStudentName)) {
+                    activeStudentName = sessionStudentName;
+                } else {
+                    activeStudentName = studentList[0];
+                }
+            }
+            
+            studentList.forEach(name => {
+                const pill = document.createElement('div');
+                pill.className = 'student-pill';
+                if (name === activeStudentName) {
+                    pill.classList.add('active');
+                }
+                pill.innerText = name;
+                
+                // 오프라인 환경에서도 로컬스토리지 조회하여 온라인 녹색 라인 렌더링
+                const raw = localStorage.getItem('dashboard_stats_' + name);
+                let isOnline = false;
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        isOnline = parsed.online && (Date.now() - (parsed.lastActive || 0) < 60000);
+                    } catch(e) {}
                 }
                 
-                const list = document.getElementById('activity-log');
-                const now = new Date();
-                const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                const li = document.createElement('li');
-                li.className = 'log-item';
-                li.innerHTML = `<span class="time">${timeStr}</span> <span class="msg">${studentName} 학생 데이터 로드 완료</span>`;
-                list.insertBefore(li, list.children[0]);
+                if (isOnline) {
+                    pill.style.borderLeft = "4px solid #10b981";
+                    pill.style.paddingLeft = "16px";
+                } else {
+                    pill.style.borderLeft = "none";
+                    pill.style.paddingLeft = "20px";
+                }
+                
+                pill.addEventListener('click', () => {
+                    document.querySelectorAll('.student-pill').forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    document.getElementById('report-name').innerText = name + ' 학생';
+                    loadDashboardData(name);
+                    
+                    // 학생 데이터 전환 로그
+                    const list = document.getElementById('activity-log');
+                    const now = new Date();
+                    const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                    const li = document.createElement('li');
+                    li.className = 'log-item';
+                    li.innerHTML = `<span class="time">${timeStr}</span> <span class="msg">${name} 학생 데이터 로드 완료</span>`;
+                    if (list.children[0] && list.children[0].innerText.includes("대기 중...")) {
+                        list.innerHTML = '';
+                    }
+                    list.insertBefore(li, list.children[0]);
+                });
+                
+                selector.appendChild(pill);
             });
+        }
+
+        function resetAllStats() {
+            if (confirm("모든 학생의 실시간 학습 데이터를 초기화하시겠습니까? (과거 누적된 블록 횟수와 집중 시간 및 로그가 리셋됩니다.)")) {
+                try {
+                    // 1. 모든 학생의 통계 데이터 및 학생 본인 세션 localStorage 삭제
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('dashboard_stats_')) {
+                            localStorage.removeItem(key);
+                        }
+                    }
+                    localStorage.removeItem('bricksync_student_session');
+                    
+                    // 2. 오프라인 학생 리스트 캐시 초기화 및 디폴트 세팅
+                    localStorage.removeItem('dashboard_students_list');
+                    studentList = [];
+                    
+                    // 3. Firebase 실시간 DB 노드 삭제 및 리셋 신호 발행 (온라인 시)
+                    if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                        database.ref('bricksync_classroom/students').remove().catch(err => {
+                            console.error("Firebase clear error:", err);
+                        });
+                        database.ref('bricksync_classroom/reset_signal').set(Date.now()).catch(err => {
+                            console.error("Firebase reset signal error:", err);
+                        });
+                    }
+                    
+                    // 3.5 BroadcastChannel을 통해 다른 창/탭에 전체 리셋 전송 (학생 로그인 화면 복귀 트리거)
+                    try {
+                        const broadcastChannel = new BroadcastChannel('bricksync_monitor');
+                        broadcastChannel.postMessage({ type: 'RESET_ALL', timestamp: Date.now() });
+                    } catch (e) {
+                        console.error("Broadcast reset error:", e);
+                    }
+                    
+                    // 4. 오프라인 셀렉터 재생성
+                    if (typeof isFirebaseOnline === 'undefined' || !isFirebaseOnline) {
+                        rebuildStudentSelectorOffline();
+                    }
+                    
+                    // 5. 화면상의 액티브 학생 정보 0 리셋 갱신
+                    const activePill = document.querySelector('.student-pill.active');
+                    const activeStudentName = activePill ? activePill.innerText : '';
+                    loadDashboardData(activeStudentName);
+                    
+                    alert("모든 학생의 학습 이력이 성공적으로 초기화되었습니다.");
+                } catch(e) {
+                    console.error("Reset Error:", e);
+                }
+            }
+        }
+
+        // 초기 데이터 로드
+        window.addEventListener('DOMContentLoaded', () => {
+            // 로컬 세션의 학생이 있으면 오프라인 리스트에 자동 등록
+            try {
+                const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                if (sessionDataStr) {
+                    const sessionData = JSON.parse(sessionDataStr);
+                    if (sessionData && sessionData.name && (!sessionData.expires || Date.now() < sessionData.expires)) {
+                        const name = sessionData.name;
+                        if (typeof isFirebaseOnline === 'undefined' || !isFirebaseOnline) {
+                            if (!studentList.includes(name)) {
+                                studentList.push(name);
+                                studentList.sort();
+                                localStorage.setItem('dashboard_students_list', JSON.stringify(studentList));
+                            }
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            if (typeof isFirebaseOnline === 'undefined' || !isFirebaseOnline) {
+                rebuildStudentSelectorOffline();
+            }
+            const activePill = document.querySelector('.student-pill.active');
+            const initialStudentName = activePill ? activePill.innerText : '';
+            loadDashboardData(initialStudentName);
         });
     </script>
 </body>

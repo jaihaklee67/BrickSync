@@ -2,6 +2,17 @@
 <html lang="ko">
 
 <head>
+    <!-- 최상위 윈도우 자동 래핑 리다이렉트 스크립트 -->
+    <script>
+        if (window === window.parent) {
+            let currentPage = window.location.pathname.split('/').pop() + window.location.search;
+            if (!currentPage || currentPage.startsWith('?')) {
+                currentPage = 'index.html' + window.location.search;
+            }
+            sessionStorage.setItem('brickSyncLastPage', currentPage);
+            window.location.href = 'app.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BrickSync - 스파이크 에센셜 코딩 워크스페이스</title>
@@ -31,14 +42,16 @@
 
         /* Top Navigation Bar */
         .top-bar {
-            height: 60px;
-            background: #ffffff;
-            border-bottom: 2px solid #e2e8f0;
+            height: 84px;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
             z-index: 10;
         }
 
@@ -46,16 +59,38 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: #475569;
+            padding: 12px 24px;
+            border-radius: 24px;
+            background: rgba(14, 165, 233, 0.22);
+            border: 2px solid rgba(14, 165, 233, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #0369a1;
             text-decoration: none;
-            font-weight: 700;
-            transition: all 0.2s;
+            font-weight: 900;
+            font-size: 1.3rem;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 5px 0 #0284c7,
+                0 8px 16px rgba(14, 165, 233, 0.2);
         }
 
         .home-btn:hover {
-            background: #f1f5f9;
+            background: rgba(14, 165, 233, 0.35);
+            transform: translateY(-2px);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),
+                0 7px 0 #0284c7,
+                0 10px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .home-btn:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.15),
+                0 0 0 #0284c7,
+                0 2px 4px rgba(14, 165, 233, 0.1);
         }
 
         .top-actions {
@@ -64,34 +99,198 @@
         }
 
         .action-btn {
-            padding: 8px 20px;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            background: #fff;
-            color: #475569;
-            font-weight: 700;
+            padding: 12px 24px;
+            border: 2px solid rgba(148, 163, 184, 0.8);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #1e293b;
+            font-weight: 900;
+            font-size: 1.3rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             align-items: center;
             gap: 8px;
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),
+                0 5px 0 #cbd5e1,
+                0 8px 16px rgba(0, 0, 0, 0.08);
         }
 
         .action-btn:hover {
-            border-color: #94a3b8;
-            background: #f8fafc;
+            border-color: rgba(100, 116, 139, 1.0);
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.7),
+                0 7px 0 #cbd5e1,
+                0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .action-btn:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.15),
+                0 0 0 #cbd5e1,
+                0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .run-btn {
-            background: #34d399;
-            border-color: #34d399;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             color: #fff;
-            box-shadow: 0 4px 0 #059669;
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.4),
+                0 5px 0 #047857,
+                0 8px 16px rgba(16, 185, 129, 0.35);
+        }
+
+        .run-btn:hover {
+            background: linear-gradient(135deg, #34d399, #059669);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 7px 0 #047857,
+                0 10px 20px rgba(16, 185, 129, 0.45);
         }
 
         .run-btn:active {
             transform: translateY(4px);
-            box-shadow: 0 0 0 #059669;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 0 0 #047857,
+                0 2px 4px rgba(16, 185, 129, 0.15);
+        }
+
+        .stop-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: #fff;
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.4),
+                0 5px 0 #b91c1c,
+                0 8px 16px rgba(239, 68, 68, 0.35);
+        }
+
+        .stop-btn:hover {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 7px 0 #b91c1c,
+                0 10px 20px rgba(239, 68, 68, 0.45);
+        }
+
+        .stop-btn:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 0 0 #b91c1c,
+                0 2px 4px rgba(239, 68, 68, 0.15);
+        }
+
+        #settings-menu-btn {
+            background: rgba(251, 207, 232, 0.55);
+            border: 2px solid rgba(244, 114, 182, 0.85);
+            color: #9d174d;
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 5px 0 #db2777,
+                0 8px 16px rgba(219, 39, 119, 0.2);
+        }
+
+        #settings-menu-btn:hover {
+            background: rgba(251, 207, 232, 0.85);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),
+                0 7px 0 #db2777,
+                0 10px 20px rgba(219, 39, 119, 0.3);
+        }
+
+        #settings-menu-btn:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.15),
+                0 0 0 #db2777,
+                0 2px 4px rgba(219, 39, 119, 0.1);
+        }
+
+        .btn-go-mission {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            padding: 10px 22px;
+            cursor: pointer;
+            color: #451a03;
+            font-weight: 900;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.4),
+                0 5px 0 #b45309,
+                0 8px 16px rgba(245, 158, 11, 0.4);
+            position: relative;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .btn-go-mission:hover {
+            background: linear-gradient(135deg, #fcd34d, #d97706);
+            transform: translateY(-2px);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 7px 0 #b45309,
+                0 10px 20px rgba(245, 158, 11, 0.5);
+        }
+
+        .btn-go-mission:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 0 0 #b45309,
+                0 2px 4px rgba(245, 158, 11, 0.15);
+        }
+
+        .btn-check-tasks {
+            background: rgba(186, 230, 253, 0.75);
+            border: 2px solid rgba(56, 189, 248, 0.85);
+            border-radius: 24px;
+            padding: 10px 22px;
+            cursor: pointer;
+            color: #0369a1;
+            font-weight: 900;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 5px 0 #0284c7,
+                0 8px 16px rgba(14, 165, 233, 0.25);
+            position: relative;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .btn-check-tasks:hover {
+            background: rgba(186, 230, 253, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),
+                0 7px 0 #0284c7,
+                0 10px 20px rgba(14, 165, 233, 0.35);
+        }
+
+        .btn-check-tasks:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.15),
+                0 0 0 #0284c7,
+                0 2px 4px rgba(14, 165, 233, 0.1);
         }
 
         /* Workspace Grid Background */
@@ -113,6 +312,7 @@
             transform-origin: 0 0;
             background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
             background-size: 30px 30px;
+            cursor: grab;
         }
 
         .block-stack {
@@ -349,6 +549,26 @@
             transform: scale(1.15) rotate(-5deg);
         }
 
+        /* 다중 선택 드래그 상자 */
+        .drag-selection-box {
+            position: absolute;
+            border: 2px solid #38bdf8;
+            background: rgba(56, 189, 248, 0.15);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* 다중 선택된 블록 스택 하이라이트 효과 */
+        .block-stack.selected-stack {
+            outline: 4px solid #38bdf8;
+            outline-offset: 4px;
+            border-radius: 16px;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+            transition: outline-offset 0.1s, box-shadow 0.1s;
+        }
+
         .bg-yellow {
             background: #facc15;
             /* 좀더 진한 골드 느낌의 예쁜 노랑 */
@@ -567,53 +787,66 @@
             <i class="fas fa-home"></i> 홈으로 가기
         </a>
         <div
-            style="font-size: 1.2rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-cubes" style="color: #c084fc;"></i>
+            style="font-size: 1.55rem; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px;">
+            <i class="fas fa-cubes" style="color: #a855f7; font-size: 1.9rem; filter: drop-shadow(0 2px 8px rgba(168, 85, 247, 0.3));"></i>
             BrickSync Essential 아이콘 코딩
         </div>
         <div class="top-actions" style="align-items: center;">
             <div id="hubStatusIndicator"
-                style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #64748b; padding: 8px 16px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0;">
+                style="display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.25rem; color: #334155; padding: 12px 24px; background: rgba(241, 245, 249, 0.85); border-radius: 24px; border: 2px solid rgba(203, 213, 225, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4), 0 4px 10px rgba(0,0,0,0.03);">
                 <div id="hubStatusDot"
-                    style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);">
+                    style="width: 14px; height: 14px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.65);">
                 </div>
                 <span id="hubStatusText">허브 연결 안 됨</span>
             </div>
             <button class="action-btn" onclick="openConnectModal()" id="connBtn">
-                <i class="fas fa-link" style="color:#64748b;"></i> 허브 연결
+                <i class="fas fa-link" style="color:#64748b;"></i> <span data-i18n="lbl_connect_hub">허브 연결</span>
             </button>
             <button class="action-btn run-btn" onclick="runBlocks()">
-                실행 <i class="fas fa-play" style="color: #fff;"></i>
+                <span data-i18n="btn_run">실행</span> <i class="fas fa-play" style="color: #fff;"></i>
+            </button>
+            <button class="action-btn stop-btn" onclick="haltExecution()">
+                <span data-i18n="btn_stop">정지</span> <i class="fas fa-stop" style="color: #fff;"></i>
+            </button>
+            <button class="action-btn" id="settings-menu-btn">
+                <i class="fas fa-cog"></i> <span data-i18n="nav_settings">설정</span>
             </button>
         </div>
     </div>
 
     <!-- 상단 미션 및 진행도 현황창 -->
     <div id="missionStatusBar"
-        style="display: none; justify-content: space-between; align-items: center; background: #fff; padding: 12px 30px; border-bottom: 2px solid #e2e8f0; z-index: 9;">
-        <div style="display: flex; align-items: center; gap: 15px;">
+        style="display: none; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); padding: 18px 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08); z-index: 9; position: relative; overflow: hidden;">
+        <!-- 뒷배경 유려한 네온 빛 망울 장식 -->
+        <div class="glow-blob blob-yellow" style="position: absolute; width: 250px; height: 250px; border-radius: 50%; filter: blur(80px); z-index: 1; opacity: 0.5; pointer-events: none; background: rgba(250, 204, 21, 0.3); top: -100px; right: 20%;"></div>
+        <div class="glow-blob blob-pink" style="position: absolute; width: 250px; height: 250px; border-radius: 50%; filter: blur(80px); z-index: 1; opacity: 0.5; pointer-events: none; background: rgba(244, 114, 182, 0.3); top: -120px; right: 5%;"></div>
+
+        <div style="display: flex; align-items: center; gap: 15px; position: relative; z-index: 2;">
             <div id="m-badge"
-                style="background: #eab308; color: #1e293b; font-weight: 900; font-size: 0.9rem; padding: 4px 12px; border-radius: 20px;">
+                style="background: linear-gradient(135deg, #facc15, #f59e0b); color: #451a03; font-weight: 900; font-size: 1.25rem; padding: 8px 20px; border-radius: 24px; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4), 0 4px 10px rgba(245, 158, 11, 0.25);">
                 STAGE 1</div>
-            <div id="m-title" style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">미션 제목</div>
+            <div id="m-title" style="font-size: 1.55rem; font-weight: 900; color: #0f172a;">미션 제목</div>
             <div id="m-desc"
-                style="font-size: 0.95rem; color: #64748b; font-weight: 500; margin-left: 10px; border-left: 2px solid #e2e8f0; padding-left: 15px;">
+                style="font-size: 1.25rem; color: #334155; font-weight: 700; margin-left: 10px; border-left: 3px solid rgba(203, 213, 225, 0.9); padding-left: 15px;">
                 미션 설명 텍스트</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
-            <span style="font-size: 0.9rem; font-weight: 800; color: #475569; white-space: nowrap;">미션 달성도</span>
+        <div style="display: flex; align-items: center; gap: 15px; position: relative; z-index: 2;">
+            <span style="font-size: 1.2rem; font-weight: 900; color: #1e293b; white-space: nowrap;"
+                data-i18n="lbl_mission_progress">미션 달성도</span>
             <div
-                style="flex: 1; height: 12px; background: #e2e8f0; border-radius: 10px; overflow: hidden; position: relative;">
+                style="width: 160px; height: 20px; background: rgba(203, 213, 225, 0.85); border-radius: 12px; overflow: hidden; position: relative; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);">
                 <div id="m-progress"
-                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #34d399, #10b981); transition: width 0.5s ease; border-radius: 10px;">
+                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #34d399, #10b981); transition: width 0.5s ease; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.35);">
                 </div>
             </div>
             <span id="m-percent"
-                style="font-size: 1rem; font-weight: 900; color: #10b981; width: 45px; text-align: right;">0%</span>
+                style="font-size: 1.3rem; font-weight: 900; color: #059669; width: 55px; text-align: right; margin-right: 10px;">0%</span>
 
-            <button onclick="toggleMissionTasks()"
-                style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; cursor: pointer; color: #475569; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: 0.2s;">
-                <i class="fas fa-list-check"></i> 과제 확인
+            <button id="btn-go-mission" onclick="openMissionBriefing()" class="btn-go-mission">
+                <i class="fas fa-trophy"></i> <span>미션하러가기</span>
+            </button>
+            <button onclick="toggleMissionTasks()" class="btn-check-tasks">
+                <i class="fas fa-list-check"></i> <span data-i18n="btn_check_tasks">과제 확인</span>
             </button>
         </div>
     </div>
@@ -623,14 +856,16 @@
         style="display: none; position: absolute; right: 30px; top: 130px; width: 320px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; padding: 20px;">
         <h3
             style="font-size: 1.1rem; color: #1e293b; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-clipboard-check" style="color: #10b981;"></i> 필수 수행 과제
+            <i class="fas fa-clipboard-check" style="color: #10b981;"></i> <span data-i18n="lbl_required_tasks">필수 수행
+                과제</span>
         </h3>
         <ul id="m-tasks-list" style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
             <!-- 과제들이 여기에 동적으로 들어감 -->
         </ul>
         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: right;">
             <button onclick="toggleMissionTasks()"
-                style="background: none; border: none; color: #64748b; font-weight: 700; cursor: pointer;">닫기</button>
+                style="background: none; border: none; color: #64748b; font-weight: 700; cursor: pointer;"
+                data-i18n="btn_close">닫기</button>
         </div>
     </div>
 
@@ -639,13 +874,14 @@
         <div class="coding-area" id="workspaceArea">
             <div class="hint-text">
                 <i class="fas fa-hand-pointer" style="font-size: 48px;"></i>
-                하단에서 아이콘 블럭을 끌어와 조립해보세요!
+                <span data-i18n="hint_drag_assemble">하단에서 아이콘 블럭을 끌어와 조립해보세요!</span>
             </div>
         </div>
 
         <div class="trash-area" id="trashArea">
             <i class="fas fa-trash-can"></i>
         </div>
+        <div class="drag-selection-box" id="dragSelectionBox"></div>
     </div>
 
     <!-- Bottom Toolbox (28 Blocks utilizing FontAwesome Solid to match Spike EXACTLY) -->
@@ -2486,7 +2722,15 @@
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             if (e.key === 'Backspace' || e.key === 'Delete') {
-                if (selectedWorkspaceBlock) {
+                if (selectedStacks.length > 0) {
+                    selectedStacks.forEach(stack => {
+                        const firstBlock = stack.querySelector('.workspace-item');
+                        if (firstBlock && firstBlock.getAttribute('data-action') !== 'start') {
+                            deleteBlockAndChildren(firstBlock);
+                        }
+                    });
+                    clearMultiSelection();
+                } else if (selectedWorkspaceBlock) {
                     deleteBlockAndChildren(selectedWorkspaceBlock);
                 }
             }
@@ -2544,14 +2788,225 @@
         workspaceArea.style.left = `${initWsLeft}px`;
         workspaceArea.style.top = `${initWsTop}px`;
 
+        // ==========================================
+        // 워크스페이스 배경 드래그(Pan) 및 다중 선택(Shift+Drag) 기능 구현
+        // ==========================================
+        let isPanning = false;
+        let isSelecting = false;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+        let selectStartX = 0;
+        let selectStartY = 0;
+        let activePointerId = null; // 멀티터치 방지 고유 ID
+        let selectedStacks = []; // 다중 선택된 스택 배열
+        let dragStartLeft = 0;
+        let dragStartTop = 0;
+        let otherStacksStartCoords = []; // 보조 스택들의 원래 좌표 보관용
+        let draggedStack = null;
+        let draggedSiblings = [];
+
+        workspaceArea.parentElement.addEventListener('pointerdown', (e) => {
+            // 1. UI 영역 클릭 및 블록 드래그는 화면 이동/선택에서 제외
+            if (e.target.closest('.toolbox') || e.target.closest('.trash-area') || e.target.closest('.top-bar')) return;
+            if (e.target.closest('.block-stack')) return;
+
+            // 2. 마우스 클릭 시 좌클릭만 허용
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+            // 3. Shift 키가 눌려있으면 다중 선택 드래그 박스 시작
+            if (e.shiftKey) {
+                isSelecting = true;
+                activePointerId = e.pointerId;
+                const rect = workspaceArea.parentElement.getBoundingClientRect();
+                selectStartX = e.clientX - rect.left;
+                selectStartY = e.clientY - rect.top;
+
+                const box = document.getElementById('dragSelectionBox');
+                if (box) {
+                    box.style.left = `${selectStartX}px`;
+                    box.style.top = `${selectStartY}px`;
+                    box.style.width = '0px';
+                    box.style.height = '0px';
+                    box.style.display = 'block';
+                }
+
+                e.target.setPointerCapture(e.pointerId);
+                e.preventDefault();
+                return;
+            }
+
+            // 4. 일반 드래그 시 화면 이동(Pan) 시작
+            clearMultiSelection();
+
+            isPanning = true;
+            activePointerId = e.pointerId;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseFloat(workspaceArea.style.left) || 0;
+            startTop = parseFloat(workspaceArea.style.top) || 0;
+
+            e.target.setPointerCapture(e.pointerId);
+
+            workspaceArea.style.cursor = 'grabbing';
+            workspaceArea.parentElement.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (isSelecting && e.pointerId === activePointerId) {
+                const rect = workspaceArea.parentElement.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+
+                const left = Math.min(selectStartX, currentX);
+                const top = Math.min(selectStartY, currentY);
+                const width = Math.abs(selectStartX - currentX);
+                const height = Math.abs(selectStartY - currentY);
+
+                const box = document.getElementById('dragSelectionBox');
+                if (box) {
+                    box.style.left = `${left}px`;
+                    box.style.top = `${top}px`;
+                    box.style.width = `${width}px`;
+                    box.style.height = `${height}px`;
+                }
+                return;
+            }
+
+            if (isPanning && e.pointerId === activePointerId) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                workspaceArea.style.left = `${startLeft + dx}px`;
+                workspaceArea.style.top = `${startTop + dy}px`;
+            }
+        });
+
+        const endPointerAction = (e) => {
+            if (isSelecting && e.pointerId === activePointerId) {
+                isSelecting = false;
+                activePointerId = null;
+                const box = document.getElementById('dragSelectionBox');
+                if (box) {
+                    const rect = box.getBoundingClientRect();
+                    box.style.display = 'none';
+                    evaluateSelection(rect);
+                }
+                return;
+            }
+
+            if (isPanning && e.pointerId === activePointerId) {
+                isPanning = false;
+                activePointerId = null;
+                workspaceArea.style.cursor = '';
+                workspaceArea.parentElement.style.cursor = '';
+            }
+        };
+
+        window.addEventListener('pointerup', endPointerAction);
+        window.addEventListener('pointercancel', endPointerAction);
+
+        // 충돌 검사 및 다중 선택 그룹 하이라이트 활성화
+        function evaluateSelection(boxRect) {
+            clearMultiSelection();
+            if (boxRect.width < 5 || boxRect.height < 5) return;
+
+            const stacks = workspaceArea.querySelectorAll('.block-stack');
+            stacks.forEach(stack => {
+                const stackRect = stack.getBoundingClientRect();
+                const isOverlapping = !(
+                    stackRect.right < boxRect.left ||
+                    stackRect.left > boxRect.right ||
+                    stackRect.bottom < boxRect.top ||
+                    stackRect.top > boxRect.bottom
+                );
+
+                if (isOverlapping) {
+                    stack.classList.add('selected-stack');
+                    selectedStacks.push(stack);
+                }
+            });
+        }
+
+        // 다중 선택 상태 클리어
+        function clearMultiSelection() {
+            selectedStacks.forEach(stack => {
+                stack.classList.remove('selected-stack');
+            });
+            selectedStacks = [];
+        }
+
         let dragSourceNode = null;
         let placeholder = null;
 
         document.addEventListener('dragstart', (e) => {
             if (e.target.classList.contains('spike-block')) {
-                // 시작 블럭 고정 제한 해제! 이제 드래그해서 위치 재배열 가능 (하지만 다른 블럭 뒤로 갈 수는 없음)
                 dragSourceNode = e.target;
+
+                // 다중 선택된 그룹 드래그 상태 보존
+                const sourceStack = dragSourceNode.closest('.block-stack');
+                if (sourceStack && selectedStacks.includes(sourceStack)) {
+                    draggedStack = sourceStack;
+                    dragStartLeft = parseFloat(sourceStack.style.left) || 0;
+                    dragStartTop = parseFloat(sourceStack.style.top) || 0;
+                    otherStacksStartCoords = selectedStacks.map(stack => ({
+                        stack: stack,
+                        left: parseFloat(stack.style.left) || 0,
+                        top: parseFloat(stack.style.top) || 0
+                    }));
+                } else {
+                    draggedStack = null;
+                    otherStacksStartCoords = [];
+                }
+
+                // Capture subsequent siblings in the same stack (group dragging)
+                draggedSiblings = [];
+                if (sourceStack) {
+                    let next = dragSourceNode.nextElementSibling;
+                    while (next) {
+                        if (!next.classList.contains('placeholder')) {
+                            draggedSiblings.push(next);
+                        }
+                        next = next.nextElementSibling;
+                    }
+                }
+
                 e.dataTransfer.effectAllowed = 'copyMove';
+
+                // Create custom drag image containing dragSourceNode and its siblings
+                if (sourceStack) {
+                    const dragImgContainer = document.createElement('div');
+                    dragImgContainer.className = 'block-stack';
+                    dragImgContainer.style.cssText = 'position: absolute; top: -9999px; left: -9999px; display: inline-flex; align-items: center; white-space: nowrap; pointer-events: none;';
+
+                    // Clone dragSourceNode and its siblings
+                    const cloneNode = dragSourceNode.cloneNode(true);
+                    cloneNode.style.display = 'inline-flex';
+                    cloneNode.style.opacity = '1';
+                    dragImgContainer.appendChild(cloneNode);
+
+                    draggedSiblings.forEach(sib => {
+                        const cloneSib = sib.cloneNode(true);
+                        cloneSib.style.display = 'inline-flex';
+                        cloneSib.style.opacity = '1';
+                        dragImgContainer.appendChild(cloneSib);
+                    });
+
+                    document.body.appendChild(dragImgContainer);
+
+                    const blockRect = dragSourceNode.getBoundingClientRect();
+                    const offsetX = e.clientX - blockRect.left;
+                    const offsetY = e.clientY - blockRect.top;
+
+                    e.dataTransfer.setDragImage(dragImgContainer, offsetX, offsetY);
+
+                    // Remove the offscreen container after a short delay
+                    setTimeout(() => {
+                        dragImgContainer.remove();
+                    }, 0);
+                }
 
                 // 빈 공간을 벌려줄 예쁜 투명 플레이스홀더 생성
                 placeholder = document.createElement('div');
@@ -2562,6 +3017,7 @@
                     // 워크스페이스 내부 이동일 경우: 원본은 남겨두되 투명하게 숨김 (브라우저 D&D 취소 버그 방지)
                     setTimeout(() => {
                         dragSourceNode.style.display = 'none';
+                        draggedSiblings.forEach(sib => sib.style.display = 'none');
                         dragSourceNode.parentElement.insertBefore(placeholder, dragSourceNode);
                     }, 0);
                 } else {
@@ -2577,17 +3033,68 @@
             if (dragSourceNode.style.display === 'none') {
                 dragSourceNode.style.display = 'inline-flex'; // 다시 보이게
             }
+            draggedSiblings.forEach(sib => {
+                if (sib.style.display === 'none') {
+                    sib.style.display = 'inline-flex';
+                }
+            });
             if (trashArea) trashArea.classList.remove('drag-over');
 
             if (placeholder && placeholder.parentElement) {
                 // 드롭이 제대로 안끝나면 제자리로 돌리기 처리
                 if (placeholder.parentElement.classList.contains('block-stack')) {
-                    placeholder.parentElement.insertBefore(dragSourceNode, placeholder);
+                    const parent = placeholder.parentElement;
+                    parent.insertBefore(dragSourceNode, placeholder);
+                    draggedSiblings.forEach(sib => {
+                        parent.insertBefore(sib, placeholder);
+                    });
                 }
                 placeholder.remove();
             }
 
+            // 다중 선택 그룹 동시 이동 델타값 정렬 수행
+            const sourceStack = dragSourceNode.closest('.block-stack');
+            if (otherStacksStartCoords.length > 0) {
+                setTimeout(() => {
+                    const finalLeft = parseFloat(sourceStack.style.left) || 0;
+                    const finalTop = parseFloat(sourceStack.style.top) || 0;
+                    const dx = finalLeft - dragStartLeft;
+                    const dy = finalTop - dragStartTop;
+
+                    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                        otherStacksStartCoords.forEach(coord => {
+                            if (coord.stack !== draggedStack) {
+                                coord.stack.style.left = `${coord.left + dx}px`;
+                                coord.stack.style.top = `${coord.top + dy}px`;
+                            }
+                        });
+                    }
+
+                    // Update selectedStacks with the new sourceStack (since the dragged block might be inside a new stack now)
+                    if (sourceStack && !selectedStacks.includes(sourceStack)) {
+                        selectedStacks.push(sourceStack);
+                        sourceStack.classList.add('selected-stack');
+                    }
+
+                    // Filter out empty or detached stacks
+                    selectedStacks = selectedStacks.filter(stack => {
+                        const exists = document.body.contains(stack) && stack.children.length > 0;
+                        if (!exists) {
+                            stack.classList.remove('selected-stack');
+                        }
+                        return exists;
+                    });
+
+                    otherStacksStartCoords = [];
+                    draggedStack = null;
+                }, 50);
+            } else {
+                otherStacksStartCoords = [];
+                draggedStack = null;
+            }
+
             dragSourceNode = null;
+            draggedSiblings = [];
             placeholder = null;
 
             // 내용 없는 빈 스택 정리
@@ -2615,7 +3122,17 @@
             if (dragSourceNode && dragSourceNode.classList.contains('workspace-item')) {
                 if (!e.target.closest('#workspaceArea') && !e.target.closest('#palette') && !e.target.closest('#trashArea')) {
                     if (dragSourceNode.getAttribute('data-action') !== 'start') {
-                        deleteBlockAndChildren(dragSourceNode);
+                        if (selectedStacks.length > 0) {
+                            selectedStacks.forEach(stack => {
+                                const firstBlock = stack.querySelector('.workspace-item');
+                                if (firstBlock && firstBlock.getAttribute('data-action') !== 'start') {
+                                    deleteBlockAndChildren(firstBlock);
+                                }
+                            });
+                            clearMultiSelection();
+                        } else {
+                            deleteBlockAndChildren(dragSourceNode);
+                        }
                         if (placeholder) placeholder.remove();
                     }
                 }
@@ -2712,7 +3229,8 @@
                     finalBlock = dragSourceNode;
                 }
 
-                if (placeholder.parentElement === workspaceArea) {
+                const targetParent = placeholder.parentElement;
+                if (targetParent === workspaceArea) {
                     // 근처에 스택이 없어서 모눈종이 직속(자유배치)된 경우 새 스택 컨테이너화
                     const newStack = document.createElement('div');
                     newStack.className = 'block-stack';
@@ -2720,11 +3238,18 @@
                     newStack.style.top = placeholder.style.top;
                     workspaceArea.appendChild(newStack);
                     newStack.appendChild(finalBlock);
+                    draggedSiblings.forEach(sib => {
+                        newStack.appendChild(sib);
+                    });
                 } else {
-                    placeholder.parentElement.insertBefore(finalBlock, placeholder);
+                    targetParent.insertBefore(finalBlock, placeholder);
+                    draggedSiblings.forEach(sib => {
+                        targetParent.insertBefore(sib, placeholder);
+                    });
                 }
 
                 finalBlock.style.display = 'inline-flex'; // 혹시 숨겨져 있었다면 복구
+                draggedSiblings.forEach(sib => sib.style.display = 'inline-flex');
 
                 // 삽입완료 후 플레이스홀더 즉시 삭제
                 placeholder.remove();
@@ -2747,14 +3272,25 @@
             trashArea.addEventListener('drop', (e) => {
                 e.preventDefault();
                 trashArea.classList.remove('drag-over');
-                if (dragSourceNode && (dragSourceNode.classList.contains('workspace-item') || dragSourceNode.parentElement === workspaceArea)) {
-                    if (dragSourceNode.getAttribute('data-action') !== 'start') {
-                        deleteBlockAndChildren(dragSourceNode);
-                        if (placeholder) placeholder.remove(); // 허공에 남은 틀 제거
-                    } else {
-                        alert("시작 블럭은 지울 수 없습니다!");
-                        if (placeholder) workspaceArea.insertBefore(dragSourceNode, placeholder);
-                        dragSourceNode.style.display = 'inline-flex';
+                if (dragSourceNode) {
+                    if (selectedStacks.length > 0) {
+                        selectedStacks.forEach(stack => {
+                            const firstBlock = stack.querySelector('.workspace-item');
+                            if (firstBlock && firstBlock.getAttribute('data-action') !== 'start') {
+                                deleteBlockAndChildren(firstBlock);
+                            }
+                        });
+                        clearMultiSelection();
+                        if (placeholder) placeholder.remove();
+                    } else if (dragSourceNode.classList.contains('workspace-item') || dragSourceNode.parentElement === workspaceArea) {
+                        if (dragSourceNode.getAttribute('data-action') !== 'start') {
+                            deleteBlockAndChildren(dragSourceNode);
+                            if (placeholder) placeholder.remove(); // 허공에 남은 틀 제거
+                        } else {
+                            alert("시작 블럭은 지울 수 없습니다!");
+                            if (placeholder) workspaceArea.insertBefore(dragSourceNode, placeholder);
+                            dragSourceNode.style.display = 'inline-flex';
+                        }
                     }
                 }
             });
@@ -2791,9 +3327,13 @@
                             noteOsc.type = note[2] || 'square';
                             noteOsc.frequency.setValueAtTime(freq, timeOffset);
 
+                            const savedVol = localStorage.getItem('bricksync_volume');
+                            const userVol = savedVol !== null ? parseFloat(savedVol) : 1.0;
+                            const peakGain = 0.3 * userVol;
+
                             noteGain.gain.setValueAtTime(0, timeOffset);
-                            noteGain.gain.linearRampToValueAtTime(0.3, timeOffset + 0.05);
-                            noteGain.gain.exponentialRampToValueAtTime(0.01, timeOffset + duration - 0.01);
+                            noteGain.gain.linearRampToValueAtTime(peakGain, timeOffset + 0.05);
+                            noteGain.gain.exponentialRampToValueAtTime((0.01 * userVol) || 0.001, timeOffset + duration - 0.01);
 
                             noteOsc.start(timeOffset);
                             noteOsc.stop(timeOffset + duration);
@@ -2912,9 +3452,20 @@
         async function haltExecution() {
             window.bleEngineRunCounter = (window.bleEngineRunCounter || 0) + 1;
             if (window.parent && window.parent.connectionType === 'BLE') {
-                for (let p = 0; p < 6; p++) {
+                // 부모 프록시의 디바이스 맵에 존재하는 활성 포트만 추출
+                let activePorts = [];
+                if (window.parent.hubDevices) {
+                    activePorts = Object.keys(window.parent.hubDevices).map(Number).filter(p => p >= 0 && p < 6);
+                }
+                // 만약 활성 포트 정보가 없으면 예외 복구(Fallback)로 모든 포트(0~5) 정지 송신
+                if (activePorts.length === 0) {
+                    activePorts = [0, 1, 2, 3, 4, 5];
+                }
+
+                for (let i = 0; i < activePorts.length; i++) {
+                    const p = activePorts[i];
                     await window.parent.writeToHub(new Uint8Array([8, 0, 0x81, p, 0x10, 0x51, 0x00, 0])).catch(e => { });
-                    await new Promise(r => setTimeout(r, 60)); // GATT 에러 방지용 필수 대기 시간
+                    await new Promise(r => setTimeout(r, 30)); // 30ms 안전 마진 지연시간 (15ms 기본 지연 결합)
                 }
             } else if (window.parent && window.parent.connectionType === 'USB') {
                 let pyStop = '\\x03\\x03\\x01import motor\ntry:\n for i in range(6):\n  try: motor.stop(i)\n  except: pass\nexcept: pass\n\\x04';
@@ -3075,7 +3626,7 @@ print("BrickSync Sandbox Run")
                             let p0_sign = (action === 'car_forward' || action === 'car_right') ? '-' : '';
                             let p1_sign = (action === 'car_forward' || action === 'car_left') ? '' : '-';
                             pyCode += `${indent}dm(${p0_sign}global_motor_speed, ${p1_sign}global_motor_speed)\n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            
+
                             let fws = action === 'car_forward' ? 'UP' : action === 'car_backward' ? 'DOWN' : action === 'car_left' ? 'LEFT' : 'RIGHT';
                             localActionsQueue.push({ action: 'STEER_' + fws, delay: cumulativeDelayMs });
                             cumulativeDelayMs += (timeVal * 1000);
@@ -3215,7 +3766,7 @@ print("BrickSync Sandbox Run")
                 localActionsQueue.forEach(item => {
                     setTimeout(() => {
                         if (window.bleEngineRunCounter !== currentRunId) return; // 실행 종료/취소 감지
-                        try { window.parent.sendWebSocketAction({ action: item.action }); } catch(e){}
+                        try { window.parent.sendWebSocketAction({ action: item.action }); } catch (e) { }
                     }, item.delay);
                 });
             }
@@ -3324,6 +3875,9 @@ print("BrickSync Sandbox Run")
                             case 'event_color_sensor':
                                 bleQueue.push({ action: 'wait_color', targetColor: paramVal, delay: currentBleDelay });
                                 break;
+                            case 'event_distance_sensor':
+                                bleQueue.push({ action: 'wait_distance', targetDistance: paramVal, delay: currentBleDelay });
+                                break;
                             case 'flow_wait':
                                 currentBleDelay += (paramVal * 1000);
                                 break;
@@ -3363,7 +3917,7 @@ print("BrickSync Sandbox Run")
                             try {
                                 const waitTime = cmd.delay - lastExecutionTime;
 
-                                if (waitTime > 0 && cmd.action !== 'wait_color') {
+                                if (waitTime > 0 && cmd.action !== 'wait_color' && cmd.action !== 'wait_distance') {
                                     console.log(`?�️ [BLE_ENGINE] Executing cmd: ${cmd.action} (waitTime: ${waitTime}ms)`);
                                     await new Promise(r => setTimeout(r, waitTime));
                                     lastExecutionTime = cmd.delay;
@@ -3376,9 +3930,9 @@ print("BrickSync Sandbox Run")
                                     else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'MWHEEL_LEFT' }); } catch (e) { }
                                     else if (cmd.action === 'motor_stop_cw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); } catch (e) { }
                                     else if (cmd.action === 'motor_stop_ccw') try { window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_generic') try { 
-                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' }); 
-                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' }); 
+                                    else if (cmd.action === 'motor_stop_generic') try {
+                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_LEFT' });
+                                        window.parent.sendWebSocketAction({ action: 'STOP_MWHEEL_RIGHT' });
                                     } catch (e) { }
                                     let speedInt = Math.round(cmd.speed);
                                     let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
@@ -3459,6 +4013,26 @@ print("BrickSync Sandbox Run")
 
                                     // ?�?�라???�기??- ?�벤??조건 만족 ?��????�레?��? ?�용?�게 ??
                                     lastExecutionTime = cmd.delay;
+                                } else if (cmd.action === 'wait_distance') {
+                                    console.log("📡 [BLE_ENGINE] Waiting for Distance Sensor to detect obstacles");
+                                    let matched = false;
+                                    while (!matched && window.bleEngineRunCounter === currentRunId) {
+                                        if (window.parent.sensorData) {
+                                            for (let p = 0; p < 6; p++) {
+                                                if (window.parent.hubDevices && window.parent.hubDevices[p] === 62) {
+                                                    let distVal = window.parent.sensorData[p];
+                                                    if (distVal !== undefined && distVal < 10) {
+                                                        matched = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (!matched) await new Promise(r => setTimeout(r, 100));
+                                    }
+                                    if (!matched) return;
+                                    console.log("🚨 [BLE_ENGINE] Obstacle Detected! Continuing sequence...");
+                                    lastExecutionTime = cmd.delay;
                                 }
                             } catch (e) {
                                 console.error("??[BLE_ENGINE] Command Error:", e);
@@ -3501,6 +4075,18 @@ print("BrickSync Sandbox Run")
         }
 
         function triggerSuccessConfetti() {
+            if (typeof recordTelemetry !== 'undefined') {
+                recordTelemetry(false, `[${_bsStudentName}] 미션 ${unit} 완료! 🚀`, true, unit);
+            } else if (window.dashChannel) {
+                try {
+                    window.dashChannel.postMessage({
+                        type: 'MISSION_COMPLETE',
+                        unit: unit,
+                        msg: `[${_bsStudentName}] 미션 ${unit} 완료! 🚀`,
+                        student: _bsStudentName
+                    });
+                } catch (e) { }
+            }
             var duration = 3 * 1000;
             var animationEnd = Date.now() + duration;
             var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -3537,6 +4123,42 @@ print("BrickSync Sandbox Run")
             const panel = document.getElementById('missionTasksPanel');
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
         }
+
+        let isMissionActive = false;
+        function openMissionBriefing() {
+            if (typeof unit === 'undefined' || !unit) return;
+            isMissionActive = true;
+            
+            const mData = {
+                '1': { badge: 'STAGE 1', title: '첫 번째 연동', desc: '조명 블록을 꺼내어 조립해서 허브에 불을 켜보세요!', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '조명 블록(3x3) 연결하기'}] },
+                '2': { badge: 'STAGE 2', title: '모터 움직이기', desc: '회전 블록 및 제어 블록을 활용하여 포트나이트를 돕습니다.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '모터 속도 설정 블록 추가'}, {text: '모터 회전 구동 블록 실행'}] },
+                '3': { badge: 'STAGE 3', title: '센서 반응형 장치', desc: '거리 센서 블록으로 주변을 감지하는 똑똑한 제어를 완성하세요.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '거리 센서 제어 블록 포함하기'}, {text: '조건에 맞는 동작(모터/조명) 연결'}] },
+                '4': { badge: 'STAGE 4', title: '캣 아일랜드 마스터', desc: '무한 루프와 각종 블록을 자유롭게 결합해 궁극의 미션을 클리어합니다.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '무한 반복 루프 꺼내기'}, {text: '거리 센서 감지 활용'}, {text: '출력 블록(모터/조명) 작동'}] },
+                '5': { badge: 'STAGE 5', title: '급행통로 게이트를 만들어요.', desc: '모터와 센서를 활용하여 손대지 않고 자동으로 열리는 급행통로 게이트를 설계해 봅니다.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '거리 센서 감지 활용'}, {text: '모터 회전 구동 블록 실행'}] }
+            };
+            const current = mData[unit];
+            if (!current) return;
+            
+            document.getElementById('briefingStage').textContent = current.badge;
+            document.getElementById('briefingTitle').textContent = current.title;
+            document.getElementById('briefingDesc').textContent = current.desc;
+            
+            const briefingTasksEl = document.getElementById('briefingTasks');
+            briefingTasksEl.innerHTML = '';
+            current.tasks.forEach(t => {
+                const li = document.createElement('li');
+                li.style.cssText = 'display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 500; color: #475569;';
+                li.innerHTML = `<i class="fas fa-check" style="color: #eab308; width: 16px; text-align: center;"></i> ${t.text}`;
+                briefingTasksEl.appendChild(li);
+            });
+            
+            document.getElementById('missionBriefingModal').style.display = 'flex';
+        }
+
+        function closeMissionBriefing() {
+            document.getElementById('missionBriefingModal').style.display = 'none';
+        }
+
 
         // URL에서 미션 파라미터 확인 및 화면 렌더링
         const urlParams = new URLSearchParams(window.location.search);
@@ -3578,6 +4200,15 @@ print("BrickSync Sandbox Run")
                         { id: 'control_forever', text: '무한 반복 루프 꺼내기' },
                         { id: 'event_distance_sensor', text: '거리 센서 감지 활용' },
                         { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: '출력 블록(모터/조명) 작동' }
+                    ]
+                },
+                '5': {
+                    badge: 'STAGE 5', title: '급행통로 게이트를 만들어요.', desc: '모터와 센서를 활용하여 손대지 않고 자동으로 열리는 급행통로 게이트를 설계해 봅니다.',
+                    pinCode: '5019',
+                    tasks: [
+                        { id: 'start', text: '재생(시작) 블록 연결하기' },
+                        { id: 'event_distance_sensor', text: '거리 센서 감지 활용' },
+                        { id: ['motor_cw', 'motor_ccw'], text: '모터 회전 구동 블록 실행' }
                     ]
                 }
             };
@@ -3640,14 +4271,17 @@ print("BrickSync Sandbox Run")
                             finalPin = '9988';
                         }
 
-                        setTimeout(() => {
-                            // PIN 코드 및 폭죽 효과 UI 출력 부분 삭제됨 (사용자 요청)
+                        if (isMissionActive) {
+                            setTimeout(() => {
+                                showPinCodeModal(finalPin);
+                                triggerSuccessConfetti();
 
-                            // 웹소켓을 통해 클리어 신호 전송 로직 (추후 UEFN 연동 용)
-                            if (typeof bridgeSocket !== 'undefined' && bridgeSocket && bridgeSocket.readyState === WebSocket.OPEN) {
-                                bridgeSocket.send(JSON.stringify({ action: "MISSION_CLEARED_PIN_READY", pin: finalPin }));
-                            }
-                        }, 500); // 100% 모션 후 딜레이
+                                // 웹소켓을 통해 클리어 신호 전송 로직 (추후 UEFN 연동 용)
+                                if (typeof bridgeSocket !== 'undefined' && bridgeSocket && bridgeSocket.readyState === WebSocket.OPEN) {
+                                    bridgeSocket.send(JSON.stringify({ action: "MISSION_CLEARED_PIN_READY", pin: finalPin }));
+                                }
+                            }, 500); // 100% 모션 후 딜레이
+                        }
                     } else if (percent < 100) {
                         document.getElementById('m-progress').dataset.completed = ''; // 블럭 떨어져나가면 달성도 리셋
                     }
@@ -3734,59 +4368,496 @@ print("BrickSync Sandbox Run")
                 </button>
             </div>
         </div>
-        </div>
     </div>
-    
+    </div>
+
+    <!-- Firebase SDK 및 공통 설정 연동 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase_config.js"></script>
+
     <script>
         // --- Zero-Latency 별도 페이지 통신 채널 레이더 --- //
-        // 1. 시소 이펙트 0% 방어망: 10바이트 로컬스토리지 2시간 TTL 꼬리표 로드
         let _bsStudentName = 'Guest_익명';
         try {
             const sessionDataStr = localStorage.getItem('bricksync_student_session');
-            if(sessionDataStr) {
+            if (sessionDataStr) {
                 const sessionData = JSON.parse(sessionDataStr);
-                if(Date.now() < sessionData.expires) {
+                if (Date.now() < sessionData.expires) {
                     _bsStudentName = sessionData.name;
                 } else {
                     localStorage.removeItem('bricksync_student_session');
                 }
             }
-        } catch(e) { /* 에러 0% 폴백 */ }
+        } catch (e) { }
+
+        // Firebase 실시간 온라인 상태 업데이트 및 연결 끊김 감지 설정
+        if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+            try {
+                database.ref('bricksync_classroom/students/' + _bsStudentName).update({
+                    online: true,
+                    lastActive: Date.now()
+                });
+                database.ref('bricksync_classroom/students/' + _bsStudentName + '/online').onDisconnect().set(false);
+                database.ref('bricksync_classroom/students/' + _bsStudentName + '/lastActive').onDisconnect().set(Date.now());
+
+                // Firebase 실시간 DB 리셋 신호 감지 (원격/멀티 디바이스 초기화 연동)
+                database.ref('bricksync_classroom/reset_signal').on('value', (snapshot) => {
+                    const resetTime = snapshot.val();
+                    if (resetTime) {
+                        const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                        if (sessionDataStr) {
+                            const session = JSON.parse(sessionDataStr);
+                            const loginTime = session.loginTime || 0;
+                            if (resetTime > loginTime) {
+                                localStorage.removeItem('bricksync_student_session');
+                                window.top.location.href = 'student_login.html';
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase connection tracking setup failed:", e);
+            }
+        }
 
         try {
             window.dashChannel = new BroadcastChannel('bricksync_monitor');
-        } catch(e) { }
+            window.dashChannel.onmessage = function (event) {
+                if (event.data && event.data.type === 'RESET_ALL') {
+                    localStorage.removeItem('bricksync_student_session');
+                    window.top.location.href = 'student_login.html';
+                }
+            };
+        } catch (e) { }
 
-        // 2. 엔진 개조 방지: 무전 채널에 이름 꼬리표만 붙여서 fire-and-forget
-        // 시소 이펙트 방지를 위해 무거운 연산 없이, 그저 브라우저 네이티브 통신망(BroadcastChannel)에 문자열만 툭 던집니다.
-        ['mouseup', 'touchend'].forEach(evt => {
-            document.addEventListener(evt, (e) => {
-                if(window.dashChannel) {
-                    let isMotor = false;
-                    try {
-                        if(e.target && e.target.closest) {
-                            const block = e.target.closest('.workspace-item') || e.target.closest('.spike-block');
-                            // 노란색 재생 버튼(실행 버튼)을 누르거나, 블록 중 motor/move/매트릭스(pink 영역) 관련일 때는 모터(ACTION)로 취급
-                            if (e.target.closest('.run-btn')) {
-                                isMotor = true;
-                            } else if (block) {
-                                const action = block.getAttribute('data-action') || '';
-                                if (action.includes('motor') || action.includes('move') || action.includes('matrix') || block.classList.contains('bg-pink') || action === 'start') {
-                                    isMotor = true;
-                                }
-                            }
+        // 대시보드 꺼짐 대비 백그라운드 영구 누적 저장 로직
+        function recordTelemetry(isMotor, msgText, isMissionComplete = false, unitNum = 0) {
+            const studentName = _bsStudentName || 'Guest_익명';
+            let sLiveBlocks = 0;
+            let sCntMotor = 0;
+            let sCntSensor = 0;
+            let sLiveMinutes = studentName === '김민준' ? 65 : Math.floor(40 + Math.random() * 40);
+            let sLiveSuccess = studentName === '김민준' ? 79 : Math.floor(60 + Math.random() * 35);
+            let sMissions = [true, true, false];
+            let sLogs = [];
+            let sAiComment = "대기 중...";
+
+            const raw = localStorage.getItem('dashboard_stats_' + studentName);
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    sLiveBlocks = parsed.liveBlocks || 0;
+                    sCntMotor = parsed.cntMotor || 0;
+                    sCntSensor = parsed.cntSensor || 0;
+                    sLiveMinutes = parsed.liveMinutes || 0;
+                    sLiveSuccess = parsed.liveSuccess || 100;
+                    sMissions = parsed.missions || [true, true, false];
+                    sLogs = parsed.logs || [];
+                    sAiComment = parsed.aiComment || "대기 중...";
+                } catch (e) { }
+            }
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            if (isMissionComplete) {
+                const unitIdx = parseInt(unitNum) - 1;
+                if (unitIdx >= 0 && unitIdx < 3) {
+                    sMissions[unitIdx] = true;
+                }
+            } else {
+                sLiveBlocks++;
+                if (isMotor) {
+                    sCntMotor++;
+                } else {
+                    sCntSensor++;
+                }
+            }
+
+            sLogs.unshift({ time: timeStr, msg: msgText });
+            if (sLogs.length > 20) sLogs.pop();
+
+            if (sLiveBlocks > 0) {
+                sAiComment = `${studentName} 학생은 오늘 총 <b>${sLiveBlocks}번의 코딩 시도</b>를 스스로 진행하며 적극적인 학습 태도를 보여주었습니다. `;
+                if (sCntMotor > sCntSensor * 2) {
+                    sAiComment += `주로 <b>[물리 모터 제어]</b>에 강한 흥미를 보였으며 눈앞에서 포트나이트 장치가 직접 움직이는 결과물을 도출하는 데 탁월한 집중력을 보였습니다. `;
+                } else if (sCntSensor > sCntMotor * 1.5) {
+                    sAiComment += `오늘은 동작보다는 <b>[센서 입력 및 제어 흐름 설계]</b>를 심도 있게 테스트했습니다. 문제의 구조를 먼저 설계하려는 분석적인 성향이 돋보였습니다. `;
+                } else {
+                    sAiComment += `단일 기능에 치우치지 않고 <b>[모터와 센서 로직을 균형 있게 융합]</b>하여 구조적으로 코딩을 조합해내는 훌륭한 응용력을 보여주었습니다. `;
+                }
+                if (sLiveBlocks > 10) {
+                    sAiComment += `다음 수업에서는 한 단계 높은 [대관람차 다중 회전 미션]에 도전해볼 것을 추천합니다!`;
+                } else {
+                    sAiComment += `앞으로 더욱 다양한 블록을 조합해보며 자신감을 키워갈 수 있도록 이끌겠습니다.`;
+                }
+            }
+
+            let existingData = {};
+            try {
+                const storedRaw = localStorage.getItem('dashboard_stats_' + studentName);
+                if (storedRaw) existingData = JSON.parse(storedRaw);
+            } catch (e) { }
+
+            const updatedData = Object.assign({}, existingData, {
+                liveBlocks: sLiveBlocks,
+                cntMotor: sCntMotor,
+                cntSensor: sCntSensor,
+                liveMinutes: sLiveMinutes,
+                liveSuccess: sLiveSuccess,
+                missions: sMissions,
+                logs: sLogs,
+                aiComment: sAiComment
+            });
+            localStorage.setItem('dashboard_stats_' + studentName, JSON.stringify(updatedData));
+
+            // Firebase 실시간 DB 업로드 (학생 텔레메트리 전송)
+            if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                try {
+                    database.ref('bricksync_classroom/students/' + studentName).update({
+                        online: true,
+                        lastActive: Date.now(),
+                        stats: updatedData
+                    });
+                } catch (e) {
+                    console.error("Firebase telemetry update failed:", e);
+                }
+            }
+
+            if (window.dashChannel) {
+                try {
+                    window.dashChannel.postMessage({
+                        type: isMissionComplete ? 'MISSION_COMPLETE' : (isMotor ? 'ACTION' : 'SENSOR'),
+                        msg: msgText,
+                        unit: unitNum,
+                        student: studentName
+                    });
+                } catch (e) { }
+            }
+        }
+
+        // 1분 간격으로 하트비트 신호를 직접 저장하고 연동
+        setInterval(() => {
+            const studentName = _bsStudentName || 'Guest_익명';
+            let sLiveBlocks = 0;
+            let sCntMotor = 0;
+            let sCntSensor = 0;
+            let sLiveMinutes = studentName === '김민준' ? 65 : Math.floor(40 + Math.random() * 40);
+            let sLiveSuccess = studentName === '김민준' ? 79 : Math.floor(60 + Math.random() * 35);
+            let sMissions = [true, true, false];
+            let sLogs = [];
+            let sAiComment = "대기 중...";
+
+            const raw = localStorage.getItem('dashboard_stats_' + studentName);
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    sLiveBlocks = parsed.liveBlocks || 0;
+                    sCntMotor = parsed.cntMotor || 0;
+                    sCntSensor = parsed.cntSensor || 0;
+                    sLiveMinutes = parsed.liveMinutes || 0;
+                    sLiveSuccess = parsed.liveSuccess || 100;
+                    sMissions = parsed.missions || [true, true, false];
+                    sLogs = parsed.logs || [];
+                    sAiComment = parsed.aiComment || "대기 중...";
+                } catch (e) { }
+            }
+
+            sLiveMinutes += 1;
+
+            let existingData = {};
+            try {
+                const storedRaw = localStorage.getItem('dashboard_stats_' + studentName);
+                if (storedRaw) existingData = JSON.parse(storedRaw);
+            } catch (e) { }
+
+            const updatedData = Object.assign({}, existingData, {
+                liveBlocks: sLiveBlocks,
+                cntMotor: sCntMotor,
+                cntSensor: sCntSensor,
+                liveMinutes: sLiveMinutes,
+                liveSuccess: sLiveSuccess,
+                missions: sMissions,
+                logs: sLogs,
+                aiComment: sAiComment
+            });
+            localStorage.setItem('dashboard_stats_' + studentName, JSON.stringify(updatedData));
+
+            // Firebase 실시간 DB 업로드 (하트비트 갱신)
+            if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                try {
+                    database.ref('bricksync_classroom/students/' + studentName).update({
+                        online: true,
+                        lastActive: Date.now(),
+                        stats: updatedData
+                    });
+                } catch (e) {
+                    console.error("Firebase heartbeat update failed:", e);
+                }
+            }
+
+            if (window.dashChannel) {
+                try {
+                    window.dashChannel.postMessage({
+                        type: 'HEARTBEAT',
+                        msg: `[${studentName}] 하트비트: 집중 학습 중`,
+                        student: studentName
+                    });
+                } catch (e) { }
+            }
+        }, 60000);
+
+        // 엔진 개조 방지: 무전 채널 및 로컬스토리지 누적 (중복 방지 및 실제 조작만 수집)
+        let lastTelemetryTime = 0;
+        document.addEventListener('pointerup', (e) => {
+            const now = Date.now();
+            if (now - lastTelemetryTime < 50) return; // 50ms 디바운스
+
+            let isMotor = false;
+            let shouldRecord = false;
+            try {
+                if (e.target && e.target.closest) {
+                    const block = e.target.closest('.workspace-item') || e.target.closest('.spike-block');
+                    const runBtn = e.target.closest('.run-btn');
+                    if (runBtn) {
+                        isMotor = true;
+                        shouldRecord = true;
+                        lastTelemetryTime = now;
+                    } else if (block) {
+                        const action = block.getAttribute('data-action') || '';
+                        if (action.includes('motor') || action.includes('move') || action.includes('matrix') || block.classList.contains('bg-pink') || action === 'start') {
+                            isMotor = true;
                         }
-                    } catch(err) {}
-                    
-                    window.dashChannel.postMessage({ 
-                        type: isMotor ? 'ACTION' : 'SENSOR', 
-                        msg: `[${_bsStudentName}] 이벤트 감지: UI 조작 및 블록 제어 트리거 됨`,
-                        student: _bsStudentName
+                        shouldRecord = true;
+                        lastTelemetryTime = now;
+                    }
+                }
+            } catch (err) { }
+
+            if (shouldRecord) {
+                recordTelemetry(isMotor, `[${_bsStudentName}] 이벤트 감지: UI 조작 및 블록 제어 트리거 됨`);
+            }
+        });
+
+        // --- Workspace Auto-Save / Auto-Load System ---
+        function saveWorkspace() {
+            if (!unit) return;
+            const workspaceArea = document.getElementById('workspaceArea');
+            if (!workspaceArea) return;
+
+            const stacks = [];
+            const stackEls = workspaceArea.querySelectorAll('.block-stack');
+
+            stackEls.forEach(stack => {
+                const blocks = [];
+
+                function serializeBlock(block) {
+                    if (block.classList.contains('placeholder')) return null;
+                    const action = block.getAttribute('data-action');
+                    if (!action) return null;
+
+                    const blockData = { action: action };
+
+                    const paramEl = block.querySelector(':scope > .block-param:not(.param-time)') || block.querySelector('.color-brick-icon');
+                    if (paramEl) {
+                        blockData.paramVal = paramEl.hasAttribute('data-val') ? paramEl.getAttribute('data-val') : paramEl.innerText.trim();
+                        if (paramEl.hasAttribute('data-matrix')) {
+                            blockData.matrix = paramEl.getAttribute('data-matrix');
+                        }
+                    }
+
+                    const timeEl = block.querySelector(':scope > .param-time') || block.querySelector('.block-param.param-time');
+                    if (timeEl) {
+                        blockData.timeVal = timeEl.hasAttribute('data-val') ? timeEl.getAttribute('data-val') : timeEl.innerText.trim();
+                    }
+
+                    const innerStack = block.querySelector('.loop-inner-stack');
+                    if (innerStack) {
+                        const nested = [];
+                        Array.from(innerStack.children).forEach(child => {
+                            if (child.classList.contains('workspace-item')) {
+                                const serialized = serializeBlock(child);
+                                if (serialized) nested.push(serialized);
+                            }
+                        });
+                        blockData.nested = nested;
+                    }
+
+                    return blockData;
+                }
+
+                Array.from(stack.children).forEach(child => {
+                    if (child.classList.contains('workspace-item')) {
+                        const serialized = serializeBlock(child);
+                        if (serialized) blocks.push(serialized);
+                    }
+                });
+
+                if (blocks.length > 0) {
+                    stacks.push({
+                        left: parseFloat(stack.style.left) || 0,
+                        top: parseFloat(stack.style.top) || 0,
+                        blocks: blocks
                     });
                 }
             });
+
+            const projectId = _bsStudentName + '_project_unit_' + unit;
+
+            if (stacks.length === 0) {
+                localStorage.removeItem(projectId);
+                return;
+            }
+
+            const projectNames = {
+                '1': '학습 1: 요리조리 기울여서 탐험보트를 출발시켜요',
+                '2': '학습 2: 바닷속 잠수함으로 바다를 탐험해요',
+                '3': '학습 3: 모터를 돌려 빙글빙글 대관람차를 태워줘요',
+                '4': '학습 4: 동굴자동차를 타고 여행해요',
+                '5': '학습 5: 급행통로 게이트를 만들어요'
+            };
+
+            const projectData = {
+                id: projectId,
+                name: projectNames[unit] || `학습 ${unit} 프로젝트`,
+                unit: unit,
+                blocks: stacks,
+                updatedAt: Date.now()
+            };
+
+            localStorage.setItem(projectId, JSON.stringify(projectData));
+        }
+
+        function loadWorkspace() {
+            if (!unit) return;
+            const projectId = _bsStudentName + '_project_unit_' + unit;
+            const rawData = localStorage.getItem(projectId);
+            if (!rawData) return;
+
+            const workspaceArea = document.getElementById('workspaceArea');
+            if (!workspaceArea) return;
+
+            const stacks = workspaceArea.querySelectorAll('.block-stack');
+            stacks.forEach(s => s.remove());
+            const hint = workspaceArea.querySelector('.hint-text');
+            if (hint) hint.remove();
+
+            try {
+                const projectData = JSON.parse(rawData);
+                if (!projectData || !projectData.blocks) return;
+
+                projectData.blocks.forEach(stackData => {
+                    const newStack = document.createElement('div');
+                    newStack.className = 'block-stack';
+                    newStack.style.left = stackData.left + 'px';
+                    newStack.style.top = stackData.top + 'px';
+                    workspaceArea.appendChild(newStack);
+
+                    function deserializeBlock(blockData, parentNode) {
+                        const template = document.querySelector(`#palette [data-action="${blockData.action}"]`);
+                        if (!template) return null;
+
+                        const block = template.cloneNode(true);
+                        block.classList.add('workspace-item');
+
+                        if (blockData.paramVal !== undefined) {
+                            const paramEl = block.querySelector(':scope > .block-param:not(.param-time)') || block.querySelector('.color-brick-icon');
+                            if (paramEl) {
+                                paramEl.setAttribute('data-val', blockData.paramVal);
+                                if (paramEl.classList.contains('color-brick-icon')) {
+                                    const colorsMap = {
+                                        '0': '#000000', '1': '#c084fc', '2': '#3b82f6', '3': '#2dd4bf',
+                                        '4': '#10b981', '5': '#fbbf24', '6': '#fb923c', '7': '#ef4444',
+                                        '8': '#f472b6', '9': '#ffffff', '10': '#64748b'
+                                    };
+                                    paramEl.style.backgroundColor = colorsMap[blockData.paramVal] || '#ef4444';
+                                    const dropEl = block.querySelector('.block-param');
+                                    if (dropEl) dropEl.setAttribute('data-val', blockData.paramVal);
+                                } else {
+                                    paramEl.innerText = blockData.paramVal;
+                                }
+                            }
+                        }
+
+                        if (blockData.matrix !== undefined) {
+                            const paramEl = block.querySelector('.param-unified') || block.querySelector('.block-param:not(.param-time)');
+                            if (paramEl) {
+                                paramEl.setAttribute('data-matrix', blockData.matrix);
+                            }
+                        }
+
+                        if (blockData.timeVal !== undefined) {
+                            const timeEl = block.querySelector(':scope > .param-time') || block.querySelector('.block-param.param-time');
+                            if (timeEl) {
+                                timeEl.setAttribute('data-val', blockData.timeVal);
+                                timeEl.innerText = blockData.timeVal;
+                            }
+                        }
+
+                        if (blockData.nested && blockData.nested.length > 0) {
+                            const innerStack = block.querySelector('.loop-inner-stack');
+                            if (innerStack) {
+                                blockData.nested.forEach(nestedData => {
+                                    deserializeBlock(nestedData, innerStack);
+                                });
+                            }
+                        }
+
+                        parentNode.appendChild(block);
+                        return block;
+                    }
+
+                    stackData.blocks.forEach(blockData => {
+                        deserializeBlock(blockData, newStack);
+                    });
+                });
+            } catch (e) {
+                console.error("Workspace restore error:", e);
+            }
+        }
+
+        // Initialize Auto-Save Mutator
+        const workspaceObserver = new MutationObserver(() => {
+            saveWorkspace();
+        });
+        const workspaceEl = document.getElementById('workspaceArea');
+        if (workspaceEl) {
+            workspaceObserver.observe(workspaceEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-val', 'data-matrix'] });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadWorkspace, 200);
         });
     </script>
+    <script src="settings.js"></script>
+
+    <!-- 미션 설명 및 목표 안내 팝업 (미션하러가기) -->
+    <div id="missionBriefingModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(8px); flex-direction: column;">
+        <div style="position: relative; z-index: 3002; background: rgba(255, 255, 255, 0.95); padding: 40px 35px; border-radius: 24px; width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.5);">
+            <div style="width: 70px; height: 70px; background: #eab308; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: -75px auto 20px auto; box-shadow: 0 10px 20px rgba(234, 179, 8, 0.3); border: 4px solid white;">
+                <i class="fas fa-flag" style="font-size: 28px; color: white;"></i>
+            </div>
+            <h2 id="briefingStage" style="font-size: 1.8rem; color: #1e293b; font-weight: 900; margin-bottom: 5px; text-align: center;">STAGE 1</h2>
+            <h3 id="briefingTitle" style="font-size: 1.3rem; color: #4f46e5; font-weight: 800; margin-bottom: 15px; text-align: center;">미션 제목</h3>
+            <p id="briefingDesc" style="color: #475569; font-size: 1rem; line-height: 1.6; margin-bottom: 25px; text-align: center;">미션 설명 텍스트</p>
+            
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a; display: block; margin-bottom: 12px; text-align: left;">📋 미션 달성 과제</span>
+                <ul id="briefingTasks" style="style-type: none; display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 0; list-style: none;">
+                    <!-- 과제 항목들 동적 생성 -->
+                </ul>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeMissionBriefing()"
+                    style="flex: 1; padding: 14px; border-radius: 12px; background: #eab308; color: #1e293b; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; box-shadow: 0 4px 10px rgba(234, 179, 8, 0.3);">
+                    미션 도전하기 🚀
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

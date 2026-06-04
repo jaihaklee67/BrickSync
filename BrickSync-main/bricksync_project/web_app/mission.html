@@ -2,6 +2,17 @@
 <html lang="ko">
 
 <head>
+    <!-- 최상위 윈도우 자동 래핑 리다이렉트 스크립트 -->
+    <script>
+        if (window === window.parent) {
+            let currentPage = window.location.pathname.split('/').pop() + window.location.search;
+            if (!currentPage || currentPage.startsWith('?')) {
+                currentPage = 'index.html' + window.location.search;
+            }
+            sessionStorage.setItem('brickSyncLastPage', currentPage);
+            window.location.href = 'app.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>학습 미션</title>
@@ -188,7 +199,8 @@
         </div>
 
         <div class="btn-group">
-            <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;" class="btn btn-back">
+            <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;"
+                class="btn btn-back">
                 <i data-lucide="arrow-left"></i> 뒤로가기
             </a>
             <a href="lesson.html" class="btn btn-start" id="m-start-btn">
@@ -205,49 +217,133 @@
         const unit = urlParams.get('unit') || '1';
 
         const missionData = {
-            '1': {
-                title: '학습 1: 첫 번째 연동',
-                badge: 'STAGE 1',
-                desc: '가장 기본적인 블록들을 조립하여 현실 세계의 레고 허브 조명을 켜봅시다.',
-                goals: ['블루투스로 혹은 USB로 스파이크 허브 연결하기', '조명 블록을 사용하여 원하는 모양 그리기', '포트나이트 게임에 신호 보내기']
+            ko: {
+                '1': {
+                    title: '학습 1: 요리조리 기울여서 탐험보트를 출발시켜요',
+                    badge: 'STAGE 1',
+                    desc: '가장 기본적인 블록들을 조립하여 현실 세계의 레고 허브 조명을 켜봅시다.',
+                    goals: ['블루투스로 혹은 USB로 스파이크 허브 연결하기', '조명 블록을 사용하여 원하는 모양 그리기', '포트나이트 게임에 신호 보내기']
+                },
+                '2': {
+                    title: '학습 2: 바닷속 잠수함으로 바다를 탐험해요',
+                    badge: 'STAGE 2',
+                    desc: '모터 블록을 활용하여 물리적인 회전을 만들고 포트나이트 장치와 싱크를 맞춰봅니다.',
+                    goals: ['모터 회전 블록 사용법 이해하기', '모터 속도를 디테일하게 제어하기', '장애물 돌파를 위한 코드 작성']
+                },
+                '3': {
+                    title: '학습 3: 센서 반응형 장치',
+                    badge: 'STAGE 3',
+                    desc: '주변 환경을 감지하는 센서를 활용해 스마트한 코딩을 해볼 차례입니다.',
+                    goals: ['거리 센서를 통한 자동문 코딩', '센서 입력에 따라 조건 다르게 처리하기']
+                },
+                '4': {
+                    title: '학습 4: 동굴자동차를 타고 여행해요',
+                    badge: 'STAGE 4',
+                    desc: '모든 센서와 모터, 조명을 총동원하여 궁극의 발명품을 코딩해보세요!',
+                    goals: ['변수와 무한루프 결합하기', '복잡한 형태의 알고리즘 작성', '포트나이트 월드 이벤트 완수하기']
+                },
+                '5': {
+                    title: '학습 5: 급행통로 게이트를 만들어요',
+                    badge: 'STAGE 5',
+                    desc: '모터와 거리 센서를 조합하여 자동으로 열리는 스마트 급행통로 게이트를 설계해 봅니다.',
+                    goals: ['거리 센서로 접근하는 손이나 물체 감지하기', '모터를 알맞은 각도와 방향으로 회전시켜 문 열기', '일정 시간 대기 후 자동으로 문 닫기']
+                }
             },
-            '2': {
-                title: '학습 2: 모터 움직이기',
-                badge: 'STAGE 2',
-                desc: '모터 블록을 활용하여 물리적인 회전을 만들고 포트나이트 장치와 싱크를 맞춰봅니다.',
-                goals: ['모터 회전 블록 사용법 이해하기', '모터 속도를 디테일하게 제어하기', '장애물 돌파를 위한 코드 작성']
-            },
-            '3': {
-                title: '학습 3: 센서 반응형 장치',
-                badge: 'STAGE 3',
-                desc: '주변 환경을 감지하는 센서를 활용해 스마트한 코딩을 해볼 차례입니다.',
-                goals: ['거리 센서를 통한 자동문 코딩', '센서 입력에 따라 조건 다르게 처리하기']
-            },
-            '4': {
-                title: '학습 4: 캣 아일랜드 마스터',
-                badge: 'STAGE 4',
-                desc: '모든 센서와 모터, 조명을 총동원하여 궁극의 발명품을 코딩해보세요!',
-                goals: ['변수와 무한루프 결합하기', '복잡한 형태의 알고리즘 작성', '포트나이트 월드 이벤트 완수하기']
+            en: {
+                '1': {
+                    title: 'Lesson 1: Tilt left and right to launch the exploration boat',
+                    badge: 'STAGE 1',
+                    desc: 'Assemble the most basic blocks to light up the real-world LEGO Hub.',
+                    goals: ['Connect Spike Hub via Bluetooth or USB', 'Draw desired shapes using light blocks', 'Send signals to Fortnite game']
+                },
+                '2': {
+                    title: 'Lesson 2: Explore the sea with an underwater submarine',
+                    badge: 'STAGE 2',
+                    desc: 'Understand how to rotate motor blocks physically and sync with Fortnite devices.',
+                    goals: ['Understand motor rotation blocks', 'Control motor speed in detail', 'Write code to bypass obstacles']
+                },
+                '3': {
+                    title: 'Lesson 3: Sensor Responsive Device',
+                    badge: 'STAGE 3',
+                    desc: 'Now, let\'s write smart code using sensors that detect surroundings.',
+                    goals: ['Code automatic doors using distance sensors', 'Handle conditional logic based on sensor inputs']
+                },
+                '4': {
+                    title: 'Lesson 4: Ride a cave car and travel',
+                    badge: 'STAGE 4',
+                    desc: 'Mobilize all sensors, motors, and lights to code your ultimate invention!',
+                    goals: ['Combine variables with infinite loops', 'Write complex algorithm structures', 'Complete Fortnite World events']
+                },
+                '5': {
+                    title: 'Lesson 5: Build an express pathway gate',
+                    badge: 'STAGE 5',
+                    desc: 'Combine motor and distance sensors to design a smart express pathway gate that opens automatically.',
+                    goals: ['Detect approaching hand or object with distance sensor', 'Rotate motor to proper angle and direction to open door', 'Wait for a certain time and close the door automatically']
+                }
             }
         };
 
-        const current = missionData[unit];
-        if (current) {
-            document.getElementById('m-title').textContent = current.title;
-            document.getElementById('m-badge').textContent = current.badge;
-            document.getElementById('m-desc').textContent = current.desc;
+        function renderBriefing() {
+            const lang = localStorage.getItem('bricksync_lang') || 'ko';
+            const current = (missionData[lang] || missionData['ko'])[unit];
+            
+            if (current) {
+                document.getElementById('m-title').textContent = current.title;
+                document.getElementById('m-badge').textContent = current.badge;
+                document.getElementById('m-desc').textContent = current.desc;
 
-            const goalsEl = document.getElementById('m-goals');
-            goalsEl.innerHTML = '';
-            current.goals.forEach(g => {
-                const li = document.createElement('li');
-                li.textContent = g;
-                goalsEl.appendChild(li);
-            });
+                const goalsEl = document.getElementById('m-goals');
+                goalsEl.innerHTML = '';
+                current.goals.forEach(g => {
+                    const li = document.createElement('li');
+                    li.textContent = g;
+                    goalsEl.appendChild(li);
+                });
 
-            // 미션 시작 버튼의 href에 파라미터 전달
-            document.getElementById('m-start-btn').href = `lesson.html?unit=${unit}`;
+                // 미션 시작 버튼의 href에 파라미터 전달
+                document.getElementById('m-start-btn').href = `lesson.html?unit=${unit}`;
+            }
+
+            // Static UI elements translations
+            if (lang === 'en') {
+                document.title = "Learning Mission";
+                const goalsHeader = document.querySelector('.mission-goals h3');
+                if (goalsHeader) {
+                    goalsHeader.innerHTML = '<i data-lucide="target" style="color:#eab308;"></i>Mission Objectives';
+                }
+                const backBtn = document.querySelector('.btn-back');
+                if (backBtn) {
+                    backBtn.innerHTML = '<i data-lucide="arrow-left"></i> Go Back';
+                }
+                const startBtn = document.getElementById('m-start-btn');
+                if (startBtn) {
+                    startBtn.innerHTML = 'Start Mission Coding <i data-lucide="play"></i>';
+                }
+            } else {
+                document.title = "학습 미션";
+                const goalsHeader = document.querySelector('.mission-goals h3');
+                if (goalsHeader) {
+                    goalsHeader.innerHTML = '<i data-lucide="target" style="color:#eab308;"></i>이번 미션의 목표';
+                }
+                const backBtn = document.querySelector('.btn-back');
+                if (backBtn) {
+                    backBtn.innerHTML = '<i data-lucide="arrow-left"></i> 뒤로가기';
+                }
+                const startBtn = document.getElementById('m-start-btn');
+                if (startBtn) {
+                    startBtn.innerHTML = '미션 코딩 시작 <i data-lucide="play"></i>';
+                }
+            }
+            lucide.createIcons();
         }
+
+        // Run rendering on load
+        renderBriefing();
+
+        // Listen for language changes (in case Settings module is used in parent wrapper)
+        window.addEventListener('bricksync-language-changed', (e) => {
+            renderBriefing();
+        });
     </script>
 </body>
 

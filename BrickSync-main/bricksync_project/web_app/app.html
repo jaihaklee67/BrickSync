@@ -11,6 +11,74 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
+    <!-- Firebase SDK 및 공통 설정 연동 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase_config.js"></script>
+    <script>
+        // 학생 세션 체크 및 리셋 모니터링 시스템
+        (function () {
+            function checkSession() {
+                try {
+                    const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                    if (!sessionDataStr) return false;
+                    const sessionData = JSON.parse(sessionDataStr);
+                    if (Date.now() >= sessionData.expires) {
+                        localStorage.removeItem('bricksync_student_session');
+                        return false;
+                    }
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            if (!checkSession()) {
+                window.location.href = 'student_login.html';
+                return;
+            }
+
+            // LocalStorage 스토리지 이벤트 감지 (동일 브라우저 타 탭에서 로그아웃/초기화 시)
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'bricksync_student_session' && !e.newValue) {
+                    window.location.href = 'student_login.html';
+                }
+            });
+
+            // BroadcastChannel 수신 감지 (오프라인/동일 브라우저 초기화 연동)
+            try {
+                const monitorChannel = new BroadcastChannel('bricksync_monitor');
+                monitorChannel.onmessage = function(event) {
+                    if (event.data && event.data.type === 'RESET_ALL') {
+                        localStorage.removeItem('bricksync_student_session');
+                        window.location.href = 'student_login.html';
+                    }
+                };
+            } catch(e) {}
+
+            // Firebase 실시간 DB 리셋 신호 감지 (원격/멀티 디바이스 초기화 연동)
+            if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                try {
+                    database.ref('bricksync_classroom/reset_signal').on('value', (snapshot) => {
+                        const resetTime = snapshot.val();
+                        if (resetTime) {
+                            const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                            if (sessionDataStr) {
+                                const session = JSON.parse(sessionDataStr);
+                                const loginTime = session.loginTime || 0;
+                                if (resetTime > loginTime) {
+                                    localStorage.removeItem('bricksync_student_session');
+                                    window.location.href = 'student_login.html';
+                                }
+                            }
+                        }
+                    });
+                } catch(e) {
+                    console.error("Firebase reset monitor setup failed:", e);
+                }
+            }
+        })();
+    </script>
     <style>
         body,
         html {
@@ -108,6 +176,8 @@
             const iframe = document.getElementById("main-frame").contentWindow;
             if (!iframe) return;
 
+            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
+
             // lesson.html 용 UI 업데이트
             if (iframe.document.getElementById('hubStatusText')) {
                 const dot = iframe.document.getElementById('hubStatusDot');
@@ -117,21 +187,21 @@
                         dot.style.background = '#3b82f6';
                         dot.style.boxShadow = '0 0 8px rgba(59, 130, 246, 0.4)';
                     }
-                    txt.innerText = '블루투스 연결됨';
+                    txt.innerText = currentLang === 'en' ? 'Bluetooth Connected' : '블루투스 연결됨';
                     txt.style.color = '#3b82f6';
                 } else if (status === 'USB') {
                     if (dot) {
                         dot.style.background = '#10b981';
                         dot.style.boxShadow = '0 0 8px rgba(16, 185, 129, 0.4)';
                     }
-                    txt.innerText = 'USB 연결됨';
+                    txt.innerText = currentLang === 'en' ? 'USB Connected' : 'USB 연결됨';
                     txt.style.color = '#10b981';
                 } else if (status === 'DISCONNECT') {
                     if (dot) {
                         dot.style.background = '#e5e7eb';
                         dot.style.boxShadow = 'none';
                     }
-                    txt.innerText = '연결 끊김';
+                    txt.innerText = currentLang === 'en' ? 'Disconnected' : '연결 끊김';
                     txt.style.color = '#6b7280';
                 }
             }
@@ -140,17 +210,24 @@
             if (iframe.document.getElementById('status')) {
                 const statusEl = iframe.document.getElementById('status');
                 if (status === 'BLE') {
-                    statusEl.innerText = '블루투스 연결됨';
+                    statusEl.innerText = currentLang === 'en' ? 'Bluetooth Connected' : '블루투스 연결됨';
                     statusEl.style.color = '#3b82f6';
                 } else if (status === 'USB') {
-                    statusEl.innerText = 'USB 연결됨';
+                    statusEl.innerText = currentLang === 'en' ? 'USB Connected' : 'USB 연결됨';
                     statusEl.style.color = '#10b981';
                 } else if (status === 'DISCONNECT') {
-                    statusEl.innerText = '연결 끊김';
+                    statusEl.innerText = currentLang === 'en' ? 'Disconnected' : '연결 끊김';
                     statusEl.style.color = '#6b7280';
                 }
             }
         }
+
+        window.addEventListener('bricksync-language-changed', (e) => {
+            if (window.connectionType !== undefined && window.connectionType !== null) {
+                updateUI(window.connectionType);
+            }
+        });
+
 
         // --- 2. Web Bluetooth 및 USB 통신 영역 ---
         window.writeToHub = async function (data) {
@@ -183,10 +260,29 @@
                 await window.port.open({ baudRate: 115200 });
                 window.connectionType = 'USB';
                 updateUI('USB');
+                
+                try {
+                    const monitorChannel = new BroadcastChannel('bricksync_monitor');
+                    let studentName = 'Guest_익명';
+                    const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                    if (sessionDataStr) {
+                        const sessionData = JSON.parse(sessionDataStr);
+                        if (Date.now() < sessionData.expires) studentName = sessionData.name;
+                    }
+                    monitorChannel.postMessage({
+                        type: 'SYSTEM',
+                        msg: `레고 스파이크 허브 USB 연결 성공 🟢`,
+                        student: studentName
+                    });
+                } catch(e) {}
+
                 await window.writeToHub('\x03\x03');
                 readLoopUSB();
             } catch (error) {
                 console.error("USB 연결 오류:", error);
+                if (error.name !== 'NotFoundError' && error.name !== 'AbortError') {
+                    alert("❌ USB 연결 실패: " + error.message + "\n\n(가능한 원인: 다른 크롬 창, 레고 스파이크 공식 앱, 또는 브릭싱크 백그라운드 프로그램이 이미 장치를 점유하고 있을 수 있습니다.)");
+                }
             }
         };
 
@@ -234,6 +330,21 @@
             window.connectionType = 'BLE';
             updateUI('BLE');
 
+            try {
+                const monitorChannel = new BroadcastChannel('bricksync_monitor');
+                let studentName = 'Guest_익명';
+                const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                if (sessionDataStr) {
+                    const sessionData = JSON.parse(sessionDataStr);
+                    if (Date.now() < sessionData.expires) studentName = sessionData.name;
+                }
+                monitorChannel.postMessage({
+                    type: 'SYSTEM',
+                    msg: `레고 스파이크 허브 블루투스 연결 성공 🔵`,
+                    student: studentName
+                });
+            } catch(e) {}
+
             await window.txCharacteristic.startNotifications();
             window.txCharacteristic.addEventListener('characteristicvaluechanged', handleBLEData);
 
@@ -245,13 +356,19 @@
             }
         }
 
+        window.isReconnecting = false;
         async function startBackgroundReconnect(device) {
-            if (window.connectionType) return;
+            if (window.connectionType || window.isReconnecting) return;
+            window.isReconnecting = true;
             try {
                 await connectBluetoothDevice(device);
                 console.log("SPA 백그라운드 자동 복원 성공!");
+                window.isReconnecting = false;
             } catch (e) {
-                setTimeout(() => startBackgroundReconnect(device), 2000);
+                setTimeout(() => {
+                    window.isReconnecting = false;
+                    startBackgroundReconnect(device);
+                }, 2000);
             }
         }
 
@@ -277,8 +394,9 @@
         document.getElementById('main-frame').addEventListener('load', function () {
             // 현재 이동한 페이지를 세션에 저장하여 새로고침(F5) 시에도 유지
             try {
-                const currentFile = this.contentWindow.location.pathname.split('/').pop();
-                if (currentFile && currentFile !== 'app.html') {
+                const win = this.contentWindow;
+                const currentFile = win.location.pathname.split('/').pop() + win.location.search;
+                if (currentFile && !currentFile.startsWith('app.html')) {
                     sessionStorage.setItem('brickSyncLastPage', currentFile);
                 }
             } catch (e) { }

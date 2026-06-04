@@ -2,6 +2,74 @@
 <html lang="ko">
 
 <head>
+    <!-- Firebase SDK 및 공통 설정 연동 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase_config.js"></script>
+    <script>
+        // 학생 세션 체크 및 리셋 모니터링 시스템
+        (function () {
+            function checkSession() {
+                try {
+                    const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                    if (!sessionDataStr) return false;
+                    const sessionData = JSON.parse(sessionDataStr);
+                    if (Date.now() >= sessionData.expires) {
+                        localStorage.removeItem('bricksync_student_session');
+                        return false;
+                    }
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            if (!checkSession()) {
+                window.location.href = 'student_login.html';
+                return;
+            }
+
+            // LocalStorage 스토리지 이벤트 감지 (동일 브라우저 타 탭에서 로그아웃/초기화 시)
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'bricksync_student_session' && !e.newValue) {
+                    window.location.href = 'student_login.html';
+                }
+            });
+
+            // BroadcastChannel 수신 감지 (오프라인/동일 브라우저 초기화 연동)
+            try {
+                const monitorChannel = new BroadcastChannel('bricksync_monitor');
+                monitorChannel.onmessage = function(event) {
+                    if (event.data && event.data.type === 'RESET_ALL') {
+                        localStorage.removeItem('bricksync_student_session');
+                        window.location.href = 'student_login.html';
+                    }
+                };
+            } catch(e) {}
+
+            // Firebase 실시간 DB 리셋 신호 감지 (원격/멀티 디바이스 초기화 연동)
+            if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
+                try {
+                    database.ref('bricksync_classroom/reset_signal').on('value', (snapshot) => {
+                        const resetTime = snapshot.val();
+                        if (resetTime) {
+                            const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                            if (sessionDataStr) {
+                                const session = JSON.parse(sessionDataStr);
+                                const loginTime = session.loginTime || 0;
+                                if (resetTime > loginTime) {
+                                    localStorage.removeItem('bricksync_student_session');
+                                    window.location.href = 'student_login.html';
+                                }
+                            }
+                        }
+                    });
+                } catch(e) {
+                    console.error("Firebase reset monitor setup failed:", e);
+                }
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -37,6 +105,62 @@
             background-repeat: repeat, no-repeat;
             overflow: hidden;
             color: #1e293b;
+            position: relative;
+        }
+
+        /* 배경 장식 애니메이션 효과 (글래스 모피즘 블롭) */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 1;
+            filter: blur(120px);
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        .circle-1 {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            left: -200px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.5) 0%, rgba(167, 139, 250, 0) 70%);
+            animation: floatCircle1 15s ease-in-out infinite;
+        }
+
+        .circle-2 {
+            width: 700px;
+            height: 700px;
+            bottom: -250px;
+            right: -100px;
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.4) 0%, rgba(250, 204, 21, 0) 70%);
+            animation: floatCircle2 20s ease-in-out infinite alternate;
+        }
+
+        .circle-3 {
+            width: 450px;
+            height: 450px;
+            top: 20%;
+            right: 25%;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.35) 0%, rgba(236, 72, 153, 0) 70%);
+            animation: floatCircle3 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatCircle1 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(80px, 60px) scale(1.1); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        @keyframes floatCircle2 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-60px, -80px) scale(1.05); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        @keyframes floatCircle3 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -40px) scale(1.15); }
+            100% { transform: translate(0, 0) scale(1); }
         }
 
         /* 프리미엄 글래스모피즘(반투명 유리) 대시보드 */
@@ -53,6 +177,8 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
             display: flex;
             overflow: hidden;
+            position: relative;
+            z-index: 10;
 
             /* 대시보드 부드러운 등장 애니메이션 */
             opacity: 0;
@@ -143,6 +269,8 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            overflow-x: hidden;
+            min-width: 0;
         }
 
         /* 1) 상단 소개 배너 박스 (이미지의 큰 회색 박스 영역) */
@@ -156,20 +284,46 @@
             border-radius: 20px;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            /* 텍스트를 오른쪽으로 */
-            padding: 50px 60px;
+            justify-content: space-between;
+            padding: 0;
+            overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             margin-bottom: 40px;
+            position: relative;
+        }
+
+        .banner-image-container {
+            width: 65%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding-left: 20px; /* 좌측 캐릭터 잘림을 방지하기 위한 안전 여백 */
+        }
+
+        .banner-img {
+            width: 100%;
+            height: 90%;
+            object-fit: contain; /* 캐릭터들이 절대 가로/세로로 잘리지 않도록 설정 */
+            object-position: left center;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .banner-section:hover .banner-img {
+            transform: scale(1.04); /* 호버 시 캐릭터 크기 자연스럽게 확장 */
         }
 
         .banner-text {
+            width: 35%;
+            padding: 40px 50px 40px 10px;
             font-size: 1.6rem;
             font-weight: 700;
             line-height: 1.6;
             text-align: right;
             color: #1e293b;
             letter-spacing: -0.5px;
+            z-index: 2;
         }
 
         /* 2) 섹션 구분 얇은 실선 */
@@ -226,6 +380,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            min-width: 0;
         }
 
         .project-card:hover {
@@ -234,45 +389,150 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-        /* 5) 학습 콘텐츠 2x2 그리드 레이아웃 (두번째 이미지 참조) */
+        /* 5) 학습 콘텐츠 2열 그리드 레이아웃 */
         .learning-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
             gap: 20px;
             width: 100%;
-            height: 100%;
             display: none;
             /* 기본 숨김 */
         }
 
         .learning-card {
-            background: rgba(248, 248, 250, 0.95);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             text-decoration: none;
+            padding: 40px 20px;
         }
 
         .learning-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-            background: #ffffff;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .learning-card-text {
             font-size: 1.4rem;
             font-weight: 800;
-            color: #1e293b;
+            color: #ffffff;
             text-align: center;
             padding: 0 30px;
             word-break: keep-all;
             line-height: 1.4;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 프로젝트 카드 내부 스타일 */
+        .project-card.active-project {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: block;
+            padding: 20px;
+            position: relative;
+        }
+
+        .project-card-inner {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            width: 100%;
+        }
+
+        .project-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-badge {
+            background: rgba(250, 204, 21, 0.2);
+            border: 1px solid rgba(250, 204, 21, 0.4);
+            color: #facc15;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .project-badge.ai-badge {
+            background: rgba(167, 139, 250, 0.2);
+            border: 1px solid rgba(167, 139, 250, 0.4);
+            color: #c4b5fd;
+        }
+
+        .project-delete-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .project-delete-btn:hover {
+            color: #ef4444;
+            transform: scale(1.1);
+        }
+
+        .project-card-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 15px;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .project-card-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .project-info-text {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+        }
+
+        .project-play-btn {
+            width: 36px;
+            height: 36px;
+            background: #10b981;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .project-play-btn:hover {
+            background: #34d399;
+            transform: scale(1.1);
         }
 
         /* 오른쪽에 튀어나오는 라마 데코레이션 로고 (공식 에셋 없을 경우를 대비한 가상 배치용) */
@@ -315,6 +575,11 @@
 
 <body>
 
+    <!-- 둥둥 떠다니는 배경 장식 (글래스 모피즘 블롭) -->
+    <div class="bg-circle circle-1"></div>
+    <div class="bg-circle circle-2"></div>
+    <div class="bg-circle circle-3"></div>
+
     <!-- 우측에 직접 전달해주신 레고 라마 이미지 사용 (assets 폴더 연동) -->
     <img src="./assets/fortnite2.png" class="llama-deco"
         onerror="this.src='https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMzEyMDdfMTA1%2FMDAxNzAxOTQxMTc4MzMy.hVndw1oE2rMhXv1lP8NnsfF0yvA9tQ9-9A_JqKxXnKcg.fM1RItB_EihgO9F7-7v_8bI9WqHwItz2bZ2qYc4oU2og.PNG.sjh912%2F2.png&type=sc960_832'">
@@ -329,37 +594,48 @@
 
         <!-- 왼쪽 메뉴 영역 -->
         <div class="sidebar">
+            <!-- 학생 프로필 카드 -->
+            <div class="student-profile-card" style="padding: 15px; background: rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="user" style="color: #facc15; width: 18px; height: 18px;"></i>
+                    <span id="display-student-name" style="color: #fff; font-weight: 700; font-size: 0.95rem;">학생</span>
+                </div>
+                <button onclick="logoutStudent()" style="background: none; border: none; color: #f43f5e; cursor: pointer; display: flex; align-items: center; padding: 4px; transition: color 0.2s;" title="로그아웃" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#f43f5e'">
+                    <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+                </button>
+            </div>
+
             <ul class="menu-list">
                 <li class="menu-item active" id="btn-home" onclick="showView('home')">
                     <i data-lucide="home" class="menu-icon"></i>
-                    홈
+                    <span data-i18n="nav_home">홈</span>
                 </li>
                 <li class="menu-item" id="btn-learning" onclick="showView('learning')">
                     <i data-lucide="book-open" class="menu-icon"></i>
-                    학습단원
+                    <span data-i18n="nav_lessons">학습단원</span>
                 </li>
-                <a href="#" onclick="location.href='ai_fusion.html?v=' + new Date().getTime(); return false;" class="menu-item" id="btn-ai">
+                <li class="menu-item" id="btn-ai-learning" onclick="showView('ai-learning')">
                     <i data-lucide="bot" class="menu-icon"></i>
-                    AI 학습단원
-                </a>
+                    <span data-i18n="nav_ai_lessons">AI 학습단원</span>
+                </li>
                 <a href="#" onclick="location.href='workspace.html?v=' + new Date().getTime(); return false;" class="menu-item">
                     <i data-lucide="monitor" class="menu-icon"></i>
-                    워크스페이스
+                    <span data-i18n="nav_workspace">워크스페이스</span>
                 </a>
                 <li class="menu-item">
                     <i data-lucide="blocks" class="menu-icon"></i>
-                    프로젝트
+                    <span data-i18n="nav_projects">프로젝트</span>
                 </li>
                 <a href="#" onclick="window.open('dashboard_v2.html?v=' + new Date().getTime(), '_blank'); return false;" class="menu-item">
                     <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                    교사/학부모용 대시보드
+                    <span data-i18n="nav_dashboard">교사/학부모용 대시보드</span>
                 </a>
             </ul>
 
             <div class="bottom-menu">
-                <li class="menu-item" style="list-style:none;">
+                <li class="menu-item" id="settings-menu-btn" style="list-style:none;">
                     <i data-lucide="settings" class="menu-icon"></i>
-                    설정
+                    <span data-i18n="nav_settings">설정</span>
                 </li>
             </div>
         </div>
@@ -370,6 +646,9 @@
             <!-- 홈 화면 뷰 -->
             <div id="view-home" style="width: 100%; display: flex; flex-direction: column;">
                 <div class="banner-section">
+                    <div class="banner-image-container">
+                        <img src="./assets/fortnite_characters.png" class="banner-img" alt="Lego Fortnite Characters">
+                    </div>
                     <div class="banner-text">
                         레고 포트나이트 앱 소개<br>
                         및 학습 관련 가이드 내용
@@ -380,11 +659,11 @@
                 <div class="divider"></div>
 
                 <div class="projects-header">
-                    <div class="projects-title">내 프로젝트</div>
-                    <button class="new-project-btn">+ 새 프로젝트</button>
+                    <div class="projects-title" data-i18n="lbl_my_projects">내 프로젝트</div>
+                    <button class="new-project-btn" onclick="location.href='workspace.html'" data-i18n="btn_new_project">+ 새 프로젝트</button>
                 </div>
 
-                <div class="projects-grid">
+                <div class="projects-grid" id="projects-list-container">
                     <!-- 프로젝트 네모 카드 3개 -->
                     <div class="project-card"></div>
                     <div class="project-card"></div>
@@ -392,48 +671,231 @@
                 </div>
             </div>
 
-            <!-- 학습단원 화면 뷰 (2x2 그리드) -->
+            <!-- 학습단원 화면 뷰 (2열 그리드, 총 5개 단원) -->
             <div id="view-learning" class="learning-grid">
                 <div class="learning-card" onclick="location.href='mission.html?unit=1'">
-                    <span class="learning-card-text">1. 빛을 밝혀 마을 입구를 찾아라</span>
+                    <span class="learning-card-text" data-i18n="lesson_1">1. 요리조리 기울여서 탐험보트를 출발시켜요</span>
                 </div>
                 <div class="learning-card" onclick="location.href='mission.html?unit=2'">
-                    <span class="learning-card-text">2. 모터를 돌려 마을 풍차의 전력을 복구하라</span>
+                    <span class="learning-card-text" data-i18n="lesson_2">2. 바닷속 잠수함으로 바다를 탐험해요</span>
                 </div>
                 <div class="learning-card" onclick="location.href='mission.html?unit=3'">
-                    <span class="learning-card-text">3. 센서로 야생동물을 탐지하고 구출하라</span>
+                    <span class="learning-card-text" data-i18n="lesson_3">3. 모터를 돌려 빙글빙글 대관람차를 태워줘요</span>
                 </div>
                 <div class="learning-card" onclick="location.href='mission.html?unit=4'">
-                    <span class="learning-card-text">4. 무한 반복 코드로 캣 아일랜드를 방어하라</span>
+                    <span class="learning-card-text" data-i18n="lesson_4">4. 동굴자동차를 타고 여행해요</span>
+                </div>
+                <div class="learning-card" style="grid-column: span 2;" onclick="location.href='mission.html?unit=5'">
+                    <span class="learning-card-text" data-i18n="lesson_5">5. 급행통로 게이트를 만들어요</span>
+                </div>
+            </div>
+
+            <!-- AI 학습단원 화면 뷰 (2열 그리드, 총 3개 단원) -->
+            <div id="view-ai-learning" class="learning-grid">
+                <div class="learning-card" onclick="location.href='ai_fusion.html?unit=1'">
+                    <span class="learning-card-text" data-i18n="ai_lesson_1">1. 가위! 바위! 보! 손가락으로 하는 북극 레이싱</span>
+                </div>
+                <div class="learning-card" onclick="location.href='ai_fusion.html?unit=2'">
+                    <span class="learning-card-text" data-i18n="ai_lesson_2">2. 앉았다 일어서기! 마법 나무 엘리베이터 타기</span>
+                </div>
+                <div class="learning-card" style="grid-column: span 2;" onclick="location.href='ai_fusion.html?unit=3'">
+                    <span class="learning-card-text" data-i18n="ai_lesson_3">3. 카메라에 맛있는 과일을 보여주고 간식 선물받기</span>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- 뷰 전환 스크립트 -->
+    <!-- 뷰 전환 및 프로젝트 렌더링 스크립트 -->
     <script>
         function showView(viewId) {
             // 버튼 액티브 상태 변경
-            document.querySelectorAll('.menu-list .menu-item:not(a)').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.menu-list .menu-item').forEach(btn => btn.classList.remove('active'));
             if (document.getElementById('btn-' + viewId)) {
                 document.getElementById('btn-' + viewId).classList.add('active');
+            } else if (viewId === 'ai-learning' && document.getElementById('btn-ai-learning')) {
+                document.getElementById('btn-ai-learning').classList.add('active');
             }
 
             // 화면 전환
             document.getElementById('view-home').style.display = 'none';
             document.getElementById('view-learning').style.display = 'none';
+            document.getElementById('view-ai-learning').style.display = 'none';
 
             if (viewId === 'home') {
                 document.getElementById('view-home').style.display = 'flex';
+                renderProjects();
             } else if (viewId === 'learning') {
                 document.getElementById('view-learning').style.display = 'grid';
+            } else if (viewId === 'ai-learning') {
+                document.getElementById('view-ai-learning').style.display = 'grid';
+            }
+        }
+
+        function getStudentName() {
+            try {
+                const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                if (sessionDataStr) {
+                    const sessionData = JSON.parse(sessionDataStr);
+                    return sessionData.name || 'Guest_익명';
+                }
+            } catch(e) {}
+            return 'Guest_익명';
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('projects-list-container');
+            if (!container) return;
+
+            const studentName = getStudentName();
+            const studentPrefix = studentName + '_project_';
+            const projects = [];
+            
+            // Scan localStorage keys for active projects
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(studentPrefix + 'unit_') || key.startsWith(studentPrefix + 'ai_')) {
+                    try {
+                        const rawData = localStorage.getItem(key);
+                        if (!rawData) continue;
+                        
+                        const projectData = JSON.parse(rawData);
+                        // Self-healing: if empty project (no blocks or empty array), delete it
+                        if (!projectData || !projectData.blocks || projectData.blocks.length === 0) {
+                            localStorage.removeItem(key);
+                            i--; // adjust index since we removed a key
+                            continue;
+                        }
+                        
+                        projects.push({
+                            id: key,
+                            name: projectData.name || '무제 프로젝트',
+                            unit: projectData.unit || '1',
+                            type: key.includes('_project_ai_') ? 'ai' : 'lesson',
+                            blocksCount: projectData.blocks.length,
+                            updatedAt: projectData.updatedAt || Date.now()
+                        });
+                    } catch (e) {
+                        console.error("Project load error:", e);
+                    }
+                }
+            }
+
+            // Sort projects by updatedAt desc
+            projects.sort((a, b) => b.updatedAt - a.updatedAt);
+
+            // Render up to 3 projects
+            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
+            let html = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < projects.length) {
+                    const p = projects[i];
+                    const isAi = p.type === 'ai';
+                    
+                    let badgeText = '';
+                    if (currentLang === 'en') {
+                        badgeText = isAi ? `AI Lesson ${p.unit}` : `Lesson ${p.unit}`;
+                    } else {
+                        badgeText = isAi ? `AI 단원 ${p.unit}` : `일반 단원 ${p.unit}`;
+                    }
+                    
+                    const badgeClass = isAi ? 'project-badge ai-badge' : 'project-badge';
+                    const targetUrl = isAi ? `ai_fusion.html?unit=${p.unit}` : `lesson.html?unit=${p.unit}`;
+                    
+                    const blocksText = currentLang === 'en' ? `Blocks: ${p.blocksCount}` : `블록 수: ${p.blocksCount}개`;
+                    const modifiedText = currentLang === 'en' ? `Modified` : `최근 수정`;
+                    
+                    html += `
+                        <div class="project-card active-project">
+                            <div class="project-card-inner">
+                                <div class="project-card-top">
+                                    <span class="${badgeClass}">${badgeText}</span>
+                                    <button class="project-delete-btn" onclick="deleteProject('${p.id}'); event.stopPropagation();">
+                                        <i data-lucide="trash-2"></i>
+                                    </button>
+                                </div>
+                                <div class="project-card-name">${escapeHtml(p.name)}</div>
+                                <div class="project-card-bottom">
+                                    <div class="project-info-text">
+                                        ${blocksText}<br>
+                                        ${modifiedText}
+                                    </div>
+                                    <button class="project-play-btn" onclick="location.href='${targetUrl}&projectId=${p.id}'">
+                                        <i data-lucide="play" style="width:16px;height:16px;fill:currentColor;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `<div class="project-card"></div>`;
+                }
+            }
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function deleteProject(id) {
+            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
+            const confirmMsg = currentLang === 'en' ? "Are you sure you want to delete this project?" : "정말 이 프로젝트를 삭제하시겠습니까?";
+            if (confirm(confirmMsg)) {
+                localStorage.removeItem(id);
+                renderProjects();
+            }
+        }
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function updateStudentGreeting(lang) {
+            try {
+                const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                if (sessionDataStr) {
+                    const sessionData = JSON.parse(sessionDataStr);
+                    const nameDisp = document.getElementById('display-student-name');
+                    if (nameDisp) {
+                        const studentName = sessionData.name || 'Guest';
+                        if (lang === 'en') {
+                            nameDisp.innerText = 'Student ' + studentName;
+                        } else {
+                            nameDisp.innerText = studentName + ' 학생';
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
+            updateStudentGreeting(currentLang);
+            renderProjects();
+        });
+
+        // 다국어 실시간 감지 이벤트 리스너 추가
+        window.addEventListener('bricksync-language-changed', (e) => {
+            const lang = e.detail.lang;
+            updateStudentGreeting(lang);
+            renderProjects();
+        });
+
+        function logoutStudent() {
+            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
+            const confirmMsg = currentLang === 'en' ? "Are you sure you want to log out?" : "로그아웃 하시겠습니까?";
+            if (confirm(confirmMsg)) {
+                localStorage.removeItem('bricksync_student_session');
+                window.location.href = 'student_login.html';
             }
         }
     </script>
 
-
     <!-- Lucide 아이콘 렌더링 스크립트 -->
+    <script src="settings.js"></script>
     <script>
         lucide.createIcons();
     </script>

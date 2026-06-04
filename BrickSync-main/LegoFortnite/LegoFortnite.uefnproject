@@ -57,10 +57,10 @@
 	},
 	"bindings":
 	{
-		"projectId": "b097f667-43ac-99ea-a899-aea1d01e89b9",
+		"projectId": "e8f573ad-42ea-fa1e-c09b-e9b3294d22a5",
 		"modules":
 		{
-			"LegoFortnite": "3e7bfc23-478e-a031-a166-b9b4ce49ac0a"
+			"LegoFortnite": "ce01ae78-4acd-e277-4563-14931ca4593d"
 		},
 		"bSuppressAutomaticVersePathAssignment": false,
 		"projectVersePath": ""
