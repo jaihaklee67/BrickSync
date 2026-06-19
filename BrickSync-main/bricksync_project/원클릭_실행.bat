@@ -35,7 +35,7 @@ echo.
 echo 1. 좀비 프로세스 정리 및 포트 확보 중...
 echo [필수 패키지 자동 설치 확인 중...]
 py -m pip install -q aiohttp pydirectinput
-powershell -Command "Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
 timeout /T 1 /NOBREAK >nul
 
 echo 2. 백그라운드 브릿지 서버를 가동합니다 (server.py)...
