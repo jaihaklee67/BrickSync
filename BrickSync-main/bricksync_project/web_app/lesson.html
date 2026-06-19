@@ -4292,7 +4292,6 @@ print("BrickSync Sandbox Run")
             document.getElementById('missionBriefingModal').style.display = 'none';
             if (isMissionActive && unit) {
                 setupMissionToolbox(unit);
-                localStorage.setItem(`bricksync_mission_active_unit_${unit}`, 'true');
             }
         }
 
@@ -5013,13 +5012,6 @@ print("BrickSync Sandbox Run")
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 loadWorkspace();
-                if (unit) {
-                    const activeKey = `bricksync_mission_active_unit_${unit}`;
-                    if (localStorage.getItem(activeKey) === 'true') {
-                        isMissionActive = true;
-                        setupMissionToolbox(unit);
-                    }
-                }
             }, 200);
             setupPaletteScroll();
         });
