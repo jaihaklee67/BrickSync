@@ -27,14 +27,22 @@
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Noto Sans KR', 'Outfit', sans-serif;
             background: #f8fafc;
-            height: 100vh;
             display: flex;
             flex-direction: column;
             color: #1e293b;
-            overflow: hidden;
         }
 
         /* Top Navigation Bar */
@@ -122,6 +130,7 @@
             position: relative;
             background-color: #f1f5f9;
             overflow: hidden;
+            min-height: 0; /* 중첩 flexbox 내에서 찌그러짐을 안전하게 감수 */
         }
 
         .coding-area {
@@ -184,6 +193,7 @@
             overflow-x: auto;
             box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
             z-index: 20;
+            flex-shrink: 0; /* 화면 비율 100%일 때도 찌그러짐을 강력하게 방지 */
         }
 
         .category-divider {
@@ -598,6 +608,23 @@
             background: #dca500;
             border-radius: 4px;
         }
+
+        /* 툴박스 가로 스크롤바 커스텀 스타일 */
+        .toolbox::-webkit-scrollbar {
+            height: 12px;
+        }
+        .toolbox::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .toolbox::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+            border: 3px solid #f1f5f9;
+        }
+        .toolbox::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 
@@ -685,7 +712,7 @@
     </div>
 
     <!-- 🟢 AI & Coding Fusion Layout 🟢 -->
-    <div style="display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px);">
+    <div style="display: flex; flex: 1; overflow: hidden; min-height: 0; height: 0;">
         <!-- 좌측: AI 카메라 및 제어 영역 -->
         <div
             style="width: 480px; border-right: 4px solid #e2e8f0; background: #fff; display: flex; flex-direction: column; z-index: 10;">
@@ -744,7 +771,7 @@
         </div>
 
         <!-- 우측: 기존 코딩 워크스페이스 영역 -->
-        <div style="flex: 1; display: flex; flex-direction: column; position: relative;">
+        <div style="flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0;">
             <div class="main-layout">
                 <div class="coding-area" id="workspaceArea">
                     <div class="hint-text">
@@ -1296,13 +1323,21 @@
         function showAIGestureModal(paramEl) {
             modalBox.innerHTML = '';
             modalBox.style.cssText = 'background: #8b5cf6; display: flex; gap: 10px; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #7c3aed; width: auto; max-width: 250px;';
-            const options = [
-                { type: 'rock', val: 0, icon: '<i class="fas fa-hand-rock"></i>' },
-                { type: 'paper', val: 1, icon: '<i class="fas fa-hand-paper"></i>' },
-                { type: 'scissors', val: 2, icon: '<i class="fas fa-hand-scissors"></i>' },
-                { type: 'none', val: 3, icon: '<i class="fas fa-ban"></i>' }
-            ];
-            const currentVal = parseInt(paramEl.getAttribute('data-val') || 1);
+            let options = [];
+            if (unit === '3') {
+                options = [
+                    { type: 'forward', val: 0, icon: '<i class="fas fa-arrow-up"></i>' },
+                    { type: 'backward', val: 1, icon: '<i class="fas fa-arrow-down"></i>' }
+                ];
+            } else {
+                options = [
+                    { type: 'rock', val: 0, icon: '<i class="fas fa-hand-rock"></i>' },
+                    { type: 'paper', val: 1, icon: '<i class="fas fa-hand-paper"></i>' },
+                    { type: 'scissors', val: 2, icon: '<i class="fas fa-hand-scissors"></i>' },
+                    { type: 'none', val: 3, icon: '<i class="fas fa-ban"></i>' }
+                ];
+            }
+            const currentVal = parseInt(paramEl.getAttribute('data-val') || 0);
             options.forEach(opt => {
                 const btn = document.createElement('div');
                 const isSelected = currentVal === opt.val;
@@ -2382,6 +2417,7 @@
                 let formatted = Number.isInteger(currentVal) ? currentVal : parseFloat(currentVal.toFixed(2));
                 centerText.textContent = formatted;
                 paramEl.textContent = formatted;
+                paramEl.setAttribute('data-val', formatted);
             }
 
             minusBtn.onclick = () => {
@@ -3590,6 +3626,9 @@ print("BrickSync Sandbox Run")
                                 if (!isNaN(textVal) && textVal !== "") timeVal = parseFloat(textVal);
                             }
                         }
+                        if (unit === '3' && window.lastParsedSpeechTurns) {
+                            timeVal = window.lastParsedSpeechTurns;
+                        }
                     } else {
                         paramEl = block.querySelector(':scope > .block-param:not(.param-time)');
                         if (paramEl) {
@@ -3651,6 +3690,7 @@ print("BrickSync Sandbox Run")
                             break;
                         case 'motor_stop':
                             pyCode += `${indent}sm() \n`;
+                            localActionsQueue.push({ action: 'motor_stop', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_UP', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_DOWN', delay: cumulativeDelayMs });
                             localActionsQueue.push({ action: 'STOP_LEFT', delay: cumulativeDelayMs });
@@ -3818,6 +3858,9 @@ print("BrickSync Sandbox Run")
                                     if (!isNaN(textVal) && textVal !== "") timeVal = parseFloat(textVal);
                                 }
                             }
+                            if (unit === '3' && window.lastParsedSpeechTurns) {
+                                timeVal = window.lastParsedSpeechTurns;
+                            }
                         } else {
                             paramEl = block.querySelector('.block-param:not(.param-time)');
                             if (paramEl) {
@@ -3935,6 +3978,11 @@ print("BrickSync Sandbox Run")
                                 if (cmd.action === 'motor' || cmd.action === 'motor_cw' || cmd.action === 'motor_ccw' || cmd.action.startsWith('motor_stop')) {
                                     if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'motor_cw' }); } catch (e) { }
                                     else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'motor_ccw' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_stop_cw') try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
+                                    else if (cmd.action === 'motor_stop_ccw') try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
+                                    else if (cmd.action.startsWith('motor_stop')) {
+                                        try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
+                                    }
                                     let speedInt = Math.round(cmd.speed);
                                     let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
                                     for (let p = 0; p < 6; p++) {
@@ -4152,77 +4200,59 @@ print("BrickSync Sandbox Run")
             const missionData = {
                 ko: {
                     '1': {
-                        badge: 'STAGE 1', title: '첫 번째 연동', desc: '조명 블록을 꺼내어 조립해서 허브에 불을 켜보세요!',
+                        badge: 'STAGE 1', title: '가위바위보 북극 레이싱', desc: '손가락 제스처 블록을 이용해 가상 레이싱카를 조작해 보세요!',
                         pinCode: '7241',
                         tasks: [
                             { id: 'start', text: '재생(시작) 블록 연결하기' },
-                            { id: ['matrix_pixel'], text: '조명 블록(3x3) 연결하기' }
+                            { id: 'event_ai_gesture', text: 'AI 제스처 인식 블록 연결하기' },
+                            { id: ['motor_cw', 'motor_ccw', 'car_forward', 'car_backward'], text: '출력(모터/이동) 블록 연결하기' }
                         ]
                     },
                     '2': {
-                        badge: 'STAGE 2', title: '모터 움직이기', desc: '회전 블록 및 제어 블록을 활용하여 포트나이트를 돕습니다.',
+                        badge: 'STAGE 2', title: '마법 나무 엘리베이터', desc: '앉았다 일어나는 자세(포즈)를 감지하여 엘리베이터를 작동해 보세요!',
                         pinCode: '8932',
                         tasks: [
                             { id: 'start', text: '재생(시작) 블록 연결하기' },
-                            { id: 'motor_speed_set', text: '모터 속도 설정 블록 추가' },
-                            { id: ['motor_cw', 'motor_ccw'], text: '모터 회전 구동 블록 실행' }
+                            { id: 'event_ai_gesture', text: 'AI 자세 인식 블록 연결하기' },
+                            { id: ['motor_cw', 'motor_ccw'], text: '모터 회전 블록 연결하기' }
                         ]
                     },
                     '3': {
-                        badge: 'STAGE 3', title: '센서 반응형 장치', desc: '거리 센서 블록으로 주변을 감지하는 똑똑한 제어를 완성하세요.',
+                        badge: 'STAGE 3', title: '목소리로 조종하는 요술 그네', desc: '마이크에 대고 앞으로/뒤로 몇 바퀴 돌려달라고 외쳐 그네를 움직이세요!',
                         pinCode: '5019',
                         tasks: [
                             { id: 'start', text: '재생(시작) 블록 연결하기' },
-                            { id: 'event_distance_sensor', text: '거리 센서 제어 블록 포함하기' },
-                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: '조건에 맞는 동작(모터/조명) 연결' }
-                        ]
-                    },
-                    '4': {
-                        badge: 'STAGE 4', title: '캣 아일랜드 마스터', desc: '무한 루프와 각종 블록을 자유롭게 결합해 궁극의 미션을 클리어합니다.',
-                        pinCode: '3370',
-                        tasks: [
-                            { id: 'start', text: '재생(시작) 블록 연결하기' },
-                            { id: 'control_forever', text: '무한 반복 루프 꺼내기' },
-                            { id: 'event_distance_sensor', text: '거리 센서 감지 활용' },
-                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: '출력 블록(모터/조명) 작동' }
+                            { id: 'event_ai_gesture', text: 'AI 음성 인식 블록 연결하기' },
+                            { id: ['motor_cw', 'motor_ccw'], text: '그네 회전 모터 블록 연결하기' }
                         ]
                     }
                 },
                 en: {
                     '1': {
-                        badge: 'STAGE 1', title: 'First Integration', desc: 'Pull out and assemble the light block to turn on the hub light!',
+                        badge: 'STAGE 1', title: 'RPS Arctic Racing', desc: 'Control the virtual racing car using hand gesture blocks!',
                         pinCode: '7241',
                         tasks: [
                             { id: 'start', text: 'Connect the Play (Start) block' },
-                            { id: ['matrix_pixel'], text: 'Connect the Light block (3x3)' }
+                            { id: 'event_ai_gesture', text: 'Connect the AI Gesture block' },
+                            { id: ['motor_cw', 'motor_ccw', 'car_forward', 'car_backward'], text: 'Connect output (motor/move) block' }
                         ]
                     },
                     '2': {
-                        badge: 'STAGE 2', title: 'Motor Control', desc: 'Help Fortnite by utilizing rotation and control blocks.',
+                        badge: 'STAGE 2', title: 'Magic Tree Elevator', desc: 'Detect your pose (squat/stand) to operate the elevator!',
                         pinCode: '8932',
                         tasks: [
                             { id: 'start', text: 'Connect the Play (Start) block' },
-                            { id: 'motor_speed_set', text: 'Add Motor Speed set block' },
-                            { id: ['motor_cw', 'motor_ccw'], text: 'Run Motor Rotation block' }
+                            { id: 'event_ai_gesture', text: 'Connect the AI Pose block' },
+                            { id: ['motor_cw', 'motor_ccw'], text: 'Connect motor rotation block' }
                         ]
                     },
                     '3': {
-                        badge: 'STAGE 3', title: 'Sensor Reactive Device', desc: 'Complete smart control by sensing surroundings with the distance sensor block.',
+                        badge: 'STAGE 3', title: 'Voice-Controlled Magic Swing', desc: 'Shout "forward" or "backward" into the mic to rotate the swing N times!',
                         pinCode: '5019',
                         tasks: [
                             { id: 'start', text: 'Connect the Play (Start) block' },
-                            { id: 'event_distance_sensor', text: 'Include Distance Sensor control block' },
-                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: 'Connect matching action (motor/light) based on conditions' }
-                        ]
-                    },
-                    '4': {
-                        badge: 'STAGE 4', title: 'Cat Island Master', desc: 'Clear the ultimate mission by freely combining loops and various blocks.',
-                        pinCode: '3370',
-                        tasks: [
-                            { id: 'start', text: 'Connect the Play (Start) block' },
-                            { id: 'control_forever', text: 'Retrieve Forever Loop block' },
-                            { id: 'event_distance_sensor', text: 'Utilize Distance Sensor detection' },
-                            { id: ['matrix_pixel', 'motor_cw', 'motor_ccw'], text: 'Operate Output block (motor/light)' }
+                            { id: 'event_ai_gesture', text: 'Connect the AI Voice Recognition block' },
+                            { id: ['motor_cw', 'motor_ccw'], text: 'Connect swing motor block' }
                         ]
                     }
                 }
@@ -4622,22 +4652,311 @@ print("BrickSync Sandbox Run")
         let examplesCount = [0, 0, 0, 0];
 
         async function setupWebcam() {
-            return new Promise((resolve, reject) => {
-                const navigatorAny = navigator;
-                navigator.getUserMedia = navigator.getUserMedia ||
-                    navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia || navigatorAny.msGetUserMedia;
-                if (navigator.getUserMedia) {
-                    navigator.getUserMedia({ video: true }, stream => {
-                        webcamElement.srcObject = stream;
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    webcamElement.srcObject = stream;
+                    return new Promise((resolve) => {
                         webcamElement.addEventListener('loadeddata', () => resolve(), false);
-                    }, error => reject());
-                } else {
-                    reject();
+                    });
+                } catch (error) {
+                    throw error;
                 }
-            });
+            } else {
+                return new Promise((resolve, reject) => {
+                    const navigatorAny = navigator;
+                    navigator.getUserMedia = navigator.getUserMedia ||
+                        navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia || navigatorAny.msGetUserMedia;
+                    if (navigator.getUserMedia) {
+                        navigator.getUserMedia({ video: true }, stream => {
+                            webcamElement.srcObject = stream;
+                            webcamElement.addEventListener('loadeddata', () => resolve(), false);
+                        }, error => reject(error));
+                    } else {
+                        reject(new Error("getUserMedia is not supported on this browser"));
+                    }
+                });
+            }
+        }
+
+        let speechRecognition;
+        let isSpeechListening = false;
+        let speechCooldown = false;
+
+        function initSpeechEngine() {
+            const voiceStatusBox = document.getElementById('voice-status-box');
+            const recognizedTextEl = document.getElementById('voice-recognized-text');
+            const waveBars = document.querySelectorAll('.wave-bar');
+
+            // 1. Browser Speech Recognition API check
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                if (voiceStatusBox) {
+                    voiceStatusBox.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> 이 브라우저는 음성 인식을 지원하지 않습니다. 텍스트 창을 이용하세요.';
+                    voiceStatusBox.style.background = '#fee2e2';
+                    voiceStatusBox.style.color = '#991b1b';
+                }
+                setupTextInputOnly();
+                return;
+            }
+
+            speechRecognition = new SpeechRecognition();
+            speechRecognition.continuous = false; // process one phrase at a time for stable parsing (prevents seesaw)
+            speechRecognition.interimResults = false;
+            speechRecognition.lang = 'ko-KR';
+
+            // Visual feedback loop: mock waveform animation when active
+            let waveInterval;
+            function startWaveformAnimation() {
+                clearInterval(waveInterval);
+                waveInterval = setInterval(() => {
+                    if (!isSpeechListening) {
+                        waveBars.forEach(bar => { bar.style.height = '8px'; });
+                        clearInterval(waveInterval);
+                        return;
+                    }
+                    waveBars.forEach(bar => {
+                        const randomHeight = Math.floor(Math.random() * 30) + 10;
+                        bar.style.height = randomHeight + 'px';
+                    });
+                }, 100);
+            }
+
+            speechRecognition.onstart = () => {
+                isSpeechListening = true;
+                if (voiceStatusBox && !speechCooldown) {
+                    voiceStatusBox.innerHTML = '<i class="fas fa-volume-up"></i> 귀기울여 듣고 있어요... 말씀하세요!';
+                    voiceStatusBox.style.background = '#d1fae5';
+                    voiceStatusBox.style.color = '#065f46';
+                }
+                startWaveformAnimation();
+            };
+
+            speechRecognition.onerror = (e) => {
+                console.error("Speech Recognition Error: ", e);
+                if (voiceStatusBox && !speechCooldown) {
+                    if (e.error === 'not-allowed') {
+                        voiceStatusBox.innerHTML = '<i class="fas fa-microphone-slash" style="color:#ef4444;"></i> 마이크 권한이 거부되었습니다. 허용해주세요.';
+                    } else {
+                        voiceStatusBox.innerHTML = '<i class="fas fa-redo"></i> 마이크 작동 대기 중 (소리 내어 주세요)';
+                    }
+                }
+            };
+
+            speechRecognition.onend = () => {
+                isSpeechListening = false;
+                waveBars.forEach(bar => { bar.style.height = '8px'; });
+                // Restart listening automatically after processing, if not in cooldown
+                setTimeout(() => {
+                    if (!speechCooldown && unit === '3') {
+                        try { speechRecognition.start(); } catch (e) {}
+                    }
+                }, 400);
+            };
+
+            speechRecognition.onresult = (event) => {
+                if (speechCooldown) return;
+                const transcript = event.results[0][0].transcript;
+                if (recognizedTextEl) {
+                    recognizedTextEl.textContent = transcript;
+                }
+                parseVoiceCommand(transcript);
+            };
+
+            // Start listening
+            try {
+                speechRecognition.start();
+            } catch (e) {
+                console.error("Mic start failed:", e);
+            }
+
+            setupTextInputOnly();
+        }
+
+        function setupTextInputOnly() {
+            const btnSendText = document.getElementById('btn-send-voice-text');
+            const textInput = document.getElementById('voice-text-input');
+            if (btnSendText && textInput) {
+                btnSendText.onclick = () => {
+                    if (speechCooldown) {
+                        alert("이전 동작이 완료될 때까지 기다려주세요!");
+                        return;
+                    }
+                    const val = textInput.value.trim();
+                    if (val) {
+                        const recognizedTextEl = document.getElementById('voice-recognized-text');
+                        if (recognizedTextEl) recognizedTextEl.textContent = val;
+                        parseVoiceCommand(val);
+                        textInput.value = '';
+                    }
+                };
+                textInput.onkeypress = (e) => {
+                    if (e.key === 'Enter') {
+                        btnSendText.click();
+                    }
+                };
+            }
+        }
+
+        function parseVoiceCommand(text) {
+            if (speechCooldown) return;
+
+            console.log("🎤 음성 명령 인식: ", text);
+
+            // 1. Direction extraction (Forward vs Backward)
+            // 앞으로, 시계, 전진, 앞 -> FORWARD (0)
+            // 뒤로, 반시계, 후진, 뒤 -> BACKWARD (1)
+            let directionVal = 0; // default Forward
+            let directionLabel = "앞으로";
+            if (text.includes("뒤") || text.includes("후진") || text.includes("반시계")) {
+                directionVal = 1;
+                directionLabel = "뒤로";
+            }
+
+            // 2. Turns extraction
+            let turns = 1;
+            const numberMatch = text.match(/\d+/);
+            if (numberMatch) {
+                turns = parseInt(numberMatch[0]);
+            } else {
+                if (text.includes("한") || text.includes("하나")) turns = 1;
+                else if (text.includes("두") || text.includes("둘")) turns = 2;
+                else if (text.includes("세") || text.includes("셋")) turns = 3;
+                else if (text.includes("네") || text.includes("넷")) turns = 4;
+                else if (text.includes("다섯")) turns = 5;
+                else if (text.includes("여섯")) turns = 6;
+                else if (text.includes("일곱")) turns = 7;
+                else if (text.includes("여덟")) turns = 8;
+                else if (text.includes("아홉")) turns = 9;
+                else if (text.includes("열")) turns = 10;
+            }
+
+            // 3. Cooldown Lockout (Seesaw Effect / Double trigger protection)
+            // Cooldown prevents mic from catching echo or double spoken commands while running.
+            speechCooldown = true;
+            try { speechRecognition.stop(); } catch (e) {}
+
+            const voiceStatusBox = document.getElementById('voice-status-box');
+            if (voiceStatusBox) {
+                voiceStatusBox.innerHTML = `<i class="fas fa-check-circle" style="color:#059669;"></i> 인식 완료: <strong>${directionLabel} ${turns}바퀴</strong>`;
+                voiceStatusBox.style.background = '#d1fae5';
+                voiceStatusBox.style.color = '#065f46';
+            }
+
+            // Update recognized log
+            const logPanel = document.getElementById('voice-command-log');
+            if (logPanel) {
+                if (logPanel.innerText.includes("인식 기록 없음")) {
+                    logPanel.innerHTML = '';
+                }
+                const now = new Date();
+                const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+                const logItem = document.createElement('div');
+                logItem.style.cssText = 'padding: 4px 8px; background: white; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between;';
+                logItem.innerHTML = `<span>🗣️ ${directionLabel} ${turns}바퀴</span> <span style="color: #94a3b8;">${timeStr}</span>`;
+                logPanel.insertBefore(logItem, logPanel.firstChild);
+            }
+
+            // Update dynamic global turns variable
+            window.lastParsedSpeechTurns = turns;
+
+            // 4. Trigger Workspace Block execution (0 = Forward, 1 = Backward)
+            runBlocks('event_ai_gesture', directionVal);
+
+            // 5. Send control action to Fortnite bridge
+            try {
+                window.parent.sendWebSocketAction({
+                    action: "SWING_CONTROL",
+                    dir: directionVal === 0 ? "FORWARD" : "BACKWARD",
+                    val: turns
+                });
+            } catch (e) {
+                console.error("Fortnite websocket transmission failed:", e);
+            }
+
+            // Cooldown release after 3.5 seconds (prevents double triggers / seesaw)
+            setTimeout(() => {
+                speechCooldown = false;
+                if (unit === '3') {
+                    if (voiceStatusBox) {
+                        voiceStatusBox.innerHTML = '<i class="fas fa-volume-up"></i> 귀기울여 듣고 있어요... 말씀하세요!';
+                        voiceStatusBox.style.background = '#d1fae5';
+                        voiceStatusBox.style.color = '#065f46';
+                    }
+                    try { speechRecognition.start(); } catch (e) {}
+                }
+            }, 3500);
         }
 
         async function app() {
+            if (unit === '3') {
+                // Dynamically modify block icon & defaults in the palette for Unit 3
+                const aiBlock = document.querySelector('#palette [data-action="event_ai_gesture"]');
+                if (aiBlock) {
+                    const iconContainer = aiBlock.querySelector('.block-icon div:nth-child(2)');
+                    if (iconContainer) {
+                        iconContainer.innerHTML = '<i class="fas fa-microphone"></i>';
+                    }
+                    const paramEl = aiBlock.querySelector('.block-param');
+                    if (paramEl) {
+                        paramEl.setAttribute('data-val', '0'); // Default to Forward (0)
+                        paramEl.innerHTML = '<i class="fas fa-arrow-up" style="color:#64748b;"></i>';
+                    }
+                }
+
+                // Render Voice UI inside Left Panel
+                const webcamEl = document.getElementById('webcam');
+                if (webcamEl) {
+                    const scrollContainer = webcamEl.parentElement.parentElement;
+                    const leftPanelContainer = scrollContainer.parentElement;
+                    // Update Title
+                    const aiTitleText = leftPanelContainer.querySelector('[data-i18n="lbl_ai_vision_title"]');
+                    if (aiTitleText) {
+                        aiTitleText.innerHTML = '<i class="fas fa-microphone" style="color: #8b5cf6;"></i> AI 음성 명령 인식';
+                    }
+                    scrollContainer.innerHTML = `
+                        <div style="width: 100%; display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                            <div id="voice-mic-container" style="width: 100%; aspect-ratio: 4/3; background: #1e293b; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 4px solid #334155; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px;">
+                                <div id="mic-icon-glow" style="width: 80px; height: 80px; background: #3b82f6; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 36px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); transition: all 0.2s;">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <div id="voice-waveform-canvas-container" style="width: 80%; height: 40px; display: flex; justify-content: center; align-items: center; gap: 4px;">
+                                    <div class="wave-bar" style="width: 6px; height: 8px; background: #3b82f6; border-radius: 3px; transition: height 0.1s;"></div>
+                                    <div class="wave-bar" style="width: 6px; height: 8px; background: #3b82f6; border-radius: 3px; transition: height 0.1s;"></div>
+                                    <div class="wave-bar" style="width: 6px; height: 8px; background: #3b82f6; border-radius: 3px; transition: height 0.1s;"></div>
+                                    <div class="wave-bar" style="width: 6px; height: 8px; background: #3b82f6; border-radius: 3px; transition: height 0.1s;"></div>
+                                    <div class="wave-bar" style="width: 6px; height: 8px; background: #3b82f6; border-radius: 3px; transition: height 0.1s;"></div>
+                                </div>
+                                <div style="position: absolute; bottom: 15px; background: rgba(0,0,0,0.7); color: #fff; padding: 6px 15px; border-radius: 20px; font-weight: 800; font-size: 0.95rem; backdrop-filter: blur(4px);">
+                                    <span id="voice-recognized-text">대기 중...</span>
+                                </div>
+                            </div>
+
+                            <div id="voice-status-box" style="width: 100%; padding: 12px; background: #dbeafe; border: 1px solid #bfdbfe; border-radius: 8px; color: #1e3a8a; font-weight: 700; text-align: center; font-size: 0.95rem;">
+                                <i class="fas fa-spinner fa-spin"></i> 마이크 활성화 대기 중...
+                            </div>
+
+                            <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 0.9rem; font-weight: 800; color: #64748b;">⌨️ 텍스트 명령 입력 (마이크 백업용)</div>
+                                <div style="display: flex; gap: 8px; width: 100%;">
+                                    <input type="text" id="voice-text-input" placeholder="예: 앞으로 5바퀴 돌려줘" style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #cbd5e1; outline: none; font-weight: 600; font-family: inherit;" />
+                                    <button id="btn-send-voice-text" style="background: #3b82f6; color: white; border: none; padding: 0 15px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: transform 0.1s;">입력</button>
+                                </div>
+                            </div>
+
+                            <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <div style="font-size: 0.9rem; font-weight: 800; color: #64748b;">📋 최근 인식된 음성 기록</div>
+                                <div id="voice-command-log" style="font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; flex-direction: column; gap: 6px; max-height: 80px; overflow-y: auto;">
+                                    <span style="color: #94a3b8;">인식 기록 없음</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                initSpeechEngine();
+                return;
+            }
             try {
                 aiStatusLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 모바일넷 모델링 중... (10초 소요)';
                 net = await mobilenet.load();
@@ -4706,6 +5025,50 @@ print("BrickSync Sandbox Run")
 
         // 스파이크 앱 로딩에 지장이 없도록 1.5초 딜레이 후 AI 로딩
         setTimeout(app, 1500);
+
+        // 툴박스(팔레트) 마우스 드래그 및 휠 가로 스크롤 구현
+        function setupPaletteScroll() {
+            const paletteEl = document.getElementById('palette');
+            if (!paletteEl) return;
+
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            paletteEl.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    paletteEl.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+
+            paletteEl.addEventListener('mousedown', (e) => {
+                if (e.target.closest('[draggable="true"]')) return;
+                isDown = true;
+                paletteEl.style.cursor = 'grabbing';
+                startX = e.pageX - paletteEl.offsetLeft;
+                scrollLeft = paletteEl.scrollLeft;
+            });
+
+            paletteEl.addEventListener('mouseleave', () => {
+                isDown = false;
+                paletteEl.style.cursor = '';
+            });
+
+            paletteEl.addEventListener('mouseup', () => {
+                isDown = false;
+                paletteEl.style.cursor = '';
+            });
+
+            paletteEl.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - paletteEl.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                paletteEl.scrollLeft = scrollLeft - walk;
+            });
+        }
+        setupPaletteScroll();
 
         // --- Zero-Latency 별도 페이지 통신 채널 레이더 --- //
         let _bsStudentName = 'Guest_익명';

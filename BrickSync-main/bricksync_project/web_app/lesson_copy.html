@@ -3103,15 +3103,17 @@ print("BrickSync Sandbox Run")
                                 currentBleDelay += 300;
                                 break;
                             case 'motor_cw':
-                                bleQueue.push({ action: 'motor', speed: bleGlobalMotorSpeed, delay: currentBleDelay });
-                                currentBleDelay += (timeVal * 1000);
-                                bleQueue.push({ action: 'motor', speed: 0, delay: currentBleDelay });
+                                for (let i = 0; i < timeVal; i++) {
+                                    bleQueue.push({ action: 'motor', speed: bleGlobalMotorSpeed, delay: currentBleDelay });
+                                    currentBleDelay += 1000;
+                                }
                                 currentBleDelay += 300;
                                 break;
                             case 'motor_ccw':
-                                bleQueue.push({ action: 'motor', speed: -bleGlobalMotorSpeed, delay: currentBleDelay });
-                                currentBleDelay += (timeVal * 1000);
-                                bleQueue.push({ action: 'motor', speed: 0, delay: currentBleDelay });
+                                for (let i = 0; i < timeVal; i++) {
+                                    bleQueue.push({ action: 'motor', speed: -bleGlobalMotorSpeed, delay: currentBleDelay });
+                                    currentBleDelay += 1000;
+                                }
                                 currentBleDelay += 300;
                                 break;
                             case 'motor_stop':

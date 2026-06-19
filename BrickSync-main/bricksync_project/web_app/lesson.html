@@ -30,14 +30,21 @@
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Noto Sans KR', 'Outfit', sans-serif;
             background: #f8fafc;
-            height: 100vh;
             display: flex;
             flex-direction: column;
             color: #1e293b;
-            overflow: hidden;
         }
 
         /* Top Navigation Bar */
@@ -301,6 +308,7 @@
             position: relative;
             background-color: #f1f5f9;
             overflow: hidden;
+            min-height: 0; /* 중첩 flexbox 내에서 찌그러짐 방지 */
         }
 
         .coding-area {
@@ -363,6 +371,7 @@
             overflow-x: auto;
             box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
             z-index: 20;
+            flex-shrink: 0; /* 화면 비율 100%일 때도 찌그러짐 방지 */
         }
 
         .category-divider {
@@ -776,6 +785,23 @@
             cursor: pointer;
             background: #dca500;
             border-radius: 4px;
+        }
+
+        /* 툴박스 가로 스크롤바 커스텀 스타일 */
+        .toolbox::-webkit-scrollbar {
+            height: 12px;
+        }
+        .toolbox::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .toolbox::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+            border: 3px solid #f1f5f9;
+        }
+        .toolbox::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
@@ -2419,6 +2445,7 @@
                 let formatted = Number.isInteger(currentVal) ? currentVal : parseFloat(currentVal.toFixed(2));
                 centerText.textContent = formatted;
                 paramEl.textContent = formatted;
+                paramEl.setAttribute('data-val', formatted);
             }
 
             minusBtn.onclick = () => {
@@ -3615,6 +3642,12 @@ print("BrickSync Sandbox Run")
                         case 'motor_speed_set':
                         case 'car_speed_set':
                             pyCode += `${indent}global_motor_speed = ${pythonVal} \n${indent}print("Global Motor Speed Set:", global_motor_speed, "%") \n`;
+                            let speedLevelUSB = 2;
+                            if (paramVal <= 15) speedLevelUSB = 1;
+                            else if (paramVal <= 40) speedLevelUSB = 2;
+                            else if (paramVal <= 70) speedLevelUSB = 3;
+                            else speedLevelUSB = 4;
+                            localActionsQueue.push({ action: 'SPEED_' + speedLevelUSB, delay: cumulativeDelayMs });
                             break;
                         case 'motor_speed':
                             pyCode += `${indent}print("Motor Speed Block Triggered") \n`;
@@ -3635,16 +3668,18 @@ print("BrickSync Sandbox Run")
                             break;
                         case 'motor_cw':
                             pyCode += `${indent}rm(global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'MWHEEL_RIGHT', delay: cumulativeDelayMs });
-                            cumulativeDelayMs += (timeVal * 1000);
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_RIGHT', delay: cumulativeDelayMs });
+                            for (let i = 0; i < timeVal; i++) {
+                                localActionsQueue.push({ action: 'MWHEEL_RIGHT', delay: cumulativeDelayMs });
+                                cumulativeDelayMs += 1000;
+                            }
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_ccw':
                             pyCode += `${indent}rm(-global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'MWHEEL_LEFT', delay: cumulativeDelayMs });
-                            cumulativeDelayMs += (timeVal * 1000);
-                            localActionsQueue.push({ action: 'STOP_MWHEEL_LEFT', delay: cumulativeDelayMs });
+                            for (let i = 0; i < timeVal; i++) {
+                                localActionsQueue.push({ action: 'MWHEEL_LEFT', delay: cumulativeDelayMs });
+                                cumulativeDelayMs += 1000;
+                            }
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_stop':
@@ -3841,6 +3876,12 @@ print("BrickSync Sandbox Run")
                             case 'motor_speed_set':
                             case 'car_speed_set':
                                 bleGlobalMotorSpeed = paramVal === -1 ? 40 : paramVal;
+                                let speedLevelBLE = 2;
+                                if (bleGlobalMotorSpeed <= 15) speedLevelBLE = 1;
+                                else if (bleGlobalMotorSpeed <= 40) speedLevelBLE = 2;
+                                else if (bleGlobalMotorSpeed <= 70) speedLevelBLE = 3;
+                                else speedLevelBLE = 4;
+                                bleQueue.push({ action: 'motor_speed_set', speedLevel: speedLevelBLE, delay: currentBleDelay });
                                 break;
                             case 'car_forward':
                             case 'car_backward':
@@ -3852,15 +3893,17 @@ print("BrickSync Sandbox Run")
                                 currentBleDelay += 500;
                                 break;
                             case 'motor_cw':
-                                bleQueue.push({ action: 'motor_cw', speed: bleGlobalMotorSpeed, delay: currentBleDelay });
-                                currentBleDelay += (timeVal * 1000);
-                                bleQueue.push({ action: 'motor_stop_cw', speed: 0, delay: currentBleDelay });
+                                for (let i = 0; i < timeVal; i++) {
+                                    bleQueue.push({ action: 'motor_cw', speed: bleGlobalMotorSpeed, delay: currentBleDelay });
+                                    currentBleDelay += 1000;
+                                }
                                 currentBleDelay += 800;
                                 break;
                             case 'motor_ccw':
-                                bleQueue.push({ action: 'motor_ccw', speed: -bleGlobalMotorSpeed, delay: currentBleDelay });
-                                currentBleDelay += (timeVal * 1000);
-                                bleQueue.push({ action: 'motor_stop_ccw', speed: 0, delay: currentBleDelay });
+                                for (let i = 0; i < timeVal; i++) {
+                                    bleQueue.push({ action: 'motor_ccw', speed: -bleGlobalMotorSpeed, delay: currentBleDelay });
+                                    currentBleDelay += 1000;
+                                }
                                 currentBleDelay += 800;
                                 break;
                             case 'motor_stop':
@@ -3943,6 +3986,8 @@ print("BrickSync Sandbox Run")
                                         await new Promise(r => setTimeout(r, 60));
                                         break; // 전문가 패치: 파란색(단일 모터) 블록은 가장 먼저 인식된 모터 1개만 돌리고 루프 탈출
                                     }
+                                } else if (cmd.action === 'motor_speed_set') {
+                                    try { window.parent.sendWebSocketAction({ action: 'SPEED_' + cmd.speedLevel }); } catch (e) { }
                                 } else if (cmd.action.startsWith('car_') && cmd.action !== 'car_speed_set' && cmd.action !== 'car_stop') {
                                     let fws = cmd.action === 'car_forward' ? 'UP' : cmd.action === 'car_backward' ? 'DOWN' : cmd.action === 'car_left' ? 'LEFT' : 'RIGHT';
                                     try { window.parent.sendWebSocketAction({ action: 'STEER_' + fws }); } catch (e) { }
@@ -4826,8 +4871,52 @@ print("BrickSync Sandbox Run")
             workspaceObserver.observe(workspaceEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-val', 'data-matrix'] });
         }
 
+        // 툴박스(팔레트) 마우스 드래그 및 휠 가로 스크롤 구현
+        function setupPaletteScroll() {
+            const paletteEl = document.getElementById('palette');
+            if (!paletteEl) return;
+
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            paletteEl.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    paletteEl.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+
+            paletteEl.addEventListener('mousedown', (e) => {
+                if (e.target.closest('[draggable="true"]')) return;
+                isDown = true;
+                paletteEl.style.cursor = 'grabbing';
+                startX = e.pageX - paletteEl.offsetLeft;
+                scrollLeft = paletteEl.scrollLeft;
+            });
+
+            paletteEl.addEventListener('mouseleave', () => {
+                isDown = false;
+                paletteEl.style.cursor = '';
+            });
+
+            paletteEl.addEventListener('mouseup', () => {
+                isDown = false;
+                paletteEl.style.cursor = '';
+            });
+
+            paletteEl.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - paletteEl.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                paletteEl.scrollLeft = scrollLeft - walk;
+            });
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(loadWorkspace, 200);
+            setupPaletteScroll();
         });
     </script>
     <script src="settings.js"></script>

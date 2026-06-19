@@ -54,10 +54,10 @@
 	},
 	"bindings":
 	{
-		"projectId": "1e8917a4-4c18-ecf2-91ff-7097db848b1d",
+		"projectId": "8b6e88ec-4b54-c119-213d-17a5d49d28cb",
 		"modules":
 		{
-			"MyProjectB": "642f2284-4d25-4e06-50c4-6f8c47b686a0"
+			"MyProjectB": "ae0a648c-46e3-084a-63b3-8e9269a80f97"
 		},
 		"bSuppressAutomaticVersePathAssignment": false,
 		"projectVersePath": ""

@@ -55,7 +55,13 @@
 
         // --- 1. 파이썬 로컬 서버 통신 (자동 재연결 적용) ---
         function connectWebSocket() {
-            ws = new WebSocket("ws://127.0.0.1:9999");
+            let wsUrl = "ws://127.0.0.1:8000/ws";
+            // 로컬 환경(localhost/127.0.0.1)에서 직접 접속한 경우 현재 호스트 사용
+            if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+                let protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+                wsUrl = protocol + window.location.host + "/ws";
+            }
+            ws = new WebSocket(wsUrl);
             ws.onopen = () => {
                 console.log("✔️ 백그라운드 키보드 서버 접속 성공!");
                 updateWsUI(true);

@@ -81,7 +81,7 @@
 
             ai_lesson_1: "1. 가위! 바위! 보! 손가락으로 하는 북극 레이싱",
             ai_lesson_2: "2. 앉았다 일어서기! 마법 나무 엘리베이터 타기",
-            ai_lesson_3: "3. 카메라에 맛있는 과일을 보여주고 간식 선물받기"
+            ai_lesson_3: "3. 마이크에 대고 외쳐봐! 목소리로 조종하는 요술 그네"
         },
         en: {
             // Sidebar / UI Shell
@@ -158,7 +158,7 @@
 
             ai_lesson_1: "1. Rock Paper Scissors! Finger-controlled Arctic Racing",
             ai_lesson_2: "2. Squats! Riding the Magic Tree Elevator",
-            ai_lesson_3: "3. Show delicious fruit to the camera and get a snack treat"
+            ai_lesson_3: "3. Shout into the Mic! Control the Magic Swing with Your Voice"
         }
     };
 

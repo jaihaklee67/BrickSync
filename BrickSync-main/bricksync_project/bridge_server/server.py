@@ -80,17 +80,28 @@ async def handle_websocket(request):
 
                     elif action == "MWHEEL_LEFT":
                         print("▶ 관람차 (단일모터) 좌회전 발송 (h키 한번 탁 쳐서 가동)")
-                        threading.Thread(target=lambda: [pydirectinput.keyDown('h'), time.sleep(0.3), pydirectinput.keyUp('h')], daemon=True).start()
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('h'), time.sleep(0.05), pydirectinput.keyUp('h')], daemon=True).start()
                     elif action == "MWHEEL_RIGHT":
-                        print("▶ 관람차 (단일모터) 우회전 발송 (j키 한번 탁 쳐서 가동)")
-                        threading.Thread(target=lambda: [pydirectinput.keyDown('j'), time.sleep(0.3), pydirectinput.keyUp('j')], daemon=True).start()
+                        print("▶ 관람차 (단일모터) 우회전 발송 (k키 한번 탁 쳐서 가동)")
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('k'), time.sleep(0.05), pydirectinput.keyUp('k')], daemon=True).start()
                     elif action in ["STOP_MWHEEL_LEFT", "STOP_MWHEEL_RIGHT"]:
-                        print("▶ 관람차 (단일모터) 정지 스위치 발송 (k키 한 번 탁 쳐서 정지)")
-                        threading.Thread(target=lambda: [pydirectinput.keyDown('k'), time.sleep(0.3), pydirectinput.keyUp('k')], daemon=True).start()
+                        print("▶ 관람차 (단일모터) 정지 스위치 발송 (j키 한 번 탁 쳐서 정지)")
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('j'), time.sleep(0.05), pydirectinput.keyUp('j')], daemon=True).start()
 
                     elif action in ["SPEED_1", "SPEED_2", "SPEED_3", "SPEED_4"]:
-                        print(f"▶ 속도 변속 {action} 수신 (포트나이트 T키 전송 차단 - 물리 모터 속도만 조절됨)")
-                        # pydirectinput.keyDown('t'); time.sleep(0.1); pydirectinput.keyUp('t')
+                        speed_durations = {
+                            "SPEED_1": 0.2,
+                            "SPEED_2": 0.5,
+                            "SPEED_3": 0.9,
+                            "SPEED_4": 1.3
+                        }
+                        duration = speed_durations[action]
+                        print(f"▶ 속도 변속 {action} 수신 (포트나이트 T키 {duration}초 입력 전송)")
+                        def press_speed_key(dur):
+                            pydirectinput.keyDown('t')
+                            time.sleep(dur)
+                            pydirectinput.keyUp('t')
+                        threading.Thread(target=press_speed_key, args=(duration,), daemon=True).start()
                     elif action == "ACTION_LIGHT":
                         print("▶ 네온사인 조명 대표 ON (i키 전송)")
                         pydirectinput.keyDown('i'); time.sleep(0.1); pydirectinput.keyUp('i')
@@ -102,13 +113,30 @@ async def handle_websocket(request):
                         print("[REWARD] 보상 발동! E키")
                         pydirectinput.keyDown('e'); time.sleep(0.1); pydirectinput.keyUp('e')
                         
+                    elif action == "SWING_CONTROL":
+                        direction = data.get("dir")
+                        turns = data.get("val", 1)
+                        key = 'j' if direction == "FORWARD" else 'h'
+                        print(f"▶ [SWING_CONTROL] {direction} {turns}바퀴 수신 ({key}키 {turns}회 반복 연사)")
+                        def press_swing_key(k, count):
+                            for _ in range(count):
+                                pydirectinput.keyDown(k)
+                                time.sleep(0.05)
+                                pydirectinput.keyUp(k)
+                                time.sleep(1.2) # 1바퀴 도는 시간(1.11초) + 안전 마진 대기
+                        threading.Thread(target=press_swing_key, args=(key, turns), daemon=True).start()
+                        
                     elif action == "motor_cw":
-                        print("▶ 쓰레기 괴물 입 열기 (Z키 전송)")
-                        threading.Thread(target=lambda: [pydirectinput.keyDown('z'), time.sleep(0.3), pydirectinput.keyUp('z')], daemon=True).start()
+                        print("▶ 쓰레기 괴물 입 열기 (H키 전송)")
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('h'), time.sleep(0.3), pydirectinput.keyUp('h')], daemon=True).start()
                         
                     elif action == "motor_ccw":
-                        print("▶ 쓰레기 괴물 입 닫기 (X키 전송)")
-                        threading.Thread(target=lambda: [pydirectinput.keyDown('x'), time.sleep(0.3), pydirectinput.keyUp('x')], daemon=True).start()
+                        print("▶ 쓰레기 괴물 입 닫기 (J키 전송)")
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('j'), time.sleep(0.3), pydirectinput.keyUp('j')], daemon=True).start()
+
+                    elif action in ["motor_stop", "motor_stop_cw", "motor_stop_ccw", "motor_stop_generic"]:
+                        print("▶ 쓰레기 괴물 동작 정지 (K키 전송)")
+                        threading.Thread(target=lambda: [pydirectinput.keyDown('k'), time.sleep(0.3), pydirectinput.keyUp('k')], daemon=True).start()
                 except Exception as e:
                     pass
     except Exception as e:
