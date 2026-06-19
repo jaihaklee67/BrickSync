@@ -4322,7 +4322,12 @@ print("BrickSync Sandbox Run")
 
         // URL에서 미션 파라미터 확인 및 화면 렌더링
         const urlParams = new URLSearchParams(window.location.search);
-        const unit = urlParams.get('unit');
+        let unit = urlParams.get('unit');
+        if (!unit) {
+            unit = localStorage.getItem('brickSyncLastUnit') || '3';
+        } else {
+            localStorage.setItem('brickSyncLastUnit', unit);
+        }
 
         if (unit) {
             const missionData = {
