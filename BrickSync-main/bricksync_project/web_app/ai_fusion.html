@@ -3,6 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BrickSync - 스파이크 에센셜 코딩 워크스페이스</title>
     <link
@@ -4272,117 +4275,9 @@ print("BrickSync Sandbox Run")
         }
 
         let isMissionActive = false;
-        function openMissionBriefing() {
-            if (typeof unit === 'undefined' || !unit) return;
-            isMissionActive = true;
-            
-            const lang = localStorage.getItem('bricksync_lang') || 'ko';
-            const current = (missionData[lang] || missionData['ko'])[unit];
-            if (!current) return;
-            
-            document.getElementById('briefingStage').textContent = current.badge;
-            document.getElementById('briefingTitle').textContent = current.title;
-            document.getElementById('briefingDesc').textContent = current.desc;
-            
-            const briefingTasksEl = document.getElementById('briefingTasks');
-            if (briefingTasksEl) {
-                briefingTasksEl.innerHTML = '';
-                current.tasks.forEach(t => {
-                    const li = document.createElement('li');
-                    li.style.cssText = 'display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 500; color: #475569;';
-                    li.innerHTML = `<i class="fas fa-check" style="color: #eab308; width: 16px; text-align: center;"></i> ${t.text}`;
-                    briefingTasksEl.appendChild(li);
-                });
-            }
-            
-            document.getElementById('missionBriefingModal').style.display = 'flex';
-        }
-
-        function setupMissionToolbox(targetUnit) {
-            const palette = document.getElementById('palette');
-            if (!palette) return;
-
-            // Define allowed blocks for each unit's second step (Fortnite integration mode)
-            const fortniteCompatibleBlocks = [
-                'start', 'flow_wait', 'control_forever', 'control_repeat', 'matrix_pixel',
-                'car_forward', 'car_backward', 'car_left', 'car_right',
-                'motor_cw', 'motor_ccw', 'motor_stop'
-            ];
-
-            const allowedBlocksMap = {
-                '1': fortniteCompatibleBlocks,
-                '2': fortniteCompatibleBlocks,
-                '3': fortniteCompatibleBlocks
-            };
-
-            const allowed = allowedBlocksMap[targetUnit] || ['start'];
-
-            // Hide/show blocks and configure matrix_pixel for the current unit
-            const children = Array.from(palette.children);
-            children.forEach(child => {
-                if (child.classList.contains('spike-block')) {
-                    const action = child.getAttribute('data-action');
-                    if (allowed.includes(action)) {
-                        child.style.display = ''; // Show
-                        
-                        // Customize matrix_pixel to be a static red light with no options
-                        if (action === 'matrix_pixel') {
-                            // Update inner pixels to red
-                            const innerPixels = child.querySelectorAll('div > div');
-                            innerPixels.forEach(pixel => {
-                                pixel.style.backgroundColor = '#ef4444';
-                                pixel.style.borderColor = '#ef4444';
-                            });
-                            
-                            // Update block parameter to LWP3 red code (9) and block dropdown click removal
-                            const paramEl = child.querySelector('.block-param');
-                            if (paramEl) {
-                                paramEl.innerHTML = ''; // remove chevron
-                                paramEl.style.backgroundColor = '#ef4444';
-                                paramEl.style.pointerEvents = 'none';
-                                paramEl.setAttribute('data-val', '9');
-                                paramEl.setAttribute('data-matrix', JSON.stringify([9,9,9,9,9,9,9,9,9]));
-                            }
-                        }
-                    } else {
-                        child.style.display = 'none'; // Hide
-                    }
-                } else if (child.classList.contains('category-divider')) {
-                    child.style.display = 'none'; // Hide dividers for a clean look
-                }
-            });
-
-            // Automatically clear workspace and add a start block stack at (150, 150)
-            const workspaceArea = document.getElementById('workspaceArea');
-            if (workspaceArea) {
-                const stacks = workspaceArea.querySelectorAll('.block-stack');
-                stacks.forEach(s => s.remove());
-                const hint = workspaceArea.querySelector('.hint-text');
-                if (hint) hint.remove();
-
-                const newStack = document.createElement('div');
-                newStack.className = 'block-stack';
-                newStack.style.left = '150px';
-                newStack.style.top = '150px';
-                workspaceArea.appendChild(newStack);
-
-                const template = document.querySelector(`#palette [data-action="start"]`);
-                if (template) {
-                    const block = template.cloneNode(true);
-                    block.classList.add('workspace-item');
-                    newStack.appendChild(block);
-                }
-            }
-
-            console.log(`[BrickSync] Fortnite-compatible toolbox loaded for Unit ${targetUnit}`);
-        }
-
-        function closeMissionBriefing() {
-            document.getElementById('missionBriefingModal').style.display = 'none';
-            if (isMissionActive && unit) {
-                setupMissionToolbox(unit);
-            }
-        }
+        let openMissionBriefing;
+        let setupMissionToolbox;
+        let closeMissionBriefing;
 
         function toggleMissionTasks() {
             const panel = document.getElementById('missionTasksPanel');
@@ -4455,6 +4350,117 @@ print("BrickSync Sandbox Run")
                 }
             };
 
+            openMissionBriefing = function() {
+                if (typeof unit === 'undefined' || !unit) return;
+                isMissionActive = true;
+                
+                const lang = localStorage.getItem('bricksync_lang') || 'ko';
+                const current = (missionData[lang] || missionData['ko'])[unit];
+                if (!current) return;
+                
+                document.getElementById('briefingStage').textContent = current.badge;
+                document.getElementById('briefingTitle').textContent = current.title;
+                document.getElementById('briefingDesc').textContent = current.desc;
+                
+                const briefingTasksEl = document.getElementById('briefingTasks');
+                if (briefingTasksEl) {
+                    briefingTasksEl.innerHTML = '';
+                    current.tasks.forEach(t => {
+                        const li = document.createElement('li');
+                        li.style.cssText = 'display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 500; color: #475569;';
+                        li.innerHTML = `<i class="fas fa-check" style="color: #eab308; width: 16px; text-align: center;"></i> ${t.text}`;
+                        briefingTasksEl.appendChild(li);
+                    });
+                }
+                
+                document.getElementById('missionBriefingModal').style.display = 'flex';
+            };
+
+            setupMissionToolbox = function(targetUnit) {
+                const palette = document.getElementById('palette');
+                if (!palette) return;
+
+                // Define allowed blocks for each unit's second step (Fortnite integration mode)
+                const fortniteCompatibleBlocks = [
+                    'start', 'flow_wait', 'control_forever', 'control_repeat', 'matrix_pixel',
+                    'car_forward', 'car_backward', 'car_left', 'car_right',
+                    'motor_cw', 'motor_ccw', 'motor_stop'
+                ];
+
+                const allowedBlocksMap = {
+                    '1': fortniteCompatibleBlocks,
+                    '2': fortniteCompatibleBlocks,
+                    '3': fortniteCompatibleBlocks
+                };
+
+                const allowed = allowedBlocksMap[targetUnit] || ['start'];
+
+                // Hide/show blocks and configure matrix_pixel for the current unit
+                const children = Array.from(palette.children);
+                children.forEach(child => {
+                    if (child.classList.contains('spike-block')) {
+                        const action = child.getAttribute('data-action');
+                        if (allowed.includes(action)) {
+                            child.style.display = ''; // Show
+                            
+                            // Customize matrix_pixel to be a static red light with no options
+                            if (action === 'matrix_pixel') {
+                                // Update inner pixels to red
+                                const innerPixels = child.querySelectorAll('div > div');
+                                innerPixels.forEach(pixel => {
+                                    pixel.style.backgroundColor = '#ef4444';
+                                    pixel.style.borderColor = '#ef4444';
+                                });
+                                
+                                // Update block parameter to LWP3 red code (9) and block dropdown click removal
+                                const paramEl = child.querySelector('.block-param');
+                                if (paramEl) {
+                                    paramEl.innerHTML = ''; // remove chevron
+                                    paramEl.style.backgroundColor = '#ef4444';
+                                    paramEl.style.pointerEvents = 'none';
+                                    paramEl.setAttribute('data-val', '9');
+                                    paramEl.setAttribute('data-matrix', JSON.stringify([9,9,9,9,9,9,9,9,9]));
+                                }
+                            }
+                        } else {
+                            child.style.display = 'none'; // Hide
+                        }
+                    } else if (child.classList.contains('category-divider')) {
+                        child.style.display = 'none'; // Hide dividers for a clean look
+                    }
+                });
+
+                // Automatically clear workspace and add a start block stack at (150, 150)
+                const workspaceArea = document.getElementById('workspaceArea');
+                if (workspaceArea) {
+                    const stacks = workspaceArea.querySelectorAll('.block-stack');
+                    stacks.forEach(s => s.remove());
+                    const hint = workspaceArea.querySelector('.hint-text');
+                    if (hint) hint.remove();
+
+                    const newStack = document.createElement('div');
+                    newStack.className = 'block-stack';
+                    newStack.style.left = '150px';
+                    newStack.style.top = '150px';
+                    workspaceArea.appendChild(newStack);
+
+                    const template = document.querySelector(`#palette [data-action="start"]`);
+                    if (template) {
+                        const block = template.cloneNode(true);
+                        block.classList.add('workspace-item');
+                        newStack.appendChild(block);
+                    }
+                }
+
+                console.log(`[BrickSync] Fortnite-compatible toolbox loaded for Unit ${targetUnit}`);
+            };
+
+            closeMissionBriefing = function() {
+                document.getElementById('missionBriefingModal').style.display = 'none';
+                if (isMissionActive && unit) {
+                    setupMissionToolbox(unit);
+                }
+            };
             let activeObserver = null;
 
             function renderActiveMission() {
