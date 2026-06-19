@@ -706,6 +706,42 @@
                 0 0 0 #0284c7,
                 0 2px 4px rgba(14, 165, 233, 0.1);
         }
+
+        @keyframes mic-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+                transform: scale(1);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
+                transform: scale(1.05);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+                transform: scale(1);
+            }
+        }
+        .mic-active {
+            animation: mic-pulse 1.5s infinite !important;
+            background: #8b5cf6 !important; /* Indigo color when active */
+            cursor: pointer;
+        }
+        .mic-cooldown {
+            background: #f97316 !important; /* Orange color during processing */
+            cursor: not-allowed !important;
+            box-shadow: 0 0 12px rgba(249, 115, 22, 0.4) !important;
+            opacity: 0.85;
+        }
+        .mic-idle {
+            background: #475569 !important; /* Slate color when idle */
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+            transition: all 0.2s;
+        }
+        .mic-idle:hover {
+            transform: scale(1.05);
+            background: #64748b !important;
+        }
     </style>
 </head>
 
@@ -4891,10 +4927,34 @@ print("BrickSync Sandbox Run")
         let isSpeechListening = false;
         let speechCooldown = false;
 
+        function toggleSpeechRecognition() {
+            if (speechCooldown) return;
+            if (!speechRecognition) return;
+            if (isSpeechListening) {
+                try {
+                    speechRecognition.stop();
+                } catch (e) {}
+            } else {
+                try {
+                    speechRecognition.start();
+                } catch (e) {
+                    console.error("Speech start error:", e);
+                }
+            }
+        }
+
         function initSpeechEngine() {
             const voiceStatusBox = document.getElementById('voice-status-box');
             const recognizedTextEl = document.getElementById('voice-recognized-text');
             const waveBars = document.querySelectorAll('.wave-bar');
+            const micBtn = document.getElementById('mic-icon-glow');
+
+            if (micBtn) {
+                micBtn.className = 'mic-idle';
+                micBtn.onclick = () => {
+                    toggleSpeechRecognition();
+                };
+            }
 
             // 1. Browser Speech Recognition API check
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -4932,6 +4992,10 @@ print("BrickSync Sandbox Run")
 
             speechRecognition.onstart = () => {
                 isSpeechListening = true;
+                const micIcon = document.getElementById('mic-icon-glow');
+                if (micIcon) {
+                    micIcon.className = 'mic-active';
+                }
                 if (voiceStatusBox && !speechCooldown) {
                     voiceStatusBox.innerHTML = '<i class="fas fa-volume-up"></i> 귀기울여 듣고 있어요... 말씀하세요!';
                     voiceStatusBox.style.background = '#d1fae5';
@@ -4942,11 +5006,16 @@ print("BrickSync Sandbox Run")
 
             speechRecognition.onerror = (e) => {
                 console.error("Speech Recognition Error: ", e);
+                isSpeechListening = false;
+                const micIcon = document.getElementById('mic-icon-glow');
+                if (micIcon && !speechCooldown) {
+                    micIcon.className = 'mic-idle';
+                }
                 if (voiceStatusBox && !speechCooldown) {
                     if (e.error === 'not-allowed') {
                         voiceStatusBox.innerHTML = '<i class="fas fa-microphone-slash" style="color:#ef4444;"></i> 마이크 권한이 거부되었습니다. 허용해주세요.';
                     } else {
-                        voiceStatusBox.innerHTML = '<i class="fas fa-redo"></i> 마이크 작동 대기 중 (소리 내어 주세요)';
+                        voiceStatusBox.innerHTML = '<i class="fas fa-microphone"></i> 마이크 작동 대기 중 (다시 클릭해 주세요)';
                     }
                 }
             };
@@ -4954,12 +5023,15 @@ print("BrickSync Sandbox Run")
             speechRecognition.onend = () => {
                 isSpeechListening = false;
                 waveBars.forEach(bar => { bar.style.height = '8px'; });
-                // Restart listening automatically after processing, if not in cooldown
-                setTimeout(() => {
-                    if (!speechCooldown && unit === '3') {
-                        try { speechRecognition.start(); } catch (e) {}
+                const micIcon = document.getElementById('mic-icon-glow');
+                if (micIcon && !speechCooldown) {
+                    micIcon.className = 'mic-idle';
+                    if (voiceStatusBox) {
+                        voiceStatusBox.innerHTML = '<i class="fas fa-microphone"></i> 마이크를 눌러 명령을 시작하세요';
+                        voiceStatusBox.style.background = '#f1f5f9';
+                        voiceStatusBox.style.color = '#475569';
                     }
-                }, 400);
+                }
             };
 
             speechRecognition.onresult = (event) => {
@@ -4971,11 +5043,11 @@ print("BrickSync Sandbox Run")
                 parseVoiceCommand(transcript);
             };
 
-            // Start listening
-            try {
-                speechRecognition.start();
-            } catch (e) {
-                console.error("Mic start failed:", e);
+            // Set initial state in status box
+            if (voiceStatusBox) {
+                voiceStatusBox.innerHTML = '<i class="fas fa-microphone"></i> 마이크를 눌러 명령을 시작하세요';
+                voiceStatusBox.style.background = '#f1f5f9';
+                voiceStatusBox.style.color = '#475569';
             }
 
             setupTextInputOnly();
@@ -5044,6 +5116,11 @@ print("BrickSync Sandbox Run")
             speechCooldown = true;
             try { speechRecognition.stop(); } catch (e) {}
 
+            const micIcon = document.getElementById('mic-icon-glow');
+            if (micIcon) {
+                micIcon.className = 'mic-cooldown';
+            }
+
             const voiceStatusBox = document.getElementById('voice-status-box');
             if (voiceStatusBox) {
                 voiceStatusBox.innerHTML = `<i class="fas fa-check-circle" style="color:#059669;"></i> 인식 완료: <strong>${directionLabel} ${turns}바퀴</strong>`;
@@ -5085,13 +5162,16 @@ print("BrickSync Sandbox Run")
             // Cooldown release after 3.5 seconds (prevents double triggers / seesaw)
             setTimeout(() => {
                 speechCooldown = false;
+                const micIcon = document.getElementById('mic-icon-glow');
+                if (micIcon) {
+                    micIcon.className = 'mic-idle';
+                }
                 if (unit === '3') {
                     if (voiceStatusBox) {
-                        voiceStatusBox.innerHTML = '<i class="fas fa-volume-up"></i> 귀기울여 듣고 있어요... 말씀하세요!';
-                        voiceStatusBox.style.background = '#d1fae5';
-                        voiceStatusBox.style.color = '#065f46';
+                        voiceStatusBox.innerHTML = '<i class="fas fa-microphone"></i> 마이크를 눌러 명령을 시작하세요';
+                        voiceStatusBox.style.background = '#f1f5f9';
+                        voiceStatusBox.style.color = '#475569';
                     }
-                    try { speechRecognition.start(); } catch (e) {}
                 }
             }, 3500);
         }

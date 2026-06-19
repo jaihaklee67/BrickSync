@@ -7,9 +7,12 @@ trash_monster_controller := class(creative_device):
     # 대상 레고 블록 (위턱)
     @editable TopJaw : creative_prop = creative_prop{}
     
-    # Z키와 X키를 입력받을 인풋 트리거 2개
+    # H키와 J키를 입력받을 인풋 트리거 2개
     @editable OpenTrigger : input_trigger_device = input_trigger_device{}
     @editable CloseTrigger : input_trigger_device = input_trigger_device{}
+
+    # [추가] 플레이어 진입을 감지할 뮤테이터 존
+    @editable MutatorZone : mutator_zone_device = mutator_zone_device{}
     
     # 턱관절 회전 방향과 각도 설정
     @editable RotationAxis : vector3 = vector3{X := 0.0, Y := 1.0, Z := 0.0}
@@ -24,9 +27,30 @@ trash_monster_controller := class(creative_device):
         # 게임 시작 시 턱이 닫혀있는 "원래 위치"를 영구 기억함
         set OriginalTransform = TopJaw.GetTransform()
         
-        # Z와 X키가 눌리면 함수 발동!
+        # H와 J키가 눌리면 함수 발동!
         OpenTrigger.PressedEvent.Subscribe(OnOpenPressed)
         CloseTrigger.PressedEvent.Subscribe(OnClosePressed)
+
+        # 뮤테이터 존 진입/퇴장 이벤트 연결
+        MutatorZone.AgentEntersEvent.Subscribe(OnPlayerEntered)
+        MutatorZone.AgentExitsEvent.Subscribe(OnPlayerExited)
+
+        # 시작 시 이미 구역 내에 있는 플레이어 즉시 등록
+        for (Player : GetPlayspace().GetPlayers()):
+            if (MutatorZone.IsInVolume[Player]):
+                OnPlayerEntered(Player)
+
+    # 구역 진입 시 트리거 작동 활성화
+    OnPlayerEntered(Agent : agent):void=
+        OpenTrigger.Register(Agent)
+        CloseTrigger.Register(Agent)
+        Print("플레이어가 제어 영역에 진입했습니다. 단축키 활성화.")
+
+    # 구역 퇴장 시 트리거 작동 비활성화
+    OnPlayerExited(Agent : agent):void=
+        OpenTrigger.Unregister(Agent)
+        CloseTrigger.Unregister(Agent)
+        Print("플레이어가 제어 영역을 벗어났습니다. 단축키 비활성화.")
 
     OnOpenPressed(Agent : agent):void=
         spawn{ OpenJaw() }
