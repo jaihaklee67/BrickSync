@@ -732,15 +732,29 @@
             box-shadow: 0 0 12px rgba(249, 115, 22, 0.4) !important;
             opacity: 0.85;
         }
+        @keyframes mic-idle-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4), 0 4px 6px rgba(0,0,0,0.2);
+            }
+            70% {
+                box-shadow: 0 0 0 12px rgba(255, 255, 255, 0), 0 4px 6px rgba(0,0,0,0.2);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 4px 6px rgba(0,0,0,0.2);
+            }
+        }
         .mic-idle {
             background: #475569 !important; /* Slate color when idle */
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
             transition: all 0.2s;
+            animation: mic-idle-pulse 2.2s infinite;
         }
         .mic-idle:hover {
             transform: scale(1.05);
             background: #64748b !important;
+            animation: none;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3), 0 4px 6px rgba(0,0,0,0.2) !important;
         }
     </style>
 </head>

@@ -152,11 +152,25 @@ async def handle_websocket(request):
         
     return ws
 
+@web.middleware
+async def no_cache_middleware(request, handler):
+    try:
+        response = await handler(request)
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    except web.HTTPException as ex:
+        ex.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        ex.headers['Pragma'] = 'no-cache'
+        ex.headers['Expires'] = '0'
+        raise ex
+
 async def index_handler(request):
     return web.FileResponse(os.path.join(web_app_dir, 'app.html'))
 
 def init_app():
-    app = web.Application()
+    app = web.Application(middlewares=[no_cache_middleware])
     app.router.add_get('/ws', handle_websocket)
     app.router.add_get('/', index_handler)
     app.router.add_static('/', web_app_dir)
