@@ -143,6 +143,11 @@ async def handle_websocket(request):
         pass
     finally:
         for d in steering_state: steering_state[d] = False
+        try:
+            for k in ['y', 'l', 'u', 'o', 'h', 'k', 'j', 't', 'i', 'p', 'e']:
+                pydirectinput.keyUp(k)
+        except Exception:
+            pass
         print("연결 종료됨")
         
     return ws
