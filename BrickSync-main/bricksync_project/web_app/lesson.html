@@ -2694,6 +2694,9 @@
                         showMusicModal(param);
                     } else if (action === 'matrix_image' || action === 'matrix_pixel') {
                         // param-unified 클래스(통합 모달 트리거)이거나 다른 매트릭스 파라미터 클릭 시
+                        if (isMissionActive && ['1', '2', '3', '4', '5'].includes(unit)) {
+                            return; // 미션 모드일 때는 라이트 매트릭스 편집 창 비활성화
+                        }
                         showMatrixModal(param);
                     } else if (action === 'control_repeat') {
                         showRepeatLoopModal(param);
@@ -3698,6 +3701,9 @@ print("BrickSync Sandbox Run")
                             let matrixArr = matEl ? (matEl.getAttribute('data-matrix') || JSON.stringify([0, 6, 0, 0, 0, 0, 6, 0, 6])) : JSON.stringify([0, 6, 0, 0, 0, 0, 6, 0, 6]);
                             let lightDuration = matEl ? (parseFloat(matEl.getAttribute('data-val')) || 2) : 2;
 
+                            // Send ACTION_LIGHT key to Fortnite
+                            localActionsQueue.push({ action: 'ACTION_LIGHT', delay: cumulativeDelayMs });
+
                             if (matrixArr) {
                                 try {
                                     const arr = JSON.parse(matrixArr);
@@ -4017,6 +4023,7 @@ print("BrickSync Sandbox Run")
                                         await new Promise(r => setTimeout(r, 60));
                                     }
                                 } else if (cmd.action === 'matrix') {
+                                    try { window.parent.sendWebSocketAction({ action: 'ACTION_LIGHT' }); } catch (e) { }
                                     let encodedColors = cmd.colors.map(c => c > 0 ? c + 160 : 0);
                                     let targetPort = 0;
                                     for (let p = 0; p < 6; p++) {
@@ -4200,8 +4207,87 @@ print("BrickSync Sandbox Run")
             document.getElementById('missionBriefingModal').style.display = 'flex';
         }
 
+        function setupMissionToolbox(targetUnit) {
+            const palette = document.getElementById('palette');
+            if (!palette) return;
+
+            // Define allowed blocks for each unit's second step (Fortnite integration mode)
+            const allowedBlocksMap = {
+                '1': ['start', 'matrix_pixel', 'flow_wait'],
+                '2': ['start', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait', 'control_forever', 'control_repeat', 'car_forward', 'car_backward', 'car_left', 'car_right', 'matrix_pixel'],
+                '3': ['start', 'event_distance_sensor', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait', 'matrix_pixel'],
+                '4': ['start', 'control_forever', 'control_repeat', 'event_distance_sensor', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait', 'matrix_pixel'],
+                '5': ['start', 'event_distance_sensor', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait']
+            };
+
+            const allowed = allowedBlocksMap[targetUnit] || ['start'];
+
+            // Hide/show blocks and configure matrix_pixel for the current unit
+            const children = Array.from(palette.children);
+            children.forEach(child => {
+                if (child.classList.contains('spike-block')) {
+                    const action = child.getAttribute('data-action');
+                    if (allowed.includes(action)) {
+                        child.style.display = ''; // Show
+                        
+                        // Customize matrix_pixel to be a static red light with no options
+                        if (action === 'matrix_pixel') {
+                            // Update inner pixels to red
+                            const innerPixels = child.querySelectorAll('div > div');
+                            innerPixels.forEach(pixel => {
+                                pixel.style.backgroundColor = '#ef4444';
+                                pixel.style.borderColor = '#ef4444';
+                            });
+                            
+                            // Update block parameter to LWP3 red code (9) and block dropdown click removal
+                            const paramEl = child.querySelector('.block-param');
+                            if (paramEl) {
+                                paramEl.innerHTML = ''; // remove chevron
+                                paramEl.style.backgroundColor = '#ef4444';
+                                paramEl.style.pointerEvents = 'none';
+                                paramEl.setAttribute('data-val', '9');
+                                paramEl.setAttribute('data-matrix', JSON.stringify([9,9,9,9,9,9,9,9,9]));
+                            }
+                        }
+                    } else {
+                        child.style.display = 'none'; // Hide
+                    }
+                } else if (child.classList.contains('category-divider')) {
+                    child.style.display = 'none'; // Hide dividers for a clean look
+                }
+            });
+
+            // Automatically clear workspace and add a start block stack at (150, 150)
+            const workspaceArea = document.getElementById('workspaceArea');
+            if (workspaceArea) {
+                const stacks = workspaceArea.querySelectorAll('.block-stack');
+                stacks.forEach(s => s.remove());
+                const hint = workspaceArea.querySelector('.hint-text');
+                if (hint) hint.remove();
+
+                const newStack = document.createElement('div');
+                newStack.className = 'block-stack';
+                newStack.style.left = '150px';
+                newStack.style.top = '150px';
+                workspaceArea.appendChild(newStack);
+
+                const template = document.querySelector(`#palette [data-action="start"]`);
+                if (template) {
+                    const block = template.cloneNode(true);
+                    block.classList.add('workspace-item');
+                    newStack.appendChild(block);
+                }
+            }
+
+            console.log(`[BrickSync] Fortnite-compatible toolbox loaded for Unit ${targetUnit}`);
+        }
+
         function closeMissionBriefing() {
             document.getElementById('missionBriefingModal').style.display = 'none';
+            if (isMissionActive && unit) {
+                setupMissionToolbox(unit);
+                localStorage.setItem(`bricksync_mission_active_unit_${unit}`, 'true');
+            }
         }
 
 
@@ -4471,6 +4557,10 @@ print("BrickSync Sandbox Run")
             window.dashChannel.onmessage = function (event) {
                 if (event.data && event.data.type === 'RESET_ALL') {
                     localStorage.removeItem('bricksync_student_session');
+                    // Clear mission active markers
+                    for (let u = 1; u <= 5; u++) {
+                        localStorage.removeItem(`bricksync_mission_active_unit_${u}`);
+                    }
                     window.top.location.href = 'student_login.html';
                 }
             };
@@ -4915,7 +5005,16 @@ print("BrickSync Sandbox Run")
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(loadWorkspace, 200);
+            setTimeout(() => {
+                loadWorkspace();
+                if (unit) {
+                    const activeKey = `bricksync_mission_active_unit_${unit}`;
+                    if (localStorage.getItem(activeKey) === 'true') {
+                        isMissionActive = true;
+                        setupMissionToolbox(unit);
+                    }
+                }
+            }, 200);
             setupPaletteScroll();
         });
     </script>
