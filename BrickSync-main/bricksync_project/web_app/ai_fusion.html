@@ -625,6 +625,84 @@
         .toolbox::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        .btn-go-mission {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            padding: 10px 22px;
+            cursor: pointer;
+            color: #451a03;
+            font-weight: 900;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.4),
+                0 5px 0 #b45309,
+                0 8px 16px rgba(245, 158, 11, 0.4);
+            position: relative;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .btn-go-mission:hover {
+            background: linear-gradient(135deg, #fcd34d, #d97706);
+            transform: translateY(-2px);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 7px 0 #b45309,
+                0 10px 20px rgba(245, 158, 11, 0.5);
+        }
+
+        .btn-go-mission:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 0 0 #b45309,
+                0 2px 4px rgba(245, 158, 11, 0.15);
+        }
+
+        .btn-check-tasks {
+            background: rgba(186, 230, 253, 0.75);
+            border: 2px solid rgba(56, 189, 248, 0.85);
+            border-radius: 24px;
+            padding: 10px 22px;
+            cursor: pointer;
+            color: #0369a1;
+            font-weight: 900;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                0 5px 0 #0284c7,
+                0 8px 16px rgba(14, 165, 233, 0.25);
+            position: relative;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .btn-check-tasks:hover {
+            background: rgba(186, 230, 253, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),
+                0 7px 0 #0284c7,
+                0 10px 20px rgba(14, 165, 233, 0.35);
+        }
+
+        .btn-check-tasks:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.15),
+                0 0 0 #0284c7,
+                0 2px 4px rgba(14, 165, 233, 0.1);
+        }
     </style>
 </head>
 
@@ -674,20 +752,22 @@
                 style="font-size: 0.95rem; color: #64748b; font-weight: 500; margin-left: 10px; border-left: 2px solid #e2e8f0; padding-left: 15px;">
                 미션 설명 텍스트</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
+        <div style="display: flex; align-items: center; gap: 15px; position: relative; z-index: 2;">
             <span style="font-size: 0.9rem; font-weight: 800; color: #475569; white-space: nowrap;"
                 data-i18n="lbl_mission_progress">미션 달성도</span>
             <div
-                style="flex: 1; height: 12px; background: #e2e8f0; border-radius: 10px; overflow: hidden; position: relative;">
+                style="width: 160px; height: 20px; background: rgba(203, 213, 225, 0.85); border-radius: 12px; overflow: hidden; position: relative; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);">
                 <div id="m-progress"
-                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #34d399, #10b981); transition: width 0.5s ease; border-radius: 10px;">
+                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #34d399, #10b981); transition: width 0.5s ease; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.35);">
                 </div>
             </div>
             <span id="m-percent"
-                style="font-size: 1rem; font-weight: 900; color: #10b981; width: 45px; text-align: right;">0%</span>
+                style="font-size: 1.1rem; font-weight: 900; color: #059669; width: 45px; text-align: right; margin-right: 10px;">0%</span>
 
-            <button onclick="toggleMissionTasks()"
-                style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; cursor: pointer; color: #475569; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: 0.2s;">
+            <button id="btn-go-mission" onclick="openMissionBriefing()" class="btn-go-mission">
+                <i class="fas fa-trophy"></i> <span>미션하러가기</span>
+            </button>
+            <button onclick="toggleMissionTasks()" class="btn-check-tasks">
                 <i class="fas fa-list-check"></i> <span data-i18n="btn_check_tasks">과제 확인</span>
             </button>
         </div>
@@ -2666,6 +2746,9 @@
                         showMusicModal(param);
                     } else if (action === 'matrix_image' || action === 'matrix_pixel') {
                         // param-unified 클래스(통합 모달 트리거)이거나 다른 매트릭스 파라미터 클릭 시
+                        if (isMissionActive && ['1', '2', '3'].includes(unit)) {
+                            return; // 미션 모드일 때는 라이트 매트릭스 편집 창 비활성화
+                        }
                         showMatrixModal(param);
                     } else if (action === 'control_repeat') {
                         showRepeatLoopModal(param);
@@ -4029,6 +4112,7 @@ print("BrickSync Sandbox Run")
                                         if (mCnt >= 2) break;
                                     }
                                 } else if (cmd.action === 'matrix') {
+                                    try { window.parent.sendWebSocketAction({ action: 'ACTION_LIGHT' }); } catch (e) { }
                                     let encodedColors = cmd.colors.map(c => c > 0 ? c + 160 : 0);
                                     let targetPort = 0;
                                     for (let p = 0; p < 6; p++) {
@@ -4187,6 +4271,119 @@ print("BrickSync Sandbox Run")
             });
         }
 
+        let isMissionActive = false;
+        function openMissionBriefing() {
+            if (typeof unit === 'undefined' || !unit) return;
+            isMissionActive = true;
+            
+            const lang = localStorage.getItem('bricksync_lang') || 'ko';
+            const current = (missionData[lang] || missionData['ko'])[unit];
+            if (!current) return;
+            
+            document.getElementById('briefingStage').textContent = current.badge;
+            document.getElementById('briefingTitle').textContent = current.title;
+            document.getElementById('briefingDesc').textContent = current.desc;
+            
+            const briefingTasksEl = document.getElementById('briefingTasks');
+            if (briefingTasksEl) {
+                briefingTasksEl.innerHTML = '';
+                current.tasks.forEach(t => {
+                    const li = document.createElement('li');
+                    li.style.cssText = 'display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 500; color: #475569;';
+                    li.innerHTML = `<i class="fas fa-check" style="color: #eab308; width: 16px; text-align: center;"></i> ${t.text}`;
+                    briefingTasksEl.appendChild(li);
+                });
+            }
+            
+            document.getElementById('missionBriefingModal').style.display = 'flex';
+        }
+
+        function setupMissionToolbox(targetUnit) {
+            const palette = document.getElementById('palette');
+            if (!palette) return;
+
+            // Define allowed blocks for each unit's second step (Fortnite integration mode)
+            const fortniteCompatibleBlocks = [
+                'start', 'flow_wait', 'control_forever', 'control_repeat', 'matrix_pixel',
+                'car_forward', 'car_backward', 'car_left', 'car_right',
+                'motor_cw', 'motor_ccw', 'motor_stop'
+            ];
+
+            const allowedBlocksMap = {
+                '1': fortniteCompatibleBlocks,
+                '2': fortniteCompatibleBlocks,
+                '3': fortniteCompatibleBlocks
+            };
+
+            const allowed = allowedBlocksMap[targetUnit] || ['start'];
+
+            // Hide/show blocks and configure matrix_pixel for the current unit
+            const children = Array.from(palette.children);
+            children.forEach(child => {
+                if (child.classList.contains('spike-block')) {
+                    const action = child.getAttribute('data-action');
+                    if (allowed.includes(action)) {
+                        child.style.display = ''; // Show
+                        
+                        // Customize matrix_pixel to be a static red light with no options
+                        if (action === 'matrix_pixel') {
+                            // Update inner pixels to red
+                            const innerPixels = child.querySelectorAll('div > div');
+                            innerPixels.forEach(pixel => {
+                                pixel.style.backgroundColor = '#ef4444';
+                                pixel.style.borderColor = '#ef4444';
+                            });
+                            
+                            // Update block parameter to LWP3 red code (9) and block dropdown click removal
+                            const paramEl = child.querySelector('.block-param');
+                            if (paramEl) {
+                                paramEl.innerHTML = ''; // remove chevron
+                                paramEl.style.backgroundColor = '#ef4444';
+                                paramEl.style.pointerEvents = 'none';
+                                paramEl.setAttribute('data-val', '9');
+                                paramEl.setAttribute('data-matrix', JSON.stringify([9,9,9,9,9,9,9,9,9]));
+                            }
+                        }
+                    } else {
+                        child.style.display = 'none'; // Hide
+                    }
+                } else if (child.classList.contains('category-divider')) {
+                    child.style.display = 'none'; // Hide dividers for a clean look
+                }
+            });
+
+            // Automatically clear workspace and add a start block stack at (150, 150)
+            const workspaceArea = document.getElementById('workspaceArea');
+            if (workspaceArea) {
+                const stacks = workspaceArea.querySelectorAll('.block-stack');
+                stacks.forEach(s => s.remove());
+                const hint = workspaceArea.querySelector('.hint-text');
+                if (hint) hint.remove();
+
+                const newStack = document.createElement('div');
+                newStack.className = 'block-stack';
+                newStack.style.left = '150px';
+                newStack.style.top = '150px';
+                workspaceArea.appendChild(newStack);
+
+                const template = document.querySelector(`#palette [data-action="start"]`);
+                if (template) {
+                    const block = template.cloneNode(true);
+                    block.classList.add('workspace-item');
+                    newStack.appendChild(block);
+                }
+            }
+
+            console.log(`[BrickSync] Fortnite-compatible toolbox loaded for Unit ${targetUnit}`);
+        }
+
+        function closeMissionBriefing() {
+            document.getElementById('missionBriefingModal').style.display = 'none';
+            if (isMissionActive && unit) {
+                setupMissionToolbox(unit);
+            }
+        }
+
         function toggleMissionTasks() {
             const panel = document.getElementById('missionTasksPanel');
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -4329,12 +4526,17 @@ print("BrickSync Sandbox Run")
                                 finalPin = '9988';
                             }
 
-                            setTimeout(() => {
-                                // 웹소켓을 통해 클리어 신호 전송 로직 (추후 UEFN 연동 용)
-                                if (typeof bridgeSocket !== 'undefined' && bridgeSocket && bridgeSocket.readyState === WebSocket.OPEN) {
-                                    bridgeSocket.send(JSON.stringify({ action: "MISSION_CLEARED_PIN_READY", pin: finalPin }));
-                                }
-                            }, 500); // 100% 모션 후 딜레이
+                            if (isMissionActive) {
+                                setTimeout(() => {
+                                    showPinCodeModal(finalPin);
+                                    triggerSuccessConfetti();
+
+                                    // 웹소켓을 통해 클리어 신호 전송 로직 (추후 UEFN 연동 용)
+                                    if (typeof bridgeSocket !== 'undefined' && bridgeSocket && bridgeSocket.readyState === WebSocket.OPEN) {
+                                        bridgeSocket.send(JSON.stringify({ action: "MISSION_CLEARED_PIN_READY", pin: finalPin }));
+                                    }
+                                }, 500); // 100% 모션 후 딜레이
+                            }
                         } else if (percent < 100 && progressEl) {
                             progressEl.dataset.completed = ''; // 블럭 떨어져나가면 달성도 리셋
                         }
@@ -5334,6 +5536,32 @@ print("BrickSync Sandbox Run")
         });
     </script>
     <script src="settings.js"></script>
+    <!-- 미션 설명 및 목표 안내 팝업 (미션하러가기) -->
+    <div id="missionBriefingModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(8px); flex-direction: column;">
+        <div style="position: relative; z-index: 3002; background: rgba(255, 255, 255, 0.95); padding: 40px 35px; border-radius: 24px; width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.5);">
+            <div style="width: 70px; height: 70px; background: #eab308; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: -75px auto 20px auto; box-shadow: 0 10px 20px rgba(234, 179, 8, 0.3); border: 4px solid white;">
+                <i class="fas fa-flag" style="font-size: 28px; color: white;"></i>
+            </div>
+            <h2 id="briefingStage" style="font-size: 1.8rem; color: #1e293b; font-weight: 900; margin-bottom: 5px; text-align: center;">STAGE 1</h2>
+            <h3 id="briefingTitle" style="font-size: 1.3rem; color: #4f46e5; font-weight: 800; margin-bottom: 15px; text-align: center;">미션 제목</h3>
+            <p id="briefingDesc" style="color: #475569; font-size: 1rem; line-height: 1.6; margin-bottom: 25px; text-align: center;">미션 설명 텍스트</p>
+            
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a; display: block; margin-bottom: 12px; text-align: left;">📋 미션 달성 과제</span>
+                <ul id="briefingTasks" style="style-type: none; display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 0; list-style: none;">
+                    <!-- 과제 항목들 동적 생성 -->
+                </ul>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeMissionBriefing()"
+                    style="flex: 1; padding: 14px; border-radius: 12px; background: #eab308; color: #1e293b; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; box-shadow: 0 4px 10px rgba(234, 179, 8, 0.3);">
+                    미션 도전하기 🚀
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
