@@ -4213,10 +4213,9 @@ print("BrickSync Sandbox Run")
 
             // Define allowed blocks for each unit's second step (Fortnite integration mode)
             const fortniteCompatibleBlocks = [
-                'start', 'flow_wait', 'event_color_sensor', 'event_distance_sensor', 'event_tilt_sensor', 
-                'event_sound_level', 'motor_speed_set', 'car_speed_set', 'car_forward', 'car_backward', 
-                'car_left', 'car_right', 'motor_cw', 'motor_ccw', 'motor_stop', 'matrix_pixel', 
-                'control_repeat', 'control_forever'
+                'start', 'flow_wait', 'control_forever', 'control_repeat', 'matrix_pixel',
+                'car_forward', 'car_backward', 'car_left', 'car_right',
+                'motor_cw', 'motor_ccw', 'motor_stop'
             ];
 
             const allowedBlocksMap = {
