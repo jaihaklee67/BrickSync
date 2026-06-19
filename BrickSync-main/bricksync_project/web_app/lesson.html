@@ -4212,12 +4212,19 @@ print("BrickSync Sandbox Run")
             if (!palette) return;
 
             // Define allowed blocks for each unit's second step (Fortnite integration mode)
+            const fortniteCompatibleBlocks = [
+                'start', 'flow_wait', 'event_color_sensor', 'event_distance_sensor', 'event_tilt_sensor', 
+                'event_sound_level', 'motor_speed_set', 'car_speed_set', 'car_forward', 'car_backward', 
+                'car_left', 'car_right', 'motor_cw', 'motor_ccw', 'motor_stop', 'matrix_pixel', 
+                'control_repeat', 'control_forever'
+            ];
+
             const allowedBlocksMap = {
-                '1': ['start', 'matrix_pixel', 'flow_wait'],
-                '2': ['start', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait', 'control_forever', 'control_repeat', 'car_forward', 'car_backward', 'car_left', 'car_right', 'matrix_pixel'],
-                '3': ['start', 'event_distance_sensor', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait', 'matrix_pixel'],
-                '4': ['start', 'control_forever', 'control_repeat', 'event_distance_sensor', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait', 'matrix_pixel'],
-                '5': ['start', 'event_distance_sensor', 'motor_speed_set', 'motor_cw', 'motor_ccw', 'motor_stop', 'flow_wait']
+                '1': fortniteCompatibleBlocks,
+                '2': fortniteCompatibleBlocks,
+                '3': fortniteCompatibleBlocks,
+                '4': fortniteCompatibleBlocks,
+                '5': fortniteCompatibleBlocks
             };
 
             const allowed = allowedBlocksMap[targetUnit] || ['start'];
