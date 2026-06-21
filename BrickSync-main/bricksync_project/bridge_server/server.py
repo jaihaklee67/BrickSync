@@ -113,6 +113,10 @@ async def handle_websocket(request):
                         print("[REWARD] 보상 발동! E키")
                         pydirectinput.keyDown('e'); time.sleep(0.1); pydirectinput.keyUp('e')
                         
+                    elif action == "MONSTER_ALERT":
+                        print("[ALERT] 몬스터 감지 경보 발동! G키")
+                        pydirectinput.keyDown('g'); time.sleep(0.1); pydirectinput.keyUp('g')
+                        
                     elif action == "SWING_CONTROL":
                         direction = data.get("dir")
                         turns = data.get("val", 1)
@@ -144,7 +148,7 @@ async def handle_websocket(request):
     finally:
         for d in steering_state: steering_state[d] = False
         try:
-            for k in ['y', 'l', 'u', 'o', 'h', 'k', 'j', 't', 'i', 'p', 'e']:
+            for k in ['y', 'l', 'u', 'o', 'h', 'k', 'j', 't', 'i', 'p', 'e', 'g']:
                 pydirectinput.keyUp(k)
         except Exception:
             pass

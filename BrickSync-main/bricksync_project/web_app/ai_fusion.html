@@ -1456,11 +1456,15 @@
         function showAIGestureModal(paramEl) {
             modalBox.innerHTML = '';
             modalBox.style.cssText = 'background: #8b5cf6; display: flex; gap: 10px; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #7c3aed; width: auto; max-width: 250px;';
-            let options = [];
             if (unit === '3') {
                 options = [
                     { type: 'forward', val: 0, icon: '<i class="fas fa-arrow-up"></i>' },
                     { type: 'backward', val: 1, icon: '<i class="fas fa-arrow-down"></i>' }
+                ];
+            } else if (unit === '2') {
+                options = [
+                    { type: 'monster', val: 0, icon: '<i class="fas fa-dragon"></i>' },
+                    { type: 'none', val: 3, icon: '<i class="fas fa-ban"></i>' }
                 ];
             } else {
                 options = [
@@ -3920,8 +3924,17 @@ print("BrickSync Sandbox Run")
 
             if (blockCount > 1) {
                 // [보상 시스템] 블록 조립 코드를 성공적으로 완성하고 런(Run) 버튼을 누르면
-                // 포트나이트 캣 아일랜드로 '상호작용(E) 또는 던지기' 키를 전송하여 고양이에게 먹이를 줍니다!
-                try { window.parent.sendWebSocketAction({ action: "CAT_FEED_REWARD" }); console.log("포트나이트 연동 신호(CAT_FEED_REWARD) 전송 완료!"); } catch (e) { }
+                if (unit === '2') {
+                    // 2단원: 몬스터 경보 및 보상 신호 송출
+                    try {
+                        window.parent.sendWebSocketAction({ action: "MONSTER_ALERT" });
+                        window.parent.sendWebSocketAction({ action: "ITEM_GRANT_REWARD" });
+                        console.log("포트나이트 연동 신호(MONSTER_ALERT & ITEM_GRANT_REWARD) 전송 완료 [AI 2단원 성공]");
+                    } catch (e) { }
+                } else {
+                    // 기본 (고양이 먹이 주기)
+                    try { window.parent.sendWebSocketAction({ action: "CAT_FEED_REWARD" }); console.log("포트나이트 연동 신호(CAT_FEED_REWARD) 전송 완료!"); } catch (e) { }
+                }
             }
 
             if (!window.parent.connectionType) {
@@ -4262,7 +4275,14 @@ print("BrickSync Sandbox Run")
                 setTimeout(() => {
                     if (blockCount > 1 && anySequenceFound && window.bleEngineRunCounter === currentRunId) {
                         triggerSuccessConfetti();
-                        try { window.parent.sendWebSocketAction({ action: "CAT_FEED_REWARD" }); } catch (e) { }
+                        if (unit === '2') {
+                            try {
+                                window.parent.sendWebSocketAction({ action: "MONSTER_ALERT" });
+                                window.parent.sendWebSocketAction({ action: "ITEM_GRANT_REWARD" });
+                            } catch (e) { }
+                        } else {
+                            try { window.parent.sendWebSocketAction({ action: "CAT_FEED_REWARD" }); } catch (e) { }
+                        }
                     }
                 }, maxGlobalDelay + 1000);
 
@@ -4356,12 +4376,12 @@ print("BrickSync Sandbox Run")
                         ]
                     },
                     '2': {
-                        badge: 'STAGE 2', title: '마법 나무 엘리베이터', desc: '앉았다 일어나는 자세(포즈)를 감지하여 엘리베이터를 작동해 보세요!',
+                        badge: 'STAGE 2', title: '동물 경보 레인저 (몬스터 감시 카메라)', desc: '현실에서 직접 만든 몬스터 블록을 카메라에 학습시켜 감시 경보 장치를 가동해 보세요!',
                         pinCode: '8932',
                         tasks: [
                             { id: 'start', text: '재생(시작) 블록 연결하기' },
-                            { id: 'event_ai_gesture', text: 'AI 자세 인식 블록 연결하기' },
-                            { id: ['motor_cw', 'motor_ccw'], text: '모터 회전 블록 연결하기' }
+                            { id: 'event_ai_gesture', text: 'AI 카메라 인식 블록 연결하기' },
+                            { id: 'matrix_pixel', text: 'LED 매트릭스 경보등 블록 연결하기' }
                         ]
                     },
                     '3': {
@@ -4385,12 +4405,12 @@ print("BrickSync Sandbox Run")
                         ]
                     },
                     '2': {
-                        badge: 'STAGE 2', title: 'Magic Tree Elevator', desc: 'Detect your pose (squat/stand) to operate the elevator!',
+                        badge: 'STAGE 2', title: 'Animal Alert Ranger (Monster Camera)', desc: 'Train your custom lego monster block on the camera to trigger the alarm system!',
                         pinCode: '8932',
                         tasks: [
                             { id: 'start', text: 'Connect the Play (Start) block' },
-                            { id: 'event_ai_gesture', text: 'Connect the AI Pose block' },
-                            { id: ['motor_cw', 'motor_ccw'], text: 'Connect motor rotation block' }
+                            { id: 'event_ai_gesture', text: 'Connect the AI Camera Recognition block' },
+                            { id: 'matrix_pixel', text: 'Connect the LED Matrix Alert block' }
                         ]
                     },
                     '3': {
@@ -4439,7 +4459,7 @@ print("BrickSync Sandbox Run")
                 const fortniteCompatibleBlocks = [
                     'start', 'flow_wait', 'control_forever', 'control_repeat', 'matrix_pixel',
                     'car_forward', 'car_backward', 'car_left', 'car_right',
-                    'motor_cw', 'motor_ccw', 'motor_stop'
+                    'motor_cw', 'motor_ccw', 'motor_stop', 'event_ai_gesture'
                 ];
 
                 const allowedBlocksMap = {
@@ -5196,6 +5216,50 @@ print("BrickSync Sandbox Run")
         }
 
         async function app() {
+            if (unit === '2') {
+                // Dynamically modify block icon & defaults in the palette for Unit 2
+                const aiBlock = document.querySelector('#palette [data-action="event_ai_gesture"]');
+                if (aiBlock) {
+                    const iconContainer = aiBlock.querySelector('.block-icon div:nth-child(2)');
+                    if (iconContainer) {
+                        iconContainer.innerHTML = '<i class="fas fa-dragon"></i>';
+                    }
+                    const paramEl = aiBlock.querySelector('.block-param');
+                    if (paramEl) {
+                        paramEl.setAttribute('data-val', '0'); // Default to Monster (0)
+                        paramEl.innerHTML = '<i class="fas fa-dragon" style="color:#64748b;"></i>';
+                    }
+                }
+                
+                // 좌측 패널 타이틀 변경
+                const leftPanelContainer = document.querySelector('div[style*="width: 480px"]');
+                if (leftPanelContainer) {
+                    const aiTitleText = leftPanelContainer.querySelector('[data-i18n="lbl_ai_vision_title"]');
+                    if (aiTitleText) {
+                        aiTitleText.innerHTML = '<i class="fas fa-dragon" style="color: #f97316;"></i> AI 몬스터 카메라 인식';
+                    }
+                }
+                
+                // 학습 버튼 수정 및 불필요한 버튼 숨김
+                const btnRock = document.querySelector('button[onclick="addExample(0)"]');
+                const btnPaper = document.querySelector('button[onclick="addExample(1)"]');
+                const btnScissors = document.querySelector('button[onclick="addExample(2)"]');
+                
+                if (btnRock) {
+                    btnRock.style.background = '#f97316';
+                    btnRock.style.boxShadow = '0 3px 0 #ea580c';
+                    btnRock.innerHTML = '<i class="fas fa-dragon"></i> <span>몬스터 (Monster)</span>';
+                }
+                if (btnPaper) btnPaper.style.display = 'none';
+                if (btnScissors) btnScissors.style.display = 'none';
+                
+                // 카운터 텍스트 숨김
+                const countPaper = document.getElementById('count-paper');
+                const countScissors = document.getElementById('count-scissors');
+                if (countPaper) countPaper.style.display = 'none';
+                if (countScissors) countScissors.style.display = 'none';
+            }
+
             if (unit === '3') {
                 // Dynamically modify block icon & defaults in the palette for Unit 3
                 const aiBlock = document.querySelector('#palette [data-action="event_ai_gesture"]');
@@ -5291,8 +5355,12 @@ print("BrickSync Sandbox Run")
 
                     if (result.confidences[result.label] > aiConfidenceThreshold) {
                         const detectedGesture = parseInt(result.label);
-                        const labels = ['주먹 (Rock)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
-                        const icons = ['fa-hand-rock', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
+                        let labels = ['주먹 (Rock)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
+                        let icons = ['fa-hand-rock', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
+                        if (unit === '2') {
+                            labels = ['몬스터 (Monster)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
+                            icons = ['fa-dragon', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
+                        }
 
                         currentGestureLabel.innerHTML = `<i class="fas ${icons[detectedGesture]}"></i> ${labels[detectedGesture]} (${Math.round(result.confidences[result.label] * 100)}%)`;
 
@@ -5304,6 +5372,16 @@ print("BrickSync Sandbox Run")
                                 lastTriggeredAiGesture = detectedGesture;
                                 console.log("🚀 [AI Trigger] Confirmed Stable Gesture:", detectedGesture);
                                 runBlocks('event_ai_gesture', detectedGesture);
+
+                                // 2단원 몬스터 감지(0) 시 UEFN 경보 웹소켓 전송
+                                if (unit === '2' && detectedGesture === 0) {
+                                    try {
+                                        window.parent.sendWebSocketAction({ action: "MONSTER_ALERT" });
+                                        console.log("포트나이트 연동 신호(MONSTER_ALERT) 전송 완료 [AI 2단원]");
+                                    } catch (e) {
+                                        console.error("Fortnite websocket transmission failed:", e);
+                                    }
+                                }
                             }
                         } else {
                             candidateAiGesture = detectedGesture;

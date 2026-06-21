@@ -377,8 +377,9 @@
         }
 
         // =================================================================================
-        // 안티그라비티 전역 제스처 복원 기법 (iframe 밖/안 어디든 클릭해도 반응하도록)
+        // 안티그라비티 전역 제스처 복원 기법 비활성화 (프로젝트 카드 클릭 먹통 버그 방지)
         // =================================================================================
+        /*
         let isSilentReconnecting = false;
         async function silentReconnectAttempt() {
             if (window.connectionType || isSilentReconnecting || !navigator.bluetooth || !navigator.bluetooth.getDevices) return;
@@ -394,6 +395,8 @@
         }
 
         document.body.addEventListener('pointerdown', silentReconnectAttempt, { capture: true });
+        */
+
         // iframe 내부에서 클릭이 일어날 때도 부모창이 알아채서 복구하도록 트리거 바인딩 (onload마다 갱신)
         document.getElementById('main-frame').addEventListener('load', function () {
             // 현재 이동한 페이지를 세션에 저장하여 새로고침(F5) 시에도 유지
@@ -412,9 +415,11 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
                 updateWsUI(ws.readyState === WebSocket.OPEN);
             }
+            /*
             try {
                 this.contentWindow.document.body.addEventListener('pointerdown', silentReconnectAttempt, { capture: true });
             } catch (e) { }
+            */
         });
 
         function handleBLEData(event) {

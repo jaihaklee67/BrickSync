@@ -800,13 +800,13 @@
                     }
                     
                     const badgeClass = isAi ? 'project-badge ai-badge' : 'project-badge';
-                    const targetUrl = isAi ? `ai_fusion.html?unit=${p.unit}` : `lesson.html?unit=${p.unit}`;
+                    const targetUrl = isAi ? `ai_fusion.html?unit=${p.unit}&v=${Date.now()}` : `lesson.html?unit=${p.unit}&v=${Date.now()}`;
                     
                     const blocksText = currentLang === 'en' ? `Blocks: ${p.blocksCount}` : `블록 수: ${p.blocksCount}개`;
                     const modifiedText = currentLang === 'en' ? `Modified` : `최근 수정`;
                     
                     html += `
-                        <div class="project-card active-project">
+                        <div class="project-card active-project" style="cursor: pointer;" onclick="location.href='${targetUrl}&projectId=${p.id}'">
                             <div class="project-card-inner">
                                 <div class="project-card-top">
                                     <span class="${badgeClass}">${badgeText}</span>
@@ -820,7 +820,7 @@
                                         ${blocksText}<br>
                                         ${modifiedText}
                                     </div>
-                                    <button class="project-play-btn" onclick="location.href='${targetUrl}&projectId=${p.id}'">
+                                    <button class="project-play-btn" onclick="event.stopPropagation(); location.href='${targetUrl}&projectId=${p.id}'">
                                         <i data-lucide="play" style="width:16px;height:16px;fill:currentColor;"></i>
                                     </button>
                                 </div>
