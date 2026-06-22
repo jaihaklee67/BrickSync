@@ -4934,14 +4934,32 @@ print("BrickSync Sandbox Run")
         const aiStatusLabel = document.getElementById('ai-status');
         let examplesCount = [0, 0, 0, 0];
 
+        // [BUG-03 FIX] 웹캠 초기화에 타임아웃(10초) 보호 추가
+        // 이전 코드는 loadeddata 이벤트가 발생하지 않을 경우 Promise가 영원히 resolve되지 않았음.
+        // 카메라 장치 없음/권한 지연/드라이버 오류 등으로 인한 무한 로딩 방지.
         async function setupWebcam() {
+            const WEBCAM_TIMEOUT_MS = 10000; // 10초 타임아웃
+
+            function withTimeout(promise, ms, errMsg) {
+                return Promise.race([
+                    promise,
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error(errMsg)), ms)
+                    )
+                ]);
+            }
+
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     webcamElement.srcObject = stream;
-                    return new Promise((resolve) => {
-                        webcamElement.addEventListener('loadeddata', () => resolve(), false);
-                    });
+                    return await withTimeout(
+                        new Promise((resolve) => {
+                            webcamElement.addEventListener('loadeddata', () => resolve(), { once: true });
+                        }),
+                        WEBCAM_TIMEOUT_MS,
+                        'WEBCAM_LOADEDDATA_TIMEOUT'
+                    );
                 } catch (error) {
                     throw error;
                 }
@@ -4951,10 +4969,17 @@ print("BrickSync Sandbox Run")
                     navigator.getUserMedia = navigator.getUserMedia ||
                         navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia || navigatorAny.msGetUserMedia;
                     if (navigator.getUserMedia) {
+                        const timeoutId = setTimeout(() => reject(new Error('WEBCAM_LEGACY_TIMEOUT')), WEBCAM_TIMEOUT_MS);
                         navigator.getUserMedia({ video: true }, stream => {
                             webcamElement.srcObject = stream;
-                            webcamElement.addEventListener('loadeddata', () => resolve(), false);
-                        }, error => reject(error));
+                            webcamElement.addEventListener('loadeddata', () => {
+                                clearTimeout(timeoutId);
+                                resolve();
+                            }, { once: true });
+                        }, error => {
+                            clearTimeout(timeoutId);
+                            reject(error);
+                        });
                     } else {
                         reject(new Error("getUserMedia is not supported on this browser"));
                     }
@@ -5328,11 +5353,27 @@ print("BrickSync Sandbox Run")
                 initSpeechEngine();
                 return;
             }
+
+            // [BUG-03 FIX] mobilenet.load() 및 setupWebcam()에 타임아웃 처리 추가
+            // 이전 코드는 네트워크 지연 / 카메라 무응답 시 로딩 스피너가 무한 지속되었음.
+            const MODEL_LOAD_TIMEOUT_MS = 15000; // mobilenet 모델 로딩 최대 15초
+
+            function withTimeout(promise, ms, label) {
+                return Promise.race([
+                    promise,
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error(`TIMEOUT:${label}`)), ms)
+                    )
+                ]);
+            }
+
             try {
-                aiStatusLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 모바일넷 모델링 중... (10초 소요)';
-                net = await mobilenet.load();
+                aiStatusLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 모바일넷 모델링 중... (최대 15초)';
+                net = await withTimeout(mobilenet.load(), MODEL_LOAD_TIMEOUT_MS, 'mobilenet');
+
                 aiStatusLabel.innerHTML = '<i class="fas fa-camera"></i> 웹캠 마운트 중...';
-                await setupWebcam();
+                await setupWebcam(); // setupWebcam() 내부에서 자체 10초 타임아웃 적용됨
+
                 aiStatusLabel.innerHTML = '<i class="fas fa-check-circle"></i> AI 엔진 가동 완료! 하단의 버튼으로 학습하세요.';
                 aiStatusLabel.style.color = '#10b981';
                 aiStatusLabel.style.backgroundColor = '#d1fae5';
@@ -5341,8 +5382,23 @@ print("BrickSync Sandbox Run")
                 aiLoopRunning = true;
                 predictWebcam();
             } catch (e) {
-                console.error(e);
-                aiStatusLabel.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> 카메라 권한 오류가 발생했습니다.';
+                console.error('[AI Engine Error]', e);
+                let errMsg = '<i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> ';
+                if (e.message && e.message.startsWith('TIMEOUT:mobilenet')) {
+                    errMsg += 'AI 모델 로딩 시간 초과 (15초). 네트워크 연결을 확인하고 새로고침 해주세요.';
+                } else if (e.message && e.message.includes('WEBCAM')) {
+                    errMsg += '카메라 연결 시간 초과 (10초). 카메라 장치를 확인하고 새로고침 해주세요.';
+                } else if (e.name === 'NotAllowedError' || (e.message && e.message.includes('Permission'))) {
+                    errMsg += '카메라 권한이 거부되었습니다. 브라우저 주소창의 🔒 아이콘을 클릭하여 카메라 권한을 허용해주세요.';
+                } else if (e.name === 'NotFoundError') {
+                    errMsg += '카메라 장치를 찾을 수 없습니다. 웹캠이 연결되어 있는지 확인해주세요.';
+                } else {
+                    errMsg += '카메라 또는 AI 엔진 오류가 발생했습니다. 새로고침 후 다시 시도해주세요.';
+                }
+                aiStatusLabel.innerHTML = errMsg;
+                aiStatusLabel.style.color = '#991b1b';
+                aiStatusLabel.style.backgroundColor = '#fee2e2';
+                aiStatusLabel.style.borderColor = '#fecaca';
             }
         }
 

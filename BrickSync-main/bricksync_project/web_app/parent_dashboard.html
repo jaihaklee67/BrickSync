@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrickSync — 학부모 리포트</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Noto Sans KR','Outfit',sans-serif}
+body{background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex}
+
+.sidebar{width:240px;background:#1e293b;border-right:1px solid #334155;padding:24px 16px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.sidebar-brand{font-size:1.4rem;font-weight:900;color:#facc15;padding:8px 12px;margin-bottom:16px}
+.sidebar-brand span{font-size:.75rem;color:#64748b;font-weight:500;display:block;margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:#94a3b8;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:#0f172a;color:#fff}
+.nav-item.active{background:linear-gradient(135deg,#db2777,#9333ea);color:#fff}
+.nav-item i{width:18px;text-align:center}
+.sidebar-bottom{margin-top:auto}
+.parent-badge{background:#0f172a;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.parent-badge .avatar{width:36px;height:36px;background:linear-gradient(135deg,#db2777,#9333ea);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:900;flex-shrink:0}
+.parent-badge .name{font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.parent-badge .role-label{font-size:.72rem;color:#db2777;font-weight:700}
+
+.main{flex:1;padding:32px;overflow-y:auto}
+.page-title{font-size:1.6rem;font-weight:900;margin-bottom:6px}
+.page-subtitle{color:#64748b;font-size:.9rem;margin-bottom:28px}
+
+/* 자녀 선택 카드 */
+.child-card{background:linear-gradient(135deg,rgba(219,39,119,.15),rgba(147,51,234,.15));border:1px solid rgba(219,39,119,.3);border-radius:16px;padding:20px 24px;display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.child-avatar{width:56px;height:56px;background:linear-gradient(135deg,#db2777,#9333ea);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;flex-shrink:0}
+.child-name{font-size:1.3rem;font-weight:900}
+.child-class{font-size:.85rem;color:#94a3b8;margin-top:3px}
+
+/* 통계 카드 */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.1}
+.stat-card.pink::before{background:#db2777}
+.stat-card.purple::before{background:#9333ea}
+.stat-card.blue::before{background:#3b82f6}
+.stat-card.green::before{background:#10b981}
+.stat-card .icon{font-size:1.4rem;margin-bottom:10px}
+.stat-card .label{color:#64748b;font-size:.78rem;font-weight:700;margin-bottom:6px}
+.stat-card .value{font-size:1.9rem;font-weight:900}
+.stat-card .sub{font-size:.72rem;color:#94a3b8;margin-top:4px}
+
+/* 패널 */
+.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+@media(max-width:1100px){.panel-grid{grid-template-columns:1fr}}
+.panel{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px}
+.panel-title{font-size:1rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:#f1f5f9}
+.panel-title i{color:#db2777}
+
+/* 활동 로그 */
+.activity-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto}
+.activity-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:#0f172a;border-radius:10px;border-left:3px solid #334155}
+.activity-item.lesson{border-color:#6366f1}
+.activity-item.ai{border-color:#db2777}
+.activity-item.mission{border-color:#10b981}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.activity-item.lesson .activity-dot{background:#6366f1}
+.activity-item.ai .activity-dot{background:#db2777}
+.activity-item.mission .activity-dot{background:#10b981}
+.activity-text{font-size:.85rem;font-weight:600;line-height:1.4}
+.activity-time{font-size:.73rem;color:#64748b;margin-top:2px}
+
+/* 미션 진행도 */
+.mission-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #0f172a}
+.mission-row:last-child{border-bottom:none}
+.mission-name{font-size:.85rem;font-weight:700;flex:1}
+.mission-bar-wrap{flex:2;background:#0f172a;border-radius:20px;height:8px;overflow:hidden}
+.mission-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#db2777,#9333ea);transition:width .8s ease}
+.mission-pct{font-size:.8rem;font-weight:700;color:#db2777;width:36px;text-align:right}
+
+/* 주간 활동 차트 (CSS only) */
+.week-chart{display:flex;align-items:flex-end;gap:8px;height:80px;padding:0 4px}
+.week-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.week-bar-fill{width:100%;background:linear-gradient(180deg,#db2777,#9333ea);border-radius:4px 4px 0 0;transition:height .6s ease;min-height:4px}
+.week-day{font-size:.68rem;color:#64748b;font-weight:700}
+
+.empty-state{text-align:center;padding:28px;color:#475569;font-size:.88rem}
+.empty-state i{font-size:1.8rem;margin-bottom:10px;display:block}
+
+.loading{text-align:center;padding:20px;color:#64748b}
+.loading i{animation:spin 1s linear infinite;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.badge-green{background:rgba(16,185,129,.15);color:#10b981}
+.badge-yellow{background:rgba(234,179,8,.15);color:#eab308}
+.badge-gray{background:rgba(100,116,139,.1);color:#64748b}
+
+.toast{position:fixed;bottom:20px;right:20px;background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:12px 20px;border-radius:10px;font-size:.85rem;font-weight:700;z-index:9999;transform:translateY(80px);transition:.3s;opacity:0}
+.toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">🧱 BrickSync <span>학부모 리포트</span></div>
+  <button class="nav-item active" onclick="showSection('report')"><i class="fas fa-chart-line"></i> 학습 리포트</button>
+  <button class="nav-item" onclick="showSection('missions')"><i class="fas fa-trophy"></i> 미션 현황</button>
+  <button class="nav-item" onclick="showSection('activity')"><i class="fas fa-history"></i> 활동 기록</button>
+  <div class="sidebar-bottom">
+    <div class="parent-badge">
+      <div class="avatar" id="sidebarAvatar">P</div>
+      <div>
+        <div class="name" id="sidebarName">로딩 중...</div>
+        <div class="role-label">학부모 계정</div>
+      </div>
+    </div>
+    <button class="nav-item" onclick="BrickSyncAuth.signOut()"><i class="fas fa-sign-out-alt"></i> 로그아웃</button>
+  </div>
+</aside>
+
+<main class="main" id="mainContent">
+  <div class="loading"><i class="fas fa-spinner"></i> 로딩 중...</div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase_config.js"></script>
+<script src="auth.js"></script>
+
+<script>
+let parentProfile = null;
+let studentProfile = null;
+let studentProjects = [];
+
+(async () => {
+  const session = await BrickSyncAuth.requireRole(['parent']);
+  if (!session) return;
+  parentProfile = session.profile;
+
+  const n = parentProfile.displayName || '학부모';
+  document.getElementById('sidebarName').textContent = n;
+  document.getElementById('sidebarAvatar').textContent = n[0];
+
+  // 연결된 자녀 프로필 로드
+  if (firestore && parentProfile.linkedStudentUid) {
+    const doc = await firestore.collection('users').doc(parentProfile.linkedStudentUid).get();
+    if (doc.exists) studentProfile = doc.data();
+
+    // 자녀 프로젝트 데이터 로드
+    const projSnap = await firestore.collection('projects')
+      .doc(parentProfile.linkedStudentUid).collection('items')
+      .orderBy('updatedAt', 'desc').limit(20).get();
+    studentProjects = projSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+
+  showSection('report');
+})();
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function showSection(section) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const map = { report: 0, missions: 1, activity: 2 };
+  document.querySelectorAll('.nav-item')[map[section]]?.classList.add('active');
+  if (section === 'report') renderReport();
+  else if (section === 'missions') renderMissions();
+  else renderActivity();
+}
+
+// ── 자녀 헤더 카드 HTML ────────────────────────────────────────
+function childHeader() {
+  if (!studentProfile) return `<div class="child-card"><div class="child-avatar">?</div><div><div class="child-name">자녀 정보 없음</div><div class="child-class">연결된 학생이 없습니다</div></div></div>`;
+  const initial = (studentProfile.displayName || '?')[0];
+  return `<div class="child-card">
+    <div class="child-avatar">${initial}</div>
+    <div>
+      <div class="child-name">${studentProfile.displayName}</div>
+      <div class="child-class">${studentProfile.className || ''} · ${studentProfile.email || ''}</div>
+    </div>
+    <span class="badge badge-green" style="margin-left:auto">연결됨 ✓</span>
+  </div>`;
+}
+
+// ── 학습 리포트 ───────────────────────────────────────────────
+function renderReport() {
+  const lessonProjects = studentProjects.filter(p => !p.id.includes('ai'));
+  const aiProjects = studentProjects.filter(p => p.id.includes('ai'));
+  const totalBlocks = studentProjects.reduce((acc, p) => acc + (p.blocks?.length || 0), 0);
+  const lastActive = studentProjects[0]?.updatedAt
+    ? new Date(studentProjects[0].updatedAt).toLocaleDateString('ko-KR')
+    : '없음';
+
+  // 주간 가상 활동 데이터 (실제로는 Firestore 집계)
+  const weekDays = ['월', '화', '수', '목', '금', '토', '일'];
+  const weekData = [65, 80, 45, 90, 70, 30, 0];
+  const maxVal = Math.max(...weekData, 1);
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">학습 리포트</div>
+    <div class="page-subtitle">자녀의 BrickSync 학습 현황을 확인하세요.</div>
+    ${childHeader()}
+
+    <div class="stats-grid">
+      <div class="stat-card pink">
+        <div class="icon">📚</div>
+        <div class="label">완료된 프로젝트</div>
+        <div class="value">${studentProjects.length}</div>
+        <div class="sub">총 저장된 코드 작업</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="icon">🧱</div>
+        <div class="label">사용한 블록 수</div>
+        <div class="value">${totalBlocks}</div>
+        <div class="sub">누적 코딩 블록</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="icon">🤖</div>
+        <div class="label">AI 학습 단원</div>
+        <div class="value">${aiProjects.length}</div>
+        <div class="sub">완료된 AI 미션</div>
+      </div>
+      <div class="stat-card green">
+        <div class="icon">📅</div>
+        <div class="label">마지막 활동</div>
+        <div class="value" style="font-size:1.1rem;padding-top:4px">${lastActive}</div>
+        <div class="sub">가장 최근 저장</div>
+      </div>
+    </div>
+
+    <div class="panel-grid">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-chart-bar"></i> 이번 주 학습 활동</div>
+        <div class="week-chart">
+          ${weekDays.map((d, i) => `
+            <div class="week-bar-wrap">
+              <div class="week-bar-fill" style="height:${Math.round((weekData[i]/maxVal)*100)}%"></div>
+              <div class="week-day">${d}</div>
+            </div>`).join('')}
+        </div>
+        <div style="text-align:center;font-size:.75rem;color:#475569;margin-top:12px">활동 점수 기준</div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-folder-open"></i> 최근 프로젝트</div>
+        ${studentProjects.length === 0
+          ? `<div class="empty-state"><i class="fas fa-inbox"></i>아직 저장된 프로젝트가 없습니다.</div>`
+          : `<div class="activity-list">${studentProjects.slice(0, 5).map(p => `
+            <div class="activity-item ${p.id.includes('ai') ? 'ai' : 'lesson'}">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="activity-text">${p.name || p.id}</div>
+                <div class="activity-time">${p.updatedAt ? new Date(p.updatedAt).toLocaleString('ko-KR') : ''}</div>
+              </div>
+            </div>`).join('')}</div>`}
+      </div>
+    </div>`;
+}
+
+// ── 미션 현황 ─────────────────────────────────────────────────
+function renderMissions() {
+  const units = [
+    { name: '단원 1: 탐험보트', key: '_project_1', color: '#6366f1' },
+    { name: '단원 2: 잠수함',   key: '_project_2', color: '#8b5cf6' },
+    { name: '단원 3: 빙글빙글', key: '_project_3', color: '#db2777' },
+    { name: '단원 4: 동굴자동차',key: '_project_4', color: '#f97316' },
+    { name: '단원 5: 게이트',   key: '_project_5', color: '#10b981' },
+    { name: 'AI 단원 1: 가위바위보', key: '_project_ai_1', color: '#06b6d4' },
+    { name: 'AI 단원 2: 몬스터', key: '_project_ai_2', color: '#db2777' },
+    { name: 'AI 단원 3: 과일인식', key: '_project_ai_3', color: '#eab308' },
+  ];
+
+  const getProgress = (key) => {
+    const match = studentProjects.find(p => p.id && p.id.includes(key.replace('_project_','')));
+    if (!match) return 0;
+    const blocks = match.blocks?.reduce((a, s) => a + (s.blocks?.length || 0), 0) || 0;
+    return Math.min(100, Math.round(blocks / 5 * 100));
+  };
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">미션 현황</div>
+    <div class="page-subtitle">자녀가 완료한 학습 단원과 진행도를 확인합니다.</div>
+    ${childHeader()}
+    <div class="panel">
+      <div class="panel-title"><i class="fas fa-trophy"></i> 학습 단원별 진행도</div>
+      ${units.map(u => {
+        const pct = getProgress(u.key);
+        return `<div class="mission-row">
+          <div class="mission-name">${u.name}</div>
+          <div class="mission-bar-wrap"><div class="mission-bar" style="width:${pct}%;background:linear-gradient(90deg,${u.color},${u.color}99)"></div></div>
+          <div class="mission-pct">${pct}%</div>
+          <span class="badge ${pct===100?'badge-green':pct>0?'badge-yellow':'badge-gray'}" style="margin-left:8px">${pct===100?'완료':pct>0?'진행중':'미시작'}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── 활동 기록 ─────────────────────────────────────────────────
+function renderActivity() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">활동 기록</div>
+    <div class="page-subtitle">자녀의 최근 학습 활동 기록입니다.</div>
+    ${childHeader()}
+    <div class="panel">
+      <div class="panel-title"><i class="fas fa-history"></i> 저장된 프로젝트 전체 기록</div>
+      ${studentProjects.length === 0
+        ? `<div class="empty-state"><i class="fas fa-history"></i>아직 활동 기록이 없습니다.</div>`
+        : `<div class="activity-list">${studentProjects.map(p => {
+            const type = p.id?.includes('ai') ? 'ai' : 'lesson';
+            const icon = type === 'ai' ? '🤖' : '🧱';
+            const blocks = p.blocks?.reduce((a,s)=>a+(s.blocks?.length||0),0)||0;
+            return `<div class="activity-item ${type}">
+              <div class="activity-dot"></div>
+              <div style="flex:1">
+                <div class="activity-text">${icon} ${p.name || p.id}</div>
+                <div class="activity-time">블록 ${blocks}개 · ${p.updatedAt ? new Date(p.updatedAt).toLocaleString('ko-KR') : '-'}</div>
+              </div>
+              <span class="badge badge-green">저장됨</span>
+            </div>`;
+          }).join('')}</div>`}
+    </div>`;
+}
+</script>
+</body>
+</html>

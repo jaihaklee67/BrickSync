@@ -2,62 +2,77 @@
 <html lang="ko">
 
 <head>
-    <!-- Firebase SDK 및 공통 설정 연동 -->
+    <!-- Firebase SDK (Auth + Firestore + Realtime DB) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="firebase_config.js"></script>
+    <script src="auth.js"></script>
     <script>
-        // 학생 세션 체크 및 리셋 모니터링 시스템
+        // [v2.0] Firebase Auth 우선 세션 체크 + localStorage 레거시 호환
         (function () {
-            function checkSession() {
+            function checkLegacySession() {
                 try {
-                    const sessionDataStr = localStorage.getItem('bricksync_student_session');
-                    if (!sessionDataStr) return false;
-                    const sessionData = JSON.parse(sessionDataStr);
-                    if (Date.now() >= sessionData.expires) {
-                        localStorage.removeItem('bricksync_student_session');
-                        return false;
-                    }
+                    const s = localStorage.getItem('bricksync_student_session');
+                    if (!s) return false;
+                    const d = JSON.parse(s);
+                    if (Date.now() >= d.expires) { localStorage.removeItem('bricksync_student_session'); return false; }
                     return true;
-                } catch (e) {
-                    return false;
+                } catch (e) { return false; }
+            }
+
+            // Firebase Auth가 로드된 경우 onAuthStateChanged로 체크
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+                firebaseAuth.onAuthStateChanged((user) => {
+                    if (!user && !checkLegacySession()) {
+                        window.location.href = 'login.html';
+                    }
+                });
+            } else {
+                // Firebase 미로드 시 레거시 세션으로 폴백
+                if (!checkLegacySession()) {
+                    window.location.href = 'login.html';
+                    return;
                 }
             }
 
-            if (!checkSession()) {
-                window.location.href = 'student_login.html';
-                return;
-            }
-
-            // LocalStorage 스토리지 이벤트 감지 (동일 브라우저 타 탭에서 로그아웃/초기화 시)
+            // 타 탭 로그아웃 동기화
             window.addEventListener('storage', (e) => {
                 if (e.key === 'bricksync_student_session' && !e.newValue) {
-                    window.location.href = 'student_login.html';
+                    window.location.href = 'login.html';
                 }
             });
 
-            // BroadcastChannel 수신 감지 (오프라인/동일 브라우저 초기화 연동)
             try {
                 const monitorChannel = new BroadcastChannel('bricksync_monitor');
-                monitorChannel.onmessage = function(event) {
-                    if (event.data && event.data.type === 'RESET_ALL') {
+                monitorChannel.onmessage = (event) => {
+                    if (event.data?.type === 'RESET_ALL') {
                         localStorage.removeItem('bricksync_student_session');
-                        window.location.href = 'student_login.html';
+                        window.location.href = 'login.html';
                     }
                 };
             } catch(e) {}
 
-            // Firebase 실시간 DB 리셋 신호 감지 (원격/멀티 디바이스 초기화 연동)
             if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
                 try {
                     database.ref('bricksync_classroom/reset_signal').on('value', (snapshot) => {
                         const resetTime = snapshot.val();
                         if (resetTime) {
-                            const sessionDataStr = localStorage.getItem('bricksync_student_session');
-                            if (sessionDataStr) {
-                                const session = JSON.parse(sessionDataStr);
-                                const loginTime = session.loginTime || 0;
-                                if (resetTime > loginTime) {
+                            const s = localStorage.getItem('bricksync_student_session');
+                            if (s) {
+                                const session = JSON.parse(s);
+                                if (resetTime > (session.loginTime || 0)) {
+                                    localStorage.removeItem('bricksync_student_session');
+                                    window.location.href = 'login.html';
+                                }
+                            }
+                        }
+                    });
+                } catch(e) {}
+            }
+        })();
+    </script>
                                     localStorage.removeItem('bricksync_student_session');
                                     window.location.href = 'student_login.html';
                                 }
@@ -600,13 +615,13 @@
                     <i data-lucide="user" style="color: #facc15; width: 18px; height: 18px;"></i>
                     <span id="display-student-name" style="color: #fff; font-weight: 700; font-size: 0.95rem;">학생</span>
                 </div>
-                <button onclick="logoutStudent()" style="background: none; border: none; color: #f43f5e; cursor: pointer; display: flex; align-items: center; padding: 4px; transition: color 0.2s;" title="로그아웃" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#f43f5e'">
+                <button onclick="doLogout()" style="background: none; border: none; color: #f43f5e; cursor: pointer; display: flex; align-items: center; padding: 4px; transition: color 0.2s;" title="로그아웃" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#f43f5e'">
                     <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
                 </button>
             </div>
 
             <ul class="menu-list">
-                <li class="menu-item active" id="btn-home" onclick="showView('home')">
+                <li class="menu-item" id="btn-home" onclick="showView('home')">
                     <i data-lucide="home" class="menu-icon"></i>
                     <span data-i18n="nav_home">홈</span>
                 </li>
@@ -626,10 +641,11 @@
                     <i data-lucide="blocks" class="menu-icon"></i>
                     <span data-i18n="nav_projects">프로젝트</span>
                 </li>
-                <a href="#" onclick="window.open('dashboard_v2.html?v=' + new Date().getTime(), '_blank'); return false;" class="menu-item">
+                <!-- 역할별 대시보드 링크 (JS로 동적 주입) -->
+                <li class="menu-item" id="nav-dashboard-item" style="display:none" onclick="goToDashboard()">
                     <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                    <span data-i18n="nav_dashboard">교사/학부모용 대시보드</span>
-                </a>
+                    <span id="nav-dashboard-label">대시보드</span>
+                </li>
             </ul>
 
             <div class="bottom-menu">
@@ -664,10 +680,11 @@
                 </div>
 
                 <div class="projects-grid" id="projects-list-container">
-                    <!-- 프로젝트 네모 카드 3개 -->
-                    <div class="project-card"></div>
-                    <div class="project-card"></div>
-                    <div class="project-card"></div>
+                    <!-- [BUG-04 FIX] 하드코딩된 빈 카드 제거 → renderProjects()가 동적으로 채움 -->
+                    <!-- 초기 로딩 중 스켈레톤 표시 -->
+                    <div class="project-card" style="opacity:0.4; animation: pulse 1.5s ease-in-out infinite;"></div>
+                    <div class="project-card" style="opacity:0.4; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+                    <div class="project-card" style="opacity:0.4; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
                 </div>
             </div>
 
@@ -732,7 +749,75 @@
             }
         }
 
+        // ── 역할별 사이드바 초기화 ────────────────────────────────
+        async function initRoleUI() {
+            let displayName = 'Guest_익명';
+            let role = 'student';
+
+            // Firebase Auth 우선
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.currentUser) {
+                const user = firebaseAuth.currentUser;
+                const profile = await BrickSyncAuth.getUserProfile(user.uid);
+                if (profile) {
+                    displayName = profile.displayName || user.email || '학생';
+                    role = profile.role || 'student';
+                }
+            } else {
+                // 레거시 세션 폴백
+                try {
+                    const s = JSON.parse(localStorage.getItem('bricksync_student_session') || '{}');
+                    displayName = s.name || 'Guest_익명';
+                    role = s.role || 'student';
+                } catch(e) {}
+            }
+
+            // 이름 표시
+            const nameEl = document.getElementById('display-student-name');
+            if (nameEl) nameEl.textContent = displayName + ' ' + (role === 'teacher' ? '교사' : role === 'parent' ? '학부모' : '학생');
+
+            // 역할별 대시보드 메뉴 표시
+            const dashItem = document.getElementById('nav-dashboard-item');
+            const dashLabel = document.getElementById('nav-dashboard-label');
+            if (role === 'teacher') {
+                if (dashItem) dashItem.style.display = '';
+                if (dashLabel) dashLabel.textContent = '교사 대시보드';
+            } else if (role === 'parent') {
+                if (dashItem) dashItem.style.display = '';
+                if (dashLabel) dashLabel.textContent = '학부모 리포트';
+                // 학부모는 학습 화면 대신 대시보드로 이동 안내
+            }
+
+            // Lucide 아이콘 갱신
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function goToDashboard() {
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.currentUser) {
+                BrickSyncAuth.getUserProfile(firebaseAuth.currentUser.uid).then(profile => {
+                    const role = profile?.role;
+                    if (role === 'teacher') window.location.href = 'teacher_dashboard.html';
+                    else if (role === 'parent') window.location.href = 'parent_dashboard.html';
+                });
+            }
+        }
+
+        function doLogout() {
+            if (typeof BrickSyncAuth !== 'undefined') {
+                BrickSyncAuth.signOut();
+            } else {
+                localStorage.removeItem('bricksync_student_session');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // 기존 logoutStudent 호환성 유지
+        function logoutStudent() { doLogout(); }
+
         function getStudentName() {
+            // Firebase Auth 우선 (동기 접근)
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth?.currentUser) {
+                return firebaseAuth.currentUser.displayName || firebaseAuth.currentUser.email || 'Guest_익명';
+            }
             try {
                 const sessionDataStr = localStorage.getItem('bricksync_student_session');
                 if (sessionDataStr) {
@@ -742,6 +827,7 @@
             } catch(e) {}
             return 'Guest_익명';
         }
+
 
         function renderProjects() {
             const container = document.getElementById('projects-list-container');
@@ -832,7 +918,11 @@
                 }
             }
             container.innerHTML = html;
-            lucide.createIcons();
+            // [BUG-04 FIX] lucide 아이콘 재초기화: 동적으로 삽입된 아이콘이 렌더링되지 않던 문제 수정
+            // requestAnimationFrame을 사용하여 DOM 업데이트 후 아이콘 초기화 보장
+            requestAnimationFrame(() => {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            });
         }
 
         function deleteProject(id) {
@@ -840,7 +930,7 @@
             const confirmMsg = currentLang === 'en' ? "Are you sure you want to delete this project?" : "정말 이 프로젝트를 삭제하시겠습니까?";
             if (confirm(confirmMsg)) {
                 localStorage.removeItem(id);
-                renderProjects();
+                renderProjects(); // 삭제 후 즉시 재렌더링
             }
         }
 
@@ -875,6 +965,12 @@
             const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
             updateStudentGreeting(currentLang);
             renderProjects();
+            // Firebase Auth 상태 확인 후 역할별 UI 초기화
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+                firebaseAuth.onAuthStateChanged((user) => { initRoleUI(); });
+            } else {
+                initRoleUI();
+            }
         });
 
         // 다국어 실시간 감지 이벤트 리스너 추가
@@ -884,14 +980,7 @@
             renderProjects();
         });
 
-        function logoutStudent() {
-            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
-            const confirmMsg = currentLang === 'en' ? "Are you sure you want to log out?" : "로그아웃 하시겠습니까?";
-            if (confirm(confirmMsg)) {
-                localStorage.removeItem('bricksync_student_session');
-                window.location.href = 'student_login.html';
-            }
-        }
+        // logoutStudent는 doLogout()으로 위임 (위에 정의됨)
     </script>
 
     <!-- Lucide 아이콘 렌더링 스크립트 -->

@@ -1,28 +1,53 @@
-// BrickSync - Firebase 실시간 DB 공통 설정 파일
-// 구글 Firebase 콘솔(console.firebase.google.com)에서 발급받은 웹 앱 설정값을 아래에 복사해서 붙여넣으세요.
+// BrickSync - Firebase 통합 설정 파일 (Auth + Firestore)
+// ============================================================
+// [v2.0] Firebase Authentication + Firestore 기반 역할별 인증 시스템
+// 프로젝트: bricksync-1e814
+// ============================================================
+
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyCSojrWgkQdtXGcbeUwdlJKmKJcLBupN7o",
+    authDomain: "bricksync-1e814.firebaseapp.com",
+    projectId: "bricksync-1e814",
+    storageBucket: "bricksync-1e814.firebasestorage.app",
+    messagingSenderId: "585550769605",
+    appId: "1:585550769605:web:7b14af2edaadfa7f062fac"
 };
 
-let database = null;
+// ── 전역 서비스 인스턴스 ──────────────────────────────────────
+let database = null;        // Realtime DB (레거시 호환용)
+let firestore = null;       // Firestore (신규 인증/데이터용)
+let firebaseAuth = null;    // Firebase Authentication
 let isFirebaseOnline = false;
 
-// 학교 방화벽 차단 등으로 SDK가 로드되지 않았을 경우를 대비한 안전 예외 처리
 try {
-    if (typeof firebase !== 'undefined' && firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE") {
-        firebase.initializeApp(firebaseConfig);
-        database = firebase.database();
-        isFirebaseOnline = true;
-        console.log("Firebase Realtime Database가 연결되었습니다. (실시간 원격 동기화 작동)");
+    if (typeof firebase !== 'undefined') {
+        // 중복 초기화 방지
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        // Auth 초기화
+        if (typeof firebase.auth === 'function') {
+            firebaseAuth = firebase.auth();
+            console.log('[BrickSync] Firebase Auth 초기화 완료');
+        }
+
+        // Firestore 초기화
+        if (typeof firebase.firestore === 'function') {
+            firestore = firebase.firestore();
+            console.log('[BrickSync] Firestore 초기화 완료');
+        }
+
+        // Realtime DB (기존 코드 호환성 유지)
+        if (typeof firebase.database === 'function') {
+            database = firebase.database();
+            isFirebaseOnline = true;
+            console.log('[BrickSync] Realtime DB 초기화 완료 (레거시 호환)');
+        }
+
     } else {
-        console.warn("Firebase SDK가 로드되지 않았거나 설정이 완료되지 않았습니다. 오프라인 모드로 안전하게 작동합니다.");
+        console.warn('[BrickSync] Firebase SDK 미로드 → 오프라인 모드');
     }
 } catch (e) {
-    console.error("Firebase 초기화 에러 (오프라인 모드 자동 전환):", e);
+    console.error('[BrickSync] Firebase 초기화 오류 (오프라인 모드 전환):', e);
 }

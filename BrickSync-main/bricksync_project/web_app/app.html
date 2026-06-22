@@ -361,18 +361,28 @@
         }
 
         window.isReconnecting = false;
-        async function startBackgroundReconnect(device) {
+        // [BUG-01 FIX] 재귀 호출 제거: setTimeout + 최대 재시도 횟수(maxRetries) 제한으로 교체
+        // 이전 코드는 catch 블록에서 startBackgroundReconnect()를 재귀 호출하여
+        // 연결이 계속 실패할 경우 콜 스택이 무한히 쌓이는 스택 오버플로우 위험이 있었음.
+        async function startBackgroundReconnect(device, retryCount = 0) {
+            const MAX_RETRIES = 10; // 최대 재시도 10회 (약 20초)
             if (window.connectionType || window.isReconnecting) return;
+            if (retryCount >= MAX_RETRIES) {
+                console.warn(`[BLE] 백그라운드 재연결 포기: ${MAX_RETRIES}회 시도 후 실패`);
+                return;
+            }
             window.isReconnecting = true;
             try {
                 await connectBluetoothDevice(device);
                 console.log("SPA 백그라운드 자동 복원 성공!");
-                window.isReconnecting = false;
             } catch (e) {
-                setTimeout(() => {
-                    window.isReconnecting = false;
-                    startBackgroundReconnect(device);
-                }, 2000);
+                console.warn(`[BLE] 재연결 시도 ${retryCount + 1}/${MAX_RETRIES} 실패:`, e.message || e);
+                // 재귀 대신 setTimeout으로 다음 시도 예약 (지수 백오프: 2s → 4s → 최대 8s)
+                const delay = Math.min(2000 * Math.pow(1.5, retryCount), 8000);
+                setTimeout(() => startBackgroundReconnect(device, retryCount + 1), delay);
+            } finally {
+                // finally 블록으로 플래그 해제를 보장하여 플래그가 영구 잠기는 문제 방지
+                window.isReconnecting = false;
             }
         }
 

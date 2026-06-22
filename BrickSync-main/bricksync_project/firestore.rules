@@ -1,0 +1,91 @@
+rules_version = '2';
+// BrickSync Firestore Security Rules
+// ============================================================
+// 역할: student / teacher / parent
+// 교사는 자신의 클래스 학생 데이터를 읽을 수 있음
+// 학부모는 연결된 자녀 데이터만 읽을 수 있음
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── 헬퍼 함수 ──────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isTeacher() {
+      return isSignedIn() && myProfile().role == 'teacher';
+    }
+
+    function isStudent() {
+      return isSignedIn() && myProfile().role == 'student';
+    }
+
+    function isParent() {
+      return isSignedIn() && myProfile().role == 'parent';
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── 사용자 프로필 (/users/{uid}) ────────────────────────────
+    match /users/{uid} {
+      // 본인 읽기/쓰기
+      allow read, write: if isOwner(uid);
+
+      // 교사는 자신의 클래스 학생 프로필 읽기 가능
+      allow read: if isTeacher()
+        && get(/databases/$(database)/documents/users/$(uid)).data.teacherUid == request.auth.uid;
+
+      // 학부모는 연결된 자녀 프로필만 읽기 가능
+      allow read: if isParent()
+        && myProfile().linkedStudentUid == uid;
+    }
+
+    // ── 프로젝트 (/projects/{uid}/items/{projectId}) ────────────
+    match /projects/{uid}/items/{projectId} {
+      // 학생 본인만 읽기/쓰기
+      allow read, write: if isOwner(uid);
+
+      // 교사는 자신의 클래스 학생 프로젝트 읽기 가능
+      allow read: if isTeacher()
+        && get(/databases/$(database)/documents/users/$(uid)).data.teacherUid == request.auth.uid;
+
+      // 학부모는 연결된 자녀 프로젝트만 읽기 가능
+      allow read: if isParent()
+        && myProfile().linkedStudentUid == uid;
+    }
+
+    // ── 클래스 (/classes/{classCode}) ───────────────────────────
+    match /classes/{classCode} {
+      // 로그인한 모든 사용자 읽기 (가입 시 코드 검증용)
+      allow read: if isSignedIn();
+
+      // 교사만 생성/수정 가능
+      allow create, update: if isTeacher();
+
+      // 학생 자신을 studentUids에 추가하는 것만 허용 (가입 시)
+      allow update: if isStudent()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentUids'])
+        && request.resource.data.studentUids.hasAll(resource.data.studentUids);
+    }
+
+    // ── 학부모 연결 코드 (/parentCodes/{code}) ──────────────────
+    match /parentCodes/{code} {
+      // 로그인한 사용자 읽기 (가입 시 코드 검증용)
+      allow read: if isSignedIn();
+
+      // 교사만 생성 가능
+      allow create: if isTeacher();
+
+      // 학부모가 usedByUid/usedAt 필드만 업데이트 가능 (코드 사용 처리)
+      allow update: if isParent()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedByUid', 'usedAt']);
+    }
+  }
+}
