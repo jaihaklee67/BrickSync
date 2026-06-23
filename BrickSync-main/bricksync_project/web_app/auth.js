@@ -126,13 +126,17 @@ const BrickSyncAuth = (() => {
     async function signUpStudent({ email, password, displayName, classCode }) {
         if (!firebaseAuth || !firestore) throw new Error('Firebase 미초기화');
 
-        // 1. 클래스 코드 검증
-        const classInfo = await validateClassCode(classCode);
-        if (!classInfo) throw new Error('유효하지 않은 클래스 코드입니다. 선생님께 확인하세요.');
-
-        // 2. 계정 생성
+        // 1. 먼저 계정 생성 (로그인 상태가 되어야 Firestore 읽기 가능)
         const cred = await firebaseAuth.createUserWithEmailAndPassword(email, password);
         await cred.user.updateProfile({ displayName });
+
+        // 2. 로그인 상태에서 클래스 코드 검증
+        const classInfo = await validateClassCode(classCode);
+        if (!classInfo) {
+            // 코드 무효 시 생성된 계정 삭제 후 오류
+            await cred.user.delete();
+            throw new Error('유효하지 않은 클래스 코드입니다. 선생님께 확인하세요.');
+        }
 
         // 3. Firestore 프로필 저장
         const profile = {
@@ -183,13 +187,16 @@ const BrickSyncAuth = (() => {
     async function signUpParent({ email, password, displayName, parentCode }) {
         if (!firebaseAuth || !firestore) throw new Error('Firebase 미초기화');
 
-        // 1. 부모 연결 코드 검증
-        const codeInfo = await validateParentCode(parentCode);
-        if (!codeInfo) throw new Error('유효하지 않거나 만료된 연결 코드입니다. 담임 선생님께 문의하세요.');
-
-        // 2. 계정 생성
+        // 1. 먼저 계정 생성 (로그인 상태에서 코드 검증 가능)
         const cred = await firebaseAuth.createUserWithEmailAndPassword(email, password);
         await cred.user.updateProfile({ displayName });
+
+        // 2. 로그인 상태에서 학부모 연결 코드 검증
+        const codeInfo = await validateParentCode(parentCode);
+        if (!codeInfo) {
+            await cred.user.delete();
+            throw new Error('유효하지 않거나 만료된 연결 코드입니다. 담임 선생님께 문의하세요.');
+        }
 
         // 3. Firestore 프로필 저장
         const profile = {

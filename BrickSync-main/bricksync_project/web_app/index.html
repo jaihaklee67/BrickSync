@@ -73,18 +73,7 @@
             }
         })();
     </script>
-                                    localStorage.removeItem('bricksync_student_session');
-                                    window.location.href = 'student_login.html';
-                                }
-                            }
-                        }
-                    });
-                } catch(e) {
-                    console.error("Firebase reset monitor setup failed:", e);
-                }
-            }
-        })();
-    </script>
+
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -233,11 +222,10 @@
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            color: #334155;
+            color: #ffffff;
             font-weight: 500;
             font-size: 1.1rem;
             text-decoration: none;
-            /* 텍스트 너비에 맞춰서 배경이 채워지도록 설정 */
             width: max-content;
             min-width: 160px;
         }
@@ -247,16 +235,17 @@
             width: 20px;
             height: 20px;
             margin-right: 16px;
-            color: #64748b;
+            color: #ffffff;
             transition: all 0.3s ease;
         }
 
         .menu-item:hover {
-            color: #1e293b;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .menu-item:hover .menu-icon {
-            color: #1e293b;
+            color: #ffffff;
         }
 
         /* 활성화된 위치(홈)의 스타일 - 목업처럼 둥근 흰색 박스 */

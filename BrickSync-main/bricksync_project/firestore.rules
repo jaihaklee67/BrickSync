@@ -63,8 +63,8 @@ service cloud.firestore {
 
     // ── 클래스 (/classes/{classCode}) ───────────────────────────
     match /classes/{classCode} {
-      // 로그인한 모든 사용자 읽기 (가입 시 코드 검증용)
-      allow read: if isSignedIn();
+      // 코드 기반 가입을 위해 누구나 읽기 허용 (코드 자체가 보안 키 역할)
+      allow read: if true;
 
       // 교사만 생성/수정 가능
       allow create, update: if isTeacher();
@@ -77,8 +77,8 @@ service cloud.firestore {
 
     // ── 학부모 연결 코드 (/parentCodes/{code}) ──────────────────
     match /parentCodes/{code} {
-      // 로그인한 사용자 읽기 (가입 시 코드 검증용)
-      allow read: if isSignedIn();
+      // 코드 기반 가입을 위해 누구나 읽기 허용 (코드 자체가 보안 키 역할)
+      allow read: if true;
 
       // 교사만 생성 가능
       allow create: if isTeacher();
