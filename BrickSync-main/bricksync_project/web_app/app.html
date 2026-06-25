@@ -13,12 +13,13 @@
         rel="stylesheet">
     <!-- Firebase SDK 및 공통 설정 연동 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="firebase_config.js"></script>
     <script>
-        // 학생 세션 체크 및 리셋 모니터링 시스템
+        // 학생 세션 체크: Firebase Auth 우선, localStorage 레거시 폴백
         (function () {
-            function checkSession() {
+            function checkLegacySession() {
                 try {
                     const sessionDataStr = localStorage.getItem('bricksync_student_session');
                     if (!sessionDataStr) return false;
@@ -33,30 +34,55 @@
                 }
             }
 
-            if (!checkSession()) {
-                window.location.href = 'student_login.html';
-                return;
+            // Firebase Auth 상태 확인 (비동기)
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+                // Firebase Auth 초기화 시간 및 레거시 세션 없으면 리다이렉트
+                let authResolved = false;
+                const authTimeout = setTimeout(() => {
+                    if (!authResolved) {
+                        // Firebase Auth 응답 없으면 레거시 세션 체크
+                        if (!checkLegacySession()) {
+                            window.location.href = 'login.html';
+                        }
+                    }
+                }, 3000);
+
+                firebaseAuth.onAuthStateChanged((user) => {
+                    authResolved = true;
+                    clearTimeout(authTimeout);
+                    if (!user && !checkLegacySession()) {
+                        window.location.href = 'login.html';
+                    }
+                });
+            } else {
+                // Firebase 미로드 시 레거시 세션만 체크
+                if (!checkLegacySession()) {
+                    window.location.href = 'login.html';
+                    return;
+                }
             }
 
-            // LocalStorage 스토리지 이벤트 감지 (동일 브라우저 타 탭에서 로그아웃/초기화 시)
+            // LocalStorage 이벤트 감지 (타 탭 로그아웃)
             window.addEventListener('storage', (e) => {
                 if (e.key === 'bricksync_student_session' && !e.newValue) {
-                    window.location.href = 'student_login.html';
+                    if (typeof firebaseAuth === 'undefined' || !firebaseAuth?.currentUser) {
+                        window.location.href = 'login.html';
+                    }
                 }
             });
 
-            // BroadcastChannel 수신 감지 (오프라인/동일 브라우저 초기화 연동)
+            // BroadcastChannel 수신 감지
             try {
                 const monitorChannel = new BroadcastChannel('bricksync_monitor');
                 monitorChannel.onmessage = function(event) {
                     if (event.data && event.data.type === 'RESET_ALL') {
                         localStorage.removeItem('bricksync_student_session');
-                        window.location.href = 'student_login.html';
+                        window.location.href = 'login.html';
                     }
                 };
             } catch(e) {}
 
-            // Firebase 실시간 DB 리셋 신호 감지 (원격/멀티 디바이스 초기화 연동)
+            // Firebase Realtime DB 리셋 신호 감지
             if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
                 try {
                     database.ref('bricksync_classroom/reset_signal').on('value', (snapshot) => {
@@ -68,7 +94,7 @@
                                 const loginTime = session.loginTime || 0;
                                 if (resetTime > loginTime) {
                                     localStorage.removeItem('bricksync_student_session');
-                                    window.location.href = 'student_login.html';
+                                    window.location.href = 'login.html';
                                 }
                             }
                         }

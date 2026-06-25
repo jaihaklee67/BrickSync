@@ -21,8 +21,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
     <!-- Firebase SDK 및 공통 설정 연동 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="firebase_config.js"></script>
+    <script src="auth.js"></script>
+    <script src="cloud_storage.js"></script>
     <style>
         * {
             margin: 0;
@@ -4734,13 +4738,42 @@ print("BrickSync Sandbox Run")
             };
 
             localStorage.setItem(projectId, JSON.stringify(projectData));
+
+            // ☁️ Firestore 백그라운드 저장 (비동기)
+            if (typeof BrickSyncCloud !== 'undefined') {
+                const cloudDocId = 'ai_' + unit;
+                BrickSyncCloud.saveProject(cloudDocId, projectData);
+            }
         }
 
-        function loadWorkspace() {
+        async function loadWorkspace() {
             if (!unit) return;
             const projectId = _bsStudentName + '_project_ai_' + unit;
-            const rawData = localStorage.getItem(projectId);
-            if (!rawData) return;
+            const cloudDocId = 'ai_' + unit;
+
+            let projectData = null;
+
+            // 1순위: Firestore
+            if (typeof BrickSyncCloud !== 'undefined' && BrickSyncCloud.isAvailable()) {
+                try {
+                    const cloudData = await BrickSyncCloud.loadProject(cloudDocId);
+                    if (cloudData && cloudData.blocks && cloudData.blocks.length > 0) {
+                        projectData = cloudData;
+                        localStorage.setItem(projectId, JSON.stringify(cloudData));
+                    }
+                } catch (e) {
+                    console.warn('[Cloud] Firestore 로드 실패, localStorage 폴백:', e);
+                }
+            }
+
+            // 2순위: localStorage 폴백
+            if (!projectData) {
+                const rawData = localStorage.getItem(projectId);
+                if (!rawData) return;
+                try { projectData = JSON.parse(rawData); } catch (e) { return; }
+            }
+
+            if (!projectData || !projectData.blocks) return;
 
             const workspaceArea = document.getElementById('workspaceArea');
             if (!workspaceArea) return;
@@ -4751,9 +4784,6 @@ print("BrickSync Sandbox Run")
             if (hint) hint.remove();
 
             try {
-                const projectData = JSON.parse(rawData);
-                if (!projectData || !projectData.blocks) return;
-
                 projectData.blocks.forEach(stackData => {
                     const newStack = document.createElement('div');
                     newStack.className = 'block-stack';
@@ -4836,8 +4866,19 @@ print("BrickSync Sandbox Run")
             workspaceObserver.observe(workspaceEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-val', 'data-matrix'] });
         }
 
-        // Trigger load
-        setTimeout(loadWorkspace, 200);
+        // Trigger load with Firebase Auth state
+        setTimeout(async () => {
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+                firebaseAuth.onAuthStateChanged(async (user) => {
+                    if (user && typeof BrickSyncCloud !== 'undefined') {
+                        await BrickSyncCloud.migrateFromLocalStorage(_bsStudentName);
+                    }
+                    await loadWorkspace();
+                });
+            } else {
+                await loadWorkspace();
+            }
+        }, 200);
     </script>
 
     <!-- Connection Modal Popup -->

@@ -26,6 +26,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 폭죽(파티클) 효과 라이브러리 추가 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Firebase SDK (클라우드 저장용) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase_config.js"></script>
+    <script src="auth.js"></script>
+    <script src="cloud_storage.js"></script>
     <style>
         * {
             margin: 0;
@@ -4870,13 +4877,43 @@ print("BrickSync Sandbox Run")
             };
 
             localStorage.setItem(projectId, JSON.stringify(projectData));
+
+            // ☁️ Firestore 백그라운드 저장 (비동기, 실패해도 localStorage는 보존)
+            if (typeof BrickSyncCloud !== 'undefined') {
+                const cloudDocId = 'unit_' + unit;
+                BrickSyncCloud.saveProject(cloudDocId, projectData);
+            }
         }
 
-        function loadWorkspace() {
+        async function loadWorkspace() {
             if (!unit) return;
             const projectId = _bsStudentName + '_project_unit_' + unit;
-            const rawData = localStorage.getItem(projectId);
-            if (!rawData) return;
+            const cloudDocId = 'unit_' + unit;
+
+            let projectData = null;
+
+            // 1순위: Firestore에서 불러오기
+            if (typeof BrickSyncCloud !== 'undefined' && BrickSyncCloud.isAvailable()) {
+                try {
+                    const cloudData = await BrickSyncCloud.loadProject(cloudDocId);
+                    if (cloudData && cloudData.blocks && cloudData.blocks.length > 0) {
+                        projectData = cloudData;
+                        // Firestore 데이터를 localStorage에 캐시
+                        localStorage.setItem(projectId, JSON.stringify(cloudData));
+                    }
+                } catch (e) {
+                    console.warn('[Cloud] Firestore 로드 실패, localStorage 폴백:', e);
+                }
+            }
+
+            // 2순위: localStorage 폴백
+            if (!projectData) {
+                const rawData = localStorage.getItem(projectId);
+                if (!rawData) return;
+                try { projectData = JSON.parse(rawData); } catch (e) { return; }
+            }
+
+            if (!projectData || !projectData.blocks) return;
 
             const workspaceArea = document.getElementById('workspaceArea');
             if (!workspaceArea) return;
@@ -4887,9 +4924,6 @@ print("BrickSync Sandbox Run")
             if (hint) hint.remove();
 
             try {
-                const projectData = JSON.parse(rawData);
-                if (!projectData || !projectData.blocks) return;
-
                 projectData.blocks.forEach(stackData => {
                     const newStack = document.createElement('div');
                     newStack.className = 'block-stack';
@@ -5013,8 +5047,19 @@ print("BrickSync Sandbox Run")
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                loadWorkspace();
+            setTimeout(async () => {
+                // Firebase Auth 상태 확인 후 Firestore 우선 로드 + 마이그레이션
+                if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+                    firebaseAuth.onAuthStateChanged(async (user) => {
+                        if (user && typeof BrickSyncCloud !== 'undefined') {
+                            // 기존 localStorage 데이터 1회 마이그레이션
+                            await BrickSyncCloud.migrateFromLocalStorage(_bsStudentName);
+                        }
+                        await loadWorkspace();
+                    });
+                } else {
+                    await loadWorkspace();
+                }
             }, 200);
             setupPaletteScroll();
         });

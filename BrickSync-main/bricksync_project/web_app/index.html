@@ -818,83 +818,96 @@
         }
 
 
-        function renderProjects() {
+        async function renderProjects() {
             const container = document.getElementById('projects-list-container');
             if (!container) return;
 
             const studentName = getStudentName();
             const studentPrefix = studentName + '_project_';
-            const projects = [];
-            
-            // Scan localStorage keys for active projects
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith(studentPrefix + 'unit_') || key.startsWith(studentPrefix + 'ai_')) {
-                    try {
-                        const rawData = localStorage.getItem(key);
-                        if (!rawData) continue;
-                        
-                        const projectData = JSON.parse(rawData);
-                        // Self-healing: if empty project (no blocks or empty array), delete it
-                        if (!projectData || !projectData.blocks || projectData.blocks.length === 0) {
-                            localStorage.removeItem(key);
-                            i--; // adjust index since we removed a key
-                            continue;
-                        }
-                        
-                        projects.push({
-                            id: key,
-                            name: projectData.name || '무제 프로젝트',
-                            unit: projectData.unit || '1',
-                            type: key.includes('_project_ai_') ? 'ai' : 'lesson',
-                            blocksCount: projectData.blocks.length,
-                            updatedAt: projectData.updatedAt || Date.now()
+            const projectMap = new Map(); // id → project (중복 방지)
+
+            // 1순위: Firestore에서 프로젝트 목록 로드
+            if (typeof BrickSyncCloud !== 'undefined' && BrickSyncCloud.isAvailable()) {
+                try {
+                    const cloudProjects = await BrickSyncCloud.listProjects();
+                    cloudProjects.forEach(p => {
+                        if (!p.blocks || p.blocks.length === 0) return;
+                        const isAi = p.id.startsWith('ai_');
+                        const unit = p.unit || p.id.replace(/^(unit_|ai_)/, '');
+                        // localStorage key와 일치하는 id 생성
+                        const localKey = studentPrefix + (isAi ? '' : 'unit_') + (isAi ? p.id : p.id.replace('unit_', 'unit_'));
+                        projectMap.set(p.id, {
+                            id: localKey,
+                            cloudId: p.id,
+                            name: p.name || '무제 프로젝트',
+                            unit,
+                            type: isAi ? 'ai' : 'lesson',
+                            blocksCount: p.blocks.length,
+                            updatedAt: p.updatedAt?.toMillis ? p.updatedAt.toMillis() : (p.updatedAt || Date.now())
                         });
-                    } catch (e) {
-                        console.error("Project load error:", e);
-                    }
+                    });
+                } catch (e) {
+                    console.warn('[Cloud] 프로젝트 목록 실패, localStorage 폴백:', e);
                 }
             }
 
-            // Sort projects by updatedAt desc
-            projects.sort((a, b) => b.updatedAt - a.updatedAt);
+            // 2순위: localStorage 스캔 (백업/폴백)
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key || !(key.startsWith(studentPrefix + 'unit_') || key.startsWith(studentPrefix + 'ai_'))) continue;
+                try {
+                    const rawData = localStorage.getItem(key);
+                    if (!rawData) continue;
+                    const projectData = JSON.parse(rawData);
+                    if (!projectData || !projectData.blocks || projectData.blocks.length === 0) {
+                        localStorage.removeItem(key); i--; continue;
+                    }
+                    // Firestore에 이미 있으면 덮어쓰지 않음
+                    const isAi = key.includes('_project_ai_');
+                    const cloudId = isAi
+                        ? 'ai_' + (projectData.unit || key.replace(studentPrefix + 'ai_', ''))
+                        : 'unit_' + (projectData.unit || key.replace(studentPrefix + 'unit_', ''));
+                    if (!projectMap.has(cloudId)) {
+                        projectMap.set(cloudId, {
+                            id: key,
+                            cloudId,
+                            name: projectData.name || '무제 프로젝트',
+                            unit: projectData.unit || '1',
+                            type: isAi ? 'ai' : 'lesson',
+                            blocksCount: projectData.blocks.length,
+                            updatedAt: projectData.updatedAt || Date.now()
+                        });
+                    }
+                } catch (e) { console.error('Project load error:', e); }
+            }
 
-            // Render up to 3 projects
+            const projects = Array.from(projectMap.values()).sort((a, b) => b.updatedAt - a.updatedAt);
+
             const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
             let html = '';
             for (let i = 0; i < 3; i++) {
                 if (i < projects.length) {
                     const p = projects[i];
                     const isAi = p.type === 'ai';
-                    
-                    let badgeText = '';
-                    if (currentLang === 'en') {
-                        badgeText = isAi ? `AI Lesson ${p.unit}` : `Lesson ${p.unit}`;
-                    } else {
-                        badgeText = isAi ? `AI 단원 ${p.unit}` : `일반 단원 ${p.unit}`;
-                    }
-                    
+                    const badgeText = currentLang === 'en'
+                        ? (isAi ? `AI Lesson ${p.unit}` : `Lesson ${p.unit}`)
+                        : (isAi ? `AI 단원 ${p.unit}` : `일반 단원 ${p.unit}`);
                     const badgeClass = isAi ? 'project-badge ai-badge' : 'project-badge';
                     const targetUrl = isAi ? `ai_fusion.html?unit=${p.unit}&v=${Date.now()}` : `lesson.html?unit=${p.unit}&v=${Date.now()}`;
-                    
                     const blocksText = currentLang === 'en' ? `Blocks: ${p.blocksCount}` : `블록 수: ${p.blocksCount}개`;
-                    const modifiedText = currentLang === 'en' ? `Modified` : `최근 수정`;
-                    
+                    const modifiedText = currentLang === 'en' ? 'Modified' : '최근 수정';
                     html += `
                         <div class="project-card active-project" style="cursor: pointer;" onclick="location.href='${targetUrl}&projectId=${p.id}'">
                             <div class="project-card-inner">
                                 <div class="project-card-top">
                                     <span class="${badgeClass}">${badgeText}</span>
-                                    <button class="project-delete-btn" onclick="deleteProject('${p.id}'); event.stopPropagation();">
+                                    <button class="project-delete-btn" onclick="deleteProject('${p.id}','${p.cloudId}'); event.stopPropagation();">
                                         <i data-lucide="trash-2"></i>
                                     </button>
                                 </div>
                                 <div class="project-card-name">${escapeHtml(p.name)}</div>
                                 <div class="project-card-bottom">
-                                    <div class="project-info-text">
-                                        ${blocksText}<br>
-                                        ${modifiedText}
-                                    </div>
+                                    <div class="project-info-text">${blocksText}<br>${modifiedText}</div>
                                     <button class="project-play-btn" onclick="event.stopPropagation(); location.href='${targetUrl}&projectId=${p.id}'">
                                         <i data-lucide="play" style="width:16px;height:16px;fill:currentColor;"></i>
                                     </button>
@@ -907,20 +920,20 @@
                 }
             }
             container.innerHTML = html;
-            // [BUG-04 FIX] lucide 아이콘 재초기화: 동적으로 삽입된 아이콘이 렌더링되지 않던 문제 수정
-            // requestAnimationFrame을 사용하여 DOM 업데이트 후 아이콘 초기화 보장
-            requestAnimationFrame(() => {
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            });
+            requestAnimationFrame(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
         }
 
-        function deleteProject(id) {
+        async function deleteProject(localId, cloudId) {
             const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
-            const confirmMsg = currentLang === 'en' ? "Are you sure you want to delete this project?" : "정말 이 프로젝트를 삭제하시겠습니까?";
-            if (confirm(confirmMsg)) {
-                localStorage.removeItem(id);
-                renderProjects(); // 삭제 후 즉시 재렌더링
+            const confirmMsg = currentLang === 'en' ? 'Are you sure you want to delete this project?' : '정말 이 프로젝트를 삭제하시겠습니까?';
+            if (!confirm(confirmMsg)) return;
+            // localStorage 삭제
+            localStorage.removeItem(localId);
+            // Firestore 삭제 (비동기)
+            if (cloudId && typeof BrickSyncCloud !== 'undefined' && BrickSyncCloud.isAvailable()) {
+                await BrickSyncCloud.deleteProject(cloudId);
             }
+            renderProjects();
         }
 
         function escapeHtml(str) {
@@ -953,12 +966,15 @@
         window.addEventListener('DOMContentLoaded', () => {
             const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
             updateStudentGreeting(currentLang);
-            renderProjects();
-            // Firebase Auth 상태 확인 후 역할별 UI 초기화
+            // Firebase Auth 상태 확인 후 프로젝트 및 역할 UI 초기화
             if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
-                firebaseAuth.onAuthStateChanged((user) => { initRoleUI(); });
+                firebaseAuth.onAuthStateChanged(async (user) => {
+                    initRoleUI();
+                    await renderProjects(); // Firestore 우선 로드
+                });
             } else {
                 initRoleUI();
+                renderProjects();
             }
         });
 
@@ -973,6 +989,7 @@
     </script>
 
     <!-- Lucide 아이콘 렌더링 스크립트 -->
+    <script src="cloud_storage.js"></script>
     <script src="settings.js"></script>
     <script>
         lucide.createIcons();
