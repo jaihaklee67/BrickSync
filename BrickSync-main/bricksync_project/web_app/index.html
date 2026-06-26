@@ -630,6 +630,11 @@
                     <i data-lucide="blocks" class="menu-icon"></i>
                     <span data-i18n="nav_projects">프로젝트</span>
                 </li>
+                <!-- 교사/학부모용 대시보드 - 홍 화면에서 직접 접근 -->
+                <li class="menu-item" onclick="window.open('dashboard_v2.html?v=' + new Date().getTime(), '_blank')" style="cursor:pointer;">
+                    <i data-lucide="layout-dashboard" class="menu-icon"></i>
+                    <span>교사/학부모용 대시보드</span>
+                </li>
                 <!-- 역할별 대시보드 링크 (JS로 동적 주입) -->
                 <li class="menu-item" id="nav-dashboard-item" style="display:none" onclick="goToDashboard()">
                     <i data-lucide="layout-dashboard" class="menu-icon"></i>
