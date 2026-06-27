@@ -269,7 +269,7 @@
         /* ================= 오른쪽 메인 화면 영역 ================= */
         .main-content {
             flex: 1;
-            padding: 60px 80px;
+            padding: 25px 50px;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
@@ -280,8 +280,8 @@
         /* 1) 상단 소개 배너 박스 (이미지의 큰 회색 박스 영역) */
         .banner-section {
             width: 100%;
-            height: 40%;
-            min-height: 250px;
+            height: 24%;
+            min-height: 140px;
             /* 흐릿한 화이트 그라데이션 적용 */
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%);
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -292,7 +292,7 @@
             padding: 0;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             position: relative;
         }
 
@@ -320,10 +320,10 @@
 
         .banner-text {
             width: 35%;
-            padding: 40px 50px 40px 10px;
-            font-size: 1.6rem;
+            padding: 20px 35px 20px 10px;
+            font-size: 1.2rem;
             font-weight: 700;
-            line-height: 1.6;
+            line-height: 1.5;
             text-align: right;
             color: #1e293b;
             letter-spacing: -0.5px;
@@ -335,7 +335,7 @@
             width: 100%;
             height: 1px;
             background: rgba(0, 0, 0, 0.15);
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         /* 3) 하단 "내 프로젝트" 타이틀 영역 */
@@ -343,7 +343,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 12px;
         }
 
         .projects-title {
@@ -371,11 +371,11 @@
         .projects-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            gap: 20px;
         }
 
         .project-card {
-            height: 180px;
+            height: 130px;
             background: rgba(255, 255, 255, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 16px;
@@ -444,7 +444,7 @@
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             display: block;
-            padding: 20px;
+            padding: 12px 16px;
             position: relative;
         }
 
@@ -496,10 +496,10 @@
         }
 
         .project-card-name {
-            font-size: 1.15rem;
+            font-size: 0.95rem;
             font-weight: 800;
             color: #ffffff;
-            margin-top: 15px;
+            margin-top: 6px;
             line-height: 1.3;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -546,7 +546,7 @@
             bottom: -50px;
             height: 80vh;
             pointer-events: none;
-            z-index: 100;
+            z-index: 5;
             filter: drop-shadow(-10px 10px 20px rgba(0, 0, 0, 0.3));
         }
 
@@ -573,6 +573,127 @@
             color: #fff;
             letter-spacing: 2px;
             text-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 🏆 코인 보상 진열대 스타일 */
+        .reward-shelf-panel {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 12px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .reward-shelf-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #facc15, #fbbf24, #facc15);
+        }
+        .shelf-title {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .shelf-title span {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .shelf-title .shelf-subtitle {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+        }
+        .shelf-slots {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        .shelf-slot {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1.5px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .shelf-slot.active {
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.12) 0%, rgba(0, 0, 0, 0.35) 100%);
+            border: 1.5px solid rgba(250, 204, 21, 0.4);
+            box-shadow: 0 4px 12px rgba(250, 204, 21, 0.15);
+        }
+        .shelf-slot:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .shelf-slot.active:hover {
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.18) 0%, rgba(0, 0, 0, 0.35) 100%);
+        }
+        .shelf-coin {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fef08a 0%, #facc15 50%, #ca8a04 100%);
+            border: 2px solid #fef08a;
+            box-shadow: 0 4px 10px rgba(202, 138, 4, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            color: #854d0e;
+            font-size: 0.95rem;
+            position: relative;
+            animation: coinPulse 2s infinite ease-in-out;
+        }
+        .shelf-coin::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 1px dashed rgba(202, 138, 4, 0.4);
+        }
+        .shelf-coin.inactive {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            border: 2px solid #475569;
+            box-shadow: none;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.85rem;
+            animation: none;
+        }
+        .shelf-coin.inactive::after {
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+        .slot-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 4px;
+            text-align: center;
+        }
+        .shelf-slot.active .slot-label {
+            color: #fef08a;
+        }
+        @keyframes coinPulse {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.04); filter: brightness(1.12) drop-shadow(0 0 6px rgba(250, 204, 21, 0.5)); }
         }
     </style>
 </head>
@@ -655,6 +776,17 @@
 
             <!-- 홈 화면 뷰 -->
             <div id="view-home" style="width: 100%; display: flex; flex-direction: column;">
+                <!-- 🏆 코인 보상 진열대 영역 -->
+                <div class="reward-shelf-panel">
+                    <div class="shelf-title">
+                        <span>🏆 <strong data-i18n="lbl_coin_shelf">코인 보상 진열대</strong></span>
+                        <span class="shelf-subtitle">코딩 미션을 성공할 때마다 황금 코인이 진열대에 하나씩 추가됩니다!</span>
+                    </div>
+                    <div class="shelf-slots" id="lobby-reward-shelf">
+                        <!-- JS에서 동적 로드 -->
+                    </div>
+                </div>
+
                 <div class="banner-section">
                     <div class="banner-image-container">
                         <img src="./assets/fortnite_characters.png" class="banner-img" alt="Lego Fortnite Characters">
@@ -775,23 +907,81 @@
             if (role === 'teacher') {
                 if (dashItem) dashItem.style.display = '';
                 if (dashLabel) dashLabel.textContent = '교사 대시보드';
-            } else if (role === 'parent') {
-                if (dashItem) dashItem.style.display = '';
-                if (dashLabel) dashLabel.textContent = '학부모 리포트';
-                // 학부모는 학습 화면 대신 대시보드로 이동 안내
+            } else {
+                if (dashItem) dashItem.style.display = 'none';
             }
 
             // Lucide 아이콘 갱신
             if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            // 보상 진열대 동기화
+            renderRewardShelf();
+        }
+
+        // 보상 진열대 렌더링 함수
+        function renderRewardShelf() {
+            const shelfContainer = document.getElementById('lobby-reward-shelf');
+            if (!shelfContainer) return;
+
+            const studentName = getStudentName();
+            let missions = [false, false, false, false, false, false, false, false]; // 기본 세팅 (전부 비활성)
+            
+            try {
+                const raw = localStorage.getItem('dashboard_stats_' + studentName);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.missions && Array.isArray(parsed.missions)) {
+                        missions = parsed.missions;
+                        // 8칸 정합성 자동 보정
+                        while (missions.length < 8) missions.push(false);
+                    }
+                }
+            } catch(e) {}
+
+            const getMissionName = (idx) => {
+                return (idx + 1) + "단원";
+            };
+
+            const getMissionDesc = (idx) => {
+                const descs = [
+                    "북극 탐험선",
+                    "심해 잠수함",
+                    "대관람차 회전",
+                    "친환경 발전기",
+                    "재활용 분류",
+                    "나무 엘리베이터",
+                    "몬스터 RPS",
+                    "행복한 매점"
+                ];
+                return descs[idx] || "";
+            };
+
+            let html = "";
+            for (let i = 0; i < 8; i++) {
+                const isActive = missions[i] || false;
+                html += `
+                    <div class="shelf-slot ${isActive ? 'active' : ''}" title="${getMissionDesc(i)}">
+                        <div class="shelf-coin ${isActive ? '' : 'inactive'}">
+                            ${isActive ? '★' : '🔒'}
+                        </div>
+                        <div class="slot-label">${getMissionName(i)}</div>
+                    </div>
+                `;
+            }
+            shelfContainer.innerHTML = html;
         }
 
         function goToDashboard() {
             if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.currentUser) {
                 BrickSyncAuth.getUserProfile(firebaseAuth.currentUser.uid).then(profile => {
                     const role = profile?.role;
-                    if (role === 'teacher') window.location.href = 'teacher_dashboard.html';
-                    else if (role === 'parent') window.location.href = 'parent_dashboard.html';
+                    if (role === 'teacher') window.location.href = 'dashboard_v2.html';
                 });
+            } else {
+                try {
+                    const s = JSON.parse(localStorage.getItem('bricksync_student_session') || '{}');
+                    if (s.role === 'teacher') window.location.href = 'dashboard_v2.html';
+                } catch(e) {}
             }
         }
 

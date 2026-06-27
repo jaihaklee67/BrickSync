@@ -103,8 +103,8 @@ async def handle_websocket(request):
                             pydirectinput.keyUp('t')
                         threading.Thread(target=press_speed_key, args=(duration,), daemon=True).start()
                     elif action == "ACTION_LIGHT":
-                        print("▶ 네온사인 조명 대표 ON (i키 전송)")
-                        pydirectinput.keyDown('i'); time.sleep(0.1); pydirectinput.keyUp('i')
+                        print("▶ 네온사인 조명 대표 ON ([키 전송)")
+                        pydirectinput.keyDown('['); time.sleep(0.1); pydirectinput.keyUp('[')
                     elif action == "ACTION_SOUND":
                         print("▶ 사운드 재생 (p키 전송)")
                         pydirectinput.keyDown('p'); time.sleep(0.1); pydirectinput.keyUp('p')
@@ -149,6 +149,7 @@ async def handle_websocket(request):
         for d in steering_state: steering_state[d] = False
         try:
             for k in ['y', 'l', 'u', 'o', 'h', 'k', 'j', 't', 'i', 'p', 'e', 'g']:
+            for k in ['y', 'l', 'u', 'o', 'h', 'k', 'j', 't', '[', 'p', 'e', 'g', 'n']:
                 pydirectinput.keyUp(k)
         except Exception:
             pass

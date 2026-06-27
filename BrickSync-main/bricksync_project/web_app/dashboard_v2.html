@@ -515,20 +515,12 @@
             <!-- 포트나이트 미션 -->
             <div class="panel">
                 <div class="panel-heading">포트나이트 미션</div>
-                <div class="mission-item">
-                    <i class="fas fa-check-circle check"></i> 자동차 앞으로 3초 이동
-                </div>
-                <div class="mission-item">
-                    <i class="fas fa-check-circle check"></i> 컬러 센서로 신호등 제어
-                </div>
-                <div class="mission-item">
-                    <i class="far fa-circle circle"></i> 대관람차 5바퀴 회전
-                </div>
+                <div id="mission-list-container"></div>
 
                 <div class="rewards">
-                    <div class="reward-badge">스킨 1개</div>
-                    <div class="reward-badge">V-Bucks 50</div>
-                    <div class="reward-badge purple">뱃지: 코더</div>
+                    <div class="reward-badge">스킨 3개</div>
+                    <div class="reward-badge">V-Bucks 150</div>
+                    <div class="reward-badge purple">뱃지: 마스터</div>
                 </div>
             </div>
         </div>
@@ -631,37 +623,44 @@
         let liveBlocks = 0;
         let cntMotor = 0;
         let cntSensor = 0;
-        let currentMissions = [true, true, false];
+        let currentMissions = [false, false, false, false, false, false, false, false];
         let currentLogs = [];
 
         function getMissionText(index) {
             const texts = [
                 "자동차 앞으로 3초 이동",
                 "컬러 센서로 신호등 제어",
-                "대관람차 5바퀴 회전"
+                "대관람차 5바퀴 회전",
+                "친환경 발전기 에너지 채우기",
+                "재활용 분류 게이트 통과",
+                "마법 나무 엘리베이터 조작",
+                "쓰레기 몬스터와 가위바위보",
+                "행복을 전하는 매점 미소 전송"
             ];
             return texts[index] || "";
         }
 
         function updateMissionsUI() {
-            const missionItems = document.querySelectorAll('.mission-item');
-            if (missionItems.length >= 3) {
-                for (let i = 0; i < 3; i++) {
-                    const item = missionItems[i];
-                    const isCompleted = currentMissions[i];
-                    item.innerHTML = isCompleted ? 
-                        `<i class="fas fa-check-circle check"></i> ${getMissionText(i)}` : 
-                        `<i class="far fa-circle circle"></i> ${getMissionText(i)}`;
+            const container = document.getElementById('mission-list-container');
+            if (container) {
+                let html = "";
+                for (let i = 0; i < 8; i++) {
+                    const isCompleted = currentMissions[i] || false;
+                    html += `<div class="mission-item">
+                        ${isCompleted ? '<i class="fas fa-check-circle check"></i>' : '<i class="far fa-circle circle"></i>'} 
+                        ${getMissionText(i)}
+                    </div>`;
                 }
+                container.innerHTML = html;
             }
             const completedCount = currentMissions.filter(Boolean).length;
             const missionValueCard = document.querySelector('.stat-card:nth-child(4) .value');
             if (missionValueCard) {
-                missionValueCard.innerHTML = `${completedCount}<span>/3</span>`;
+                missionValueCard.innerHTML = `${completedCount}<span>/8</span>`;
             }
             const missionStatusCard = document.querySelector('.stat-card:nth-child(4) .change');
             if (missionStatusCard) {
-                const statuses = ['시작 전', '진행 중', '우수 완료', '마스터!'];
+                const statuses = ['시작 전', '도전 시작', '기초 돌파', '3단원 돌파', '중급 단계', '고수 달성', '마스터 도전', '프로 코더', '완전 마스터!'];
                 missionStatusCard.innerText = statuses[completedCount] || '진행 중';
             }
         }
@@ -731,7 +730,7 @@
                     document.getElementById('growth-speed').innerText = growthSpeed;
                     document.getElementById('growth-time').innerText = growthTime;
 
-                    currentMissions = data.missions || [false, false, false];
+                    currentMissions = data.missions || [false, false, false, false, false, false, false, false];
                     currentLogs = data.logs || [];
                     
                     document.getElementById('ai-comment').innerHTML = data.aiComment || "대기 중...";
@@ -776,7 +775,7 @@
                 document.getElementById('growth-time').innerText = '+0분';
             }
             
-            currentMissions = [false, false, false];
+            currentMissions = [false, false, false, false, false, false, false, false];
             currentLogs = [];
             document.getElementById('ai-comment').innerText = "학생이 블록 코딩을 시작하면 해당 세션의 로그를 AI가 자동 분석하여 맞춤형 코멘트를 이곳에 작성합니다. (대기 중...)";
             

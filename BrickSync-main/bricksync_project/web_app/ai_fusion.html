@@ -3874,8 +3874,8 @@ print("BrickSync Sandbox Run")
                             break;
 
                         case 'flow_wait':
-                            pyCode += `${indent}utime.sleep_ms(int(${pythonVal} * 1000)) \n`;
-                            cumulativeDelayMs += (paramVal * 1000);
+                            pyCode += `${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n`;
+                            cumulativeDelayMs += (timeVal * 1000);
                             break;
 
                         case 'control_repeat':
@@ -4082,7 +4082,7 @@ print("BrickSync Sandbox Run")
                                 bleQueue.push({ action: 'wait_ai_gesture', targetGesture: paramVal, delay: currentBleDelay });
                                 break;
                             case 'flow_wait':
-                                currentBleDelay += (paramVal * 1000);
+                                currentBleDelay += (timeVal * 1000);
                                 break;
                             case 'control_repeat':
                             case 'control_forever':
@@ -4184,24 +4184,76 @@ print("BrickSync Sandbox Run")
                                 } else if (cmd.action === 'matrix') {
                                     try { window.parent.sendWebSocketAction({ action: 'ACTION_LIGHT' }); } catch (e) { }
                                     let encodedColors = cmd.colors.map(c => c > 0 ? c + 160 : 0);
-                                    let targetPort = 0;
-                                    for (let p = 0; p < 6; p++) {
-                                        if (window.parent.hubDevices && window.parent.hubDevices[p] === 64) {
-                                            targetPort = p; break;
+                                    let hubWin = window;
+                                    for (let i = 0; i < 5; i++) {
+                                        if (hubWin.hubDevices) break;
+                                        if (hubWin.parent && hubWin.parent !== hubWin) {
+                                            hubWin = hubWin.parent;
+                                        } else {
+                                            break;
                                         }
                                     }
-                                    let payload = [16, 0, 0x81, targetPort, 0x10, 0x51, 0x02, ...encodedColors];
-                                    await window.parent.writeToHub(new Uint8Array(payload)).catch(e => { });
+                                    let targetPorts = [];
+                                    for (let p = 0; p < 6; p++) {
+                                        if (hubWin.hubDevices && hubWin.hubDevices[p] === 64) {
+                                            targetPorts.push(p);
+                                        }
+                                    }
+                                    if (targetPorts.length === 0) {
+                                        targetPorts = [0, 1, 2, 3, 4, 5];
+                                    }
+                                    let writeWin = window;
+                                    for (let i = 0; i < 5; i++) {
+                                        if (writeWin.writeToHub) break;
+                                        if (writeWin.parent && writeWin.parent !== writeWin) {
+                                            writeWin = writeWin.parent;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                    for (const port of targetPorts) {
+                                        let payload = [16, 0, 0x81, port, 0x10, 0x51, 0x02, ...encodedColors];
+                                        await writeWin.writeToHub(new Uint8Array(payload)).catch(e => { });
+                                        if (targetPorts.length > 1) {
+                                            await new Promise(r => setTimeout(r, 80));
+                                        }
+                                    }
                                     await new Promise(r => setTimeout(r, 40));
                                 } else if (cmd.action === 'matrix_clear') {
-                                    let targetPort = 0;
-                                    for (let p = 0; p < 6; p++) {
-                                        if (window.parent.hubDevices && window.parent.hubDevices[p] === 64) {
-                                            targetPort = p; break;
+                                    let hubWin = window;
+                                    for (let i = 0; i < 5; i++) {
+                                        if (hubWin.hubDevices) break;
+                                        if (hubWin.parent && hubWin.parent !== hubWin) {
+                                            hubWin = hubWin.parent;
+                                        } else {
+                                            break;
                                         }
                                     }
-                                    let payload = [16, 0, 0x81, targetPort, 0x10, 0x51, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                                    await window.parent.writeToHub(new Uint8Array(payload)).catch(e => { });
+                                    let targetPorts = [];
+                                    for (let p = 0; p < 6; p++) {
+                                        if (hubWin.hubDevices && hubWin.hubDevices[p] === 64) {
+                                            targetPorts.push(p);
+                                        }
+                                    }
+                                    if (targetPorts.length === 0) {
+                                        targetPorts = [0, 1, 2, 3, 4, 5];
+                                    }
+                                    let writeWin = window;
+                                    for (let i = 0; i < 5; i++) {
+                                        if (writeWin.writeToHub) break;
+                                        if (writeWin.parent && writeWin.parent !== writeWin) {
+                                            writeWin = writeWin.parent;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                    for (const port of targetPorts) {
+                                        let payload = [16, 0, 0x81, port, 0x10, 0x51, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                                        await writeWin.writeToHub(new Uint8Array(payload)).catch(e => { });
+                                        if (targetPorts.length > 1) {
+                                            await new Promise(r => setTimeout(r, 80));
+                                        }
+                                    }
                                     await new Promise(r => setTimeout(r, 40));
                                 } else if (cmd.action === 'wait_color') {
                                     console.log(`📡 [BLE_ENGINE] Waiting for Color Sensor to detect color ID: ${cmd.targetColor}`);

@@ -13,6 +13,13 @@
             window.location.href = 'app.html';
         }
     </script>
+    <!-- Firebase SDK (Auth + Firestore + Realtime DB) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase_config.js"></script>
+    <script src="auth.js"></script>
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -311,6 +318,17 @@
 
         <!-- 왼쪽 메뉴 영역 -->
         <div class="sidebar">
+            <!-- 학생 프로필 카드 -->
+            <div class="student-profile-card" style="padding: 15px; background: rgba(255,255,255,0.06); border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="user" style="color: #facc15; width: 18px; height: 18px;"></i>
+                    <span id="display-student-name" style="color: #fff; font-weight: 700; font-size: 0.95rem;">학생</span>
+                </div>
+                <button onclick="doLogout()" style="background: none; border: none; color: #f43f5e; cursor: pointer; display: flex; align-items: center; padding: 4px; transition: color 0.2s;" title="로그아웃" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#f43f5e'">
+                    <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+                </button>
+            </div>
+
             <ul class="menu-list">
                 <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;" class="menu-item">
                     <i data-lucide="home" class="menu-icon"></i>
@@ -333,10 +351,11 @@
                     <i data-lucide="blocks" class="menu-icon"></i>
                     <span data-i18n="nav_projects">프로젝트</span>
                 </li>
-                <a href="#" onclick="window.open('dashboard_v2.html?v=' + new Date().getTime(), '_blank'); return false;" class="menu-item">
+                <!-- 역할별 대시보드 링크 (JS로 동적 주입) -->
+                <li class="menu-item" id="nav-dashboard-item" style="display:none" onclick="goToDashboard()">
                     <i data-lucide="layout-dashboard" class="menu-icon"></i>
-                    <span data-i18n="nav_dashboard">교사/학부모용 대시보드</span>
-                </a>
+                    <span id="nav-dashboard-label" data-i18n="nav_dashboard">대시보드</span>
+                </li>
             </ul>
 
             <div class="bottom-menu">
@@ -490,6 +509,106 @@ while True:
                 addLog("❌ 코드 주입 실패: " + e);
             }
         }
+
+        // ── 역할별 사이드바 초기화 ────────────────────────────────
+        async function initRoleUI() {
+            let displayName = 'Guest_익명';
+            let role = 'student';
+
+            // Firebase Auth 우선
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.currentUser) {
+                const user = firebaseAuth.currentUser;
+                const profile = await BrickSyncAuth.getUserProfile(user.uid);
+                if (profile) {
+                    displayName = profile.displayName || user.email || '학생';
+                    role = profile.role || 'student';
+                }
+            } else {
+                // 레거시 세션 폴백
+                try {
+                    const s = JSON.parse(localStorage.getItem('bricksync_student_session') || '{}');
+                    displayName = s.name || 'Guest_익명';
+                    role = s.role || 'student';
+                } catch(e) {}
+            }
+
+            // 이름 표시
+            const nameEl = document.getElementById('display-student-name');
+            if (nameEl) nameEl.textContent = displayName + ' ' + (role === 'teacher' ? '교사' : role === 'parent' ? '학부모' : '학생');
+
+            // 역할별 대시보드 메뉴 표시
+            const dashItem = document.getElementById('nav-dashboard-item');
+            const dashLabel = document.getElementById('nav-dashboard-label');
+            if (role === 'teacher') {
+                if (dashItem) dashItem.style.display = '';
+                if (dashLabel) dashLabel.textContent = '교사 대시보드';
+            } else {
+                if (dashItem) dashItem.style.display = 'none';
+            }
+
+            // Lucide 아이콘 갱신
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function goToDashboard() {
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.currentUser) {
+                BrickSyncAuth.getUserProfile(firebaseAuth.currentUser.uid).then(profile => {
+                    const role = profile?.role;
+                    if (role === 'teacher') window.location.href = 'dashboard_v2.html';
+                });
+            } else {
+                try {
+                    const s = JSON.parse(localStorage.getItem('bricksync_student_session') || '{}');
+                    if (s.role === 'teacher') window.location.href = 'dashboard_v2.html';
+                } catch(e) {}
+            }
+        }
+
+        function doLogout() {
+            if (typeof BrickSyncAuth !== 'undefined') {
+                BrickSyncAuth.signOut();
+            } else {
+                localStorage.removeItem('bricksync_student_session');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function logoutStudent() { doLogout(); }
+
+        function updateStudentGreeting(lang) {
+            try {
+                const sessionDataStr = localStorage.getItem('bricksync_student_session');
+                if (sessionDataStr) {
+                    const sessionData = JSON.parse(sessionDataStr);
+                    const nameDisp = document.getElementById('display-student-name');
+                    if (nameDisp) {
+                        const studentName = sessionData.name || 'Guest';
+                        if (lang === 'en') {
+                            nameDisp.innerText = 'Student ' + studentName;
+                        } else {
+                            nameDisp.innerText = studentName + ' 학생';
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // 초기화 리스너
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentLang = localStorage.getItem('bricksync_lang') || 'ko';
+            updateStudentGreeting(currentLang);
+            if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+                firebaseAuth.onAuthStateChanged((user) => { initRoleUI(); });
+            } else {
+                initRoleUI();
+            }
+        });
+
+        // 다국어 실시간 감지 이벤트 리스너 추가
+        window.addEventListener('bricksync-language-changed', (e) => {
+            const lang = e.detail.lang;
+            updateStudentGreeting(lang);
+        });
     </script>
     <script src="settings.js"></script>
 </body>
