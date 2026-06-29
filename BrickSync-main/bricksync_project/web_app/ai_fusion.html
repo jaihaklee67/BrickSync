@@ -137,7 +137,8 @@
             position: relative;
             background-color: #f1f5f9;
             overflow: hidden;
-            min-height: 0; /* 중첩 flexbox 내에서 찌그러짐을 안전하게 감수 */
+            min-height: 0;
+            /* 중첩 flexbox 내에서 찌그러짐을 안전하게 감수 */
         }
 
         .coding-area {
@@ -200,7 +201,8 @@
             overflow-x: auto;
             box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
             z-index: 20;
-            flex-shrink: 0; /* 화면 비율 100%일 때도 찌그러짐을 강력하게 방지 */
+            flex-shrink: 0;
+            /* 화면 비율 100%일 때도 찌그러짐을 강력하게 방지 */
         }
 
         .category-divider {
@@ -620,15 +622,18 @@
         .toolbox::-webkit-scrollbar {
             height: 12px;
         }
+
         .toolbox::-webkit-scrollbar-track {
             background: #f1f5f9;
             border-radius: 6px;
         }
+
         .toolbox::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 6px;
             border: 3px solid #f1f5f9;
         }
+
         .toolbox::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
@@ -646,7 +651,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 
+            box-shadow:
                 inset 0 3px 6px rgba(255, 255, 255, 0.4),
                 0 5px 0 #b45309,
                 0 8px 16px rgba(245, 158, 11, 0.4);
@@ -658,7 +663,7 @@
         .btn-go-mission:hover {
             background: linear-gradient(135deg, #fcd34d, #d97706);
             transform: translateY(-2px);
-            box-shadow: 
+            box-shadow:
                 inset 0 3px 6px rgba(255, 255, 255, 0.5),
                 0 7px 0 #b45309,
                 0 10px 20px rgba(245, 158, 11, 0.5);
@@ -666,7 +671,7 @@
 
         .btn-go-mission:active {
             transform: translateY(4px);
-            box-shadow: 
+            box-shadow:
                 inset 0 2px 4px rgba(0, 0, 0, 0.2),
                 0 0 0 #b45309,
                 0 2px 4px rgba(245, 158, 11, 0.15);
@@ -685,7 +690,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 
+            box-shadow:
                 inset 0 3px 6px rgba(255, 255, 255, 0.5),
                 0 5px 0 #0284c7,
                 0 8px 16px rgba(14, 165, 233, 0.25);
@@ -697,7 +702,7 @@
         .btn-check-tasks:hover {
             background: rgba(186, 230, 253, 0.95);
             transform: translateY(-2px);
-            box-shadow: 
+            box-shadow:
                 inset 0 3px 6px rgba(255, 255, 255, 0.6),
                 0 7px 0 #0284c7,
                 0 10px 20px rgba(14, 165, 233, 0.35);
@@ -705,7 +710,7 @@
 
         .btn-check-tasks:active {
             transform: translateY(4px);
-            box-shadow: 
+            box-shadow:
                 inset 0 2px 4px rgba(0, 0, 0, 0.15),
                 0 0 0 #0284c7,
                 0 2px 4px rgba(14, 165, 233, 0.1);
@@ -716,49 +721,61 @@
                 box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
                 transform: scale(1);
             }
+
             70% {
                 box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
                 transform: scale(1.05);
             }
+
             100% {
                 box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
                 transform: scale(1);
             }
         }
+
         .mic-active {
             animation: mic-pulse 1.5s infinite !important;
-            background: #8b5cf6 !important; /* Indigo color when active */
+            background: #8b5cf6 !important;
+            /* Indigo color when active */
             cursor: pointer;
         }
+
         .mic-cooldown {
-            background: #f97316 !important; /* Orange color during processing */
+            background: #f97316 !important;
+            /* Orange color during processing */
             cursor: not-allowed !important;
             box-shadow: 0 0 12px rgba(249, 115, 22, 0.4) !important;
             opacity: 0.85;
         }
+
         @keyframes mic-idle-pulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4), 0 4px 6px rgba(0,0,0,0.2);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4), 0 4px 6px rgba(0, 0, 0, 0.2);
             }
+
             70% {
-                box-shadow: 0 0 0 12px rgba(255, 255, 255, 0), 0 4px 6px rgba(0,0,0,0.2);
+                box-shadow: 0 0 0 12px rgba(255, 255, 255, 0), 0 4px 6px rgba(0, 0, 0, 0.2);
             }
+
             100% {
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 4px 6px rgba(0,0,0,0.2);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 4px 6px rgba(0, 0, 0, 0.2);
             }
         }
+
         .mic-idle {
-            background: #475569 !important; /* Slate color when idle */
+            background: #475569 !important;
+            /* Slate color when idle */
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
             transition: all 0.2s;
             animation: mic-idle-pulse 2.2s infinite;
         }
+
         .mic-idle:hover {
             transform: scale(1.05);
             background: #64748b !important;
             animation: none;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3), 0 4px 6px rgba(0,0,0,0.2) !important;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2) !important;
         }
     </style>
 </head>
@@ -1822,11 +1839,11 @@
             // 새로운 통합 섹션: 시간 설정 
             // =========================
             const timeCol = document.createElement('div');
-            timeCol.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); padding: 12px; border-radius: 8px; margin-left: 8px; border: 1px solid rgba(0,0,0,0.2); width: 80px;';
+            timeCol.style.cssText = 'display: none;';
 
             const timeLabel = document.createElement('div');
-            timeLabel.textContent = '단위: 초(s)';
-            timeLabel.style.cssText = 'color: white; font-size: 11px; margin-bottom: 8px; font-weight: bold; opacity: 0.8;';
+            timeLabel.textContent = '';
+            timeLabel.style.cssText = 'display: none;';
 
             const plusBtn = document.createElement('div');
             plusBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
@@ -3630,7 +3647,7 @@
             // 실행 가능한 스택 찾기 (방어 로직 탑재)
             const validStacks = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).filter(stack => {
                 const firstBlock = stack.querySelector('.workspace-item');
-                const action = firstBlock ? firstBlock.getAttribute('data-action') : '';
+                const action = (firstBlock && firstBlock.getAttribute('data-action')) || '';
 
                 if (triggerAction === 'gui') {
                     // GUI "실행" 버튼 클릭 시에는 AI 제스처 개별 트리거 스택은 무시 
@@ -3793,6 +3810,10 @@ print("BrickSync Sandbox Run")
                         }
                     }
 
+                    if (action === 'flow_wait') {
+                        timeVal = paramVal;
+                    }
+
                     let pythonVal = paramVal === -1 ? 'math.urandom.getrandbits(3)' : paramVal;
                     let pythonTimeVal = timeVal === -1 ? 'math.urandom.getrandbits(3)' : timeVal;
 
@@ -3874,8 +3895,8 @@ print("BrickSync Sandbox Run")
                             break;
 
                         case 'flow_wait':
-                            pyCode += `${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n`;
-                            cumulativeDelayMs += (timeVal * 1000);
+                            pyCode += `${indent}utime.sleep_ms(int(${pythonVal} * 1000)) \n`;
+                            cumulativeDelayMs += (paramVal * 1000);
                             break;
 
                         case 'control_repeat':
@@ -3985,6 +4006,13 @@ print("BrickSync Sandbox Run")
                     const stackBlocks = Array.from(stack.querySelectorAll('.workspace-item'));
                     if (stackBlocks.length === 0) return;
 
+                    // Filter out stacks that don't have any functional action blocks (e.g. leftover Start or Start->Wait)
+                    const hasActionBlocks = stackBlocks.some(b => {
+                        const act = b.getAttribute('data-action') || '';
+                        return act !== 'start' && act !== 'flow_wait';
+                    });
+                    if (!hasActionBlocks) return;
+
                     anySequenceFound = true;
                     // 첫 블록이 이벤트 블록인지(Start가 아닌지) 확인 (단, AI 제스처는 AI 루프가 자체 폴링하므로 제외)
                     const firstAction = stackBlocks[0].getAttribute('data-action');
@@ -4037,6 +4065,10 @@ print("BrickSync Sandbox Run")
                         if (paramVal === -1) paramVal = Math.floor(Math.random() * 3) + 1;
                         if (timeVal === -1) timeVal = Math.floor(Math.random() * 3) + 1;
 
+                        if (action === 'flow_wait') {
+                            timeVal = paramVal;
+                        }
+
                         switch (action) {
                             case 'motor_speed_set':
                             case 'car_speed_set':
@@ -4082,7 +4114,7 @@ print("BrickSync Sandbox Run")
                                 bleQueue.push({ action: 'wait_ai_gesture', targetGesture: paramVal, delay: currentBleDelay });
                                 break;
                             case 'flow_wait':
-                                currentBleDelay += (timeVal * 1000);
+                                currentBleDelay += (paramVal * 1000);
                                 break;
                             case 'control_repeat':
                             case 'control_forever':
@@ -4183,7 +4215,7 @@ print("BrickSync Sandbox Run")
                                     }
                                 } else if (cmd.action === 'matrix') {
                                     try { window.parent.sendWebSocketAction({ action: 'ACTION_LIGHT' }); } catch (e) { }
-                                    let encodedColors = cmd.colors.map(c => c > 0 ? c + 160 : 0);
+                                    let encodedColors = cmd.colors.map(c => { const val = Number(c); return val > 0 ? val + 160 : 0; });
                                     let hubWin = window;
                                     for (let i = 0; i < 5; i++) {
                                         if (hubWin.hubDevices) break;
@@ -4212,7 +4244,13 @@ print("BrickSync Sandbox Run")
                                         }
                                     }
                                     for (const port of targetPorts) {
-                                        let payload = [16, 0, 0x81, port, 0x10, 0x51, 0x02, ...encodedColors];
+                                         // 1. Configure port to Mode 2 (sets the light matrix to Mode 2)
+                                         let configPayload = [10, 0, 0x41, port, 2, 1, 0, 0, 0, 0];
+                                         await writeWin.writeToHub(new Uint8Array(configPayload)).catch(e => { });
+                                         await new Promise(r => setTimeout(r, 50)); // wait for hub to process mode change
+
+                                         // 2. Send the matrix color payload
+                                         let payload = [16, 0, 0x81, port, 0x10, 0x51, 0x02, ...encodedColors];
                                         await writeWin.writeToHub(new Uint8Array(payload)).catch(e => { });
                                         if (targetPorts.length > 1) {
                                             await new Promise(r => setTimeout(r, 80));
@@ -4248,7 +4286,13 @@ print("BrickSync Sandbox Run")
                                         }
                                     }
                                     for (const port of targetPorts) {
-                                        let payload = [16, 0, 0x81, port, 0x10, 0x51, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                                         // 1. Configure port to Mode 2
+                                         let configPayload = [10, 0, 0x41, port, 2, 1, 0, 0, 0, 0];
+                                         await writeWin.writeToHub(new Uint8Array(configPayload)).catch(e => { });
+                                         await new Promise(r => setTimeout(r, 50)); // wait for hub to process mode change
+
+                                         // 2. Send clear payload
+                                         let payload = [16, 0, 0x81, port, 0x10, 0x51, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0];
                                         await writeWin.writeToHub(new Uint8Array(payload)).catch(e => { });
                                         if (targetPorts.length > 1) {
                                             await new Promise(r => setTimeout(r, 80));
@@ -4381,8 +4425,28 @@ print("BrickSync Sandbox Run")
             }, 250);
         }
 
-        function showPinCodeModal(pinStr) {
+                                function showPinCodeModal(pinStr) {
             document.getElementById('generatedPinCode').textContent = pinStr;
+            
+            // Render the reward grid dynamically based on the current unit
+            const gridContainer = document.getElementById('rewardBoardGrid');
+            if (gridContainer) {
+                let html = '';
+                const currentUnitNum = parseInt(unit) || 1;
+                for (let i = 1; i <= 8; i++) {
+                    const isActive = (i === currentUnitNum);
+                    html += `
+                        <div class="reward-slot ${isActive ? 'active' : ''}">
+                            <div class="slot-circle">
+                                ${isActive ? '★' : i}
+                            </div>
+                            <div class="slot-label">${i}단원</div>
+                        </div>
+                    `;
+                }
+                gridContainer.innerHTML = html;
+            }
+
             const modal = document.getElementById('pinCodeModal');
             modal.style.display = 'flex';
         }
@@ -4390,6 +4454,38 @@ print("BrickSync Sandbox Run")
         function closePinCodeModal() {
             document.getElementById('pinCodeModal').style.display = 'none';
         }
+
+        window.onUsbMissionComplete = function() {
+            // 오직 미션 달성도 100% 완료 상태일 때만 보상 연동 및 팝업 작동
+            const isMissionComplete = document.getElementById('m-progress') && document.getElementById('m-progress').dataset.completed === 'true';
+            if (isMissionComplete) {
+                triggerSuccessConfetti();
+                let finalPin = '0000';
+                if (typeof currentMission !== 'undefined' && currentMission.pinCode) {
+                    finalPin = currentMission.pinCode;
+                }
+                let presentActions = [];
+                const validStacks = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).filter(stack => {
+                    const firstBlock = stack.querySelector('.workspace-item');
+                    const action = (firstBlock && firstBlock.getAttribute('data-action')) || '';
+                    return action === 'start' || action.startsWith('event_');
+                });
+                validStacks.forEach(stack => {
+                    const stackBlocks = Array.from(stack.querySelectorAll('.workspace-item'));
+                    stackBlocks.forEach(b => {
+                        const act = b.getAttribute('data-action');
+                        if (act) presentActions.push(act);
+                    });
+                });
+                const lastMotorAction = presentActions.slice().reverse().find(a => a === 'motor_cw' || a === 'motor_ccw');
+                if (lastMotorAction === 'motor_cw') {
+                    finalPin = '7241';
+                } else if (lastMotorAction === 'motor_ccw') {
+                    finalPin = '9988';
+                }
+                showPinCodeModal(finalPin);
+            }
+        };
 
         function copyPinCode() {
             const pin = document.getElementById('generatedPinCode').textContent;
@@ -4481,18 +4577,18 @@ print("BrickSync Sandbox Run")
                 }
             };
 
-            openMissionBriefing = function() {
+            openMissionBriefing = function () {
                 if (typeof unit === 'undefined' || !unit) return;
                 isMissionActive = true;
-                
+
                 const lang = localStorage.getItem('bricksync_lang') || 'ko';
                 const current = (missionData[lang] || missionData['ko'])[unit];
                 if (!current) return;
-                
+
                 document.getElementById('briefingStage').textContent = current.badge;
                 document.getElementById('briefingTitle').textContent = current.title;
                 document.getElementById('briefingDesc').textContent = current.desc;
-                
+
                 const briefingTasksEl = document.getElementById('briefingTasks');
                 if (briefingTasksEl) {
                     briefingTasksEl.innerHTML = '';
@@ -4503,11 +4599,11 @@ print("BrickSync Sandbox Run")
                         briefingTasksEl.appendChild(li);
                     });
                 }
-                
+
                 document.getElementById('missionBriefingModal').style.display = 'flex';
             };
 
-            setupMissionToolbox = function(targetUnit) {
+            setupMissionToolbox = function (targetUnit) {
                 const palette = document.getElementById('palette');
                 if (!palette) return;
 
@@ -4533,7 +4629,7 @@ print("BrickSync Sandbox Run")
                         const action = child.getAttribute('data-action');
                         if (allowed.includes(action)) {
                             child.style.display = ''; // Show
-                            
+
                             // Customize matrix_pixel to be a static red light with no options
                             if (action === 'matrix_pixel') {
                                 // Update inner pixels to red
@@ -4542,7 +4638,7 @@ print("BrickSync Sandbox Run")
                                     pixel.style.backgroundColor = '#ef4444';
                                     pixel.style.borderColor = '#ef4444';
                                 });
-                                
+
                                 // Update block parameter to LWP3 red code (9) and block dropdown click removal
                                 const paramEl = child.querySelector('.block-param');
                                 if (paramEl) {
@@ -4550,7 +4646,7 @@ print("BrickSync Sandbox Run")
                                     paramEl.style.backgroundColor = '#ef4444';
                                     paramEl.style.pointerEvents = 'none';
                                     paramEl.setAttribute('data-val', '9');
-                                    paramEl.setAttribute('data-matrix', JSON.stringify([9,9,9,9,9,9,9,9,9]));
+                                    paramEl.setAttribute('data-matrix', JSON.stringify([9, 9, 9, 9, 9, 9, 9, 9, 9]));
                                 }
                             }
                         } else {
@@ -4586,7 +4682,7 @@ print("BrickSync Sandbox Run")
                 console.log(`[BrickSync] Fortnite-compatible toolbox loaded for Unit ${targetUnit}`);
             };
 
-            closeMissionBriefing = function() {
+            closeMissionBriefing = function () {
                 document.getElementById('missionBriefingModal').style.display = 'none';
                 if (isMissionActive && unit) {
                     setupMissionToolbox(unit);
@@ -4965,45 +5061,111 @@ print("BrickSync Sandbox Run")
     </div>
 
     <!-- 핀코드 보상 모달 팝업 패널 -->
+        <!-- 핀코드 보상 모달 팝업 패널 -->
+        <!-- 핀코드 보상 모달 팝업 패널 -->
     <div id="pinCodeModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(8px); flex-direction: column;">
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(12px); flex-direction: column;">
+        
+        <!-- 스타일 선언 추가 (도장 애니메이션 및 모달 등장 효과) -->
+        <style>
+            @keyframes modalFadeIn {
+                from { opacity: 0; transform: scale(0.9) translateY(20px); }
+                to { opacity: 1; transform: scale(1.0) translateY(0); }
+            }
+            @keyframes stampImpact {
+                0% { opacity: 0; transform: scale(4.5) rotate(45deg); filter: blur(6px); }
+                60% { opacity: 0.9; transform: scale(0.9) rotate(-15deg); filter: none; }
+                80% { transform: scale(1.05) rotate(-10deg); }
+                100% { opacity: 1; transform: scale(1.0) rotate(-12deg); }
+            }
+            @keyframes shineEffect {
+                0% { left: -100%; }
+                50% { left: 100%; }
+                100% { left: 100%; }
+            }
+            .reward-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+                background: #f1f5f9;
+                border-radius: 20px;
+                padding: 16px;
+                margin: 20px 0 30px 0;
+                border: 1px solid #cbd5e1;
+            }
+            .reward-slot {
+                background: white;
+                border: 2px dashed #cbd5e1;
+                border-radius: 14px;
+                padding: 12px 6px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            }
+            .reward-slot.active {
+                border: 2px solid #facc15;
+                box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+                animation: activePulse 2s infinite alternate;
+            }
+            @keyframes activePulse {
+                from { transform: scale(1); box-shadow: 0 0 12px rgba(250, 204, 21, 0.4); }
+                to { transform: scale(1.03); box-shadow: 0 0 18px rgba(250, 204, 21, 0.6); }
+            }
+            .slot-circle {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: #e2e8f0;
+                color: #64748b;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-weight: 800;
+                font-size: 0.95rem;
+            }
+            .reward-slot.active .slot-circle {
+                background: #facc15;
+                color: #7c2d12;
+                box-shadow: 0 2px 6px rgba(250, 204, 21, 0.4);
+            }
+            .slot-label {
+                font-size: 0.75rem;
+                font-weight: bold;
+                color: #64748b;
+            }
+            .reward-slot.active .slot-label {
+                color: #ea580c;
+            }
+        </style>
 
-        <!-- 빛나는 파티클 후광 효과 -->
         <div
-            style="position:absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(234, 179, 8, 0.4) 0%, transparent 60%); z-index: 3001; pointer-events:none; animation: pulse 2s infinite;">
-        </div>
+            style="position: relative; z-index: 3002; background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(243, 244, 246, 0.98) 100%); padding: 50px 30px; border-radius: 28px; width: 460px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.7); animation: modalFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; overflow: hidden;">
+            
+            <!-- 슬라이딩 쉬머 광택 데코레이션 -->
+            <div style="position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.5), transparent); transform: skewX(-25deg); pointer-events: none; animation: shineEffect 3s infinite 1s;"></div>
 
-        <div
-            style="position: relative; z-index: 3002; background: rgba(255, 255, 255, 0.9); padding: 50px 40px; border-radius: 24px; width: 420px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.5);">
-            <div
-                style="width: 80px; height: 80px; background: #eab308; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: -90px auto 20px auto; box-shadow: 0 10px 20px rgba(234, 179, 8, 0.4); border: 4px solid white;">
-                <i class="fas fa-trophy" style="font-size: 36px; color: white;"></i>
-            </div>
-
-            <h2 style="font-size: 2rem; color: #1e293b; font-weight: 900; margin-bottom: 5px;"
-                data-i18n="lbl_mission_clear_title">미션 달성!</h2>
-            <p style="color: #64748b; font-size: 1.05rem; margin-bottom: 25px;" data-i18n="lbl_mission_clear_desc">아래의
-                핀(PIN) 코드를 레고 포트나이트 맵의<br><strong style="color:#0ea5e9;">[비밀 제어 해제장치]</strong>에 입력하세요.</p>
-
-            <div
-                style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
-                <span style="font-size: 0.9rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px;"
-                    data-i18n="lbl_issued_code">지급된
-                    액세스 코드</span>
-                <div id="generatedPinCode"
-                    style="font-size: 3rem; font-weight: 900; color: #10b981; letter-spacing: 5px; font-family: 'Outfit', sans-serif;">
-                    000000
+            <!-- 미션 완료 도장 그래픽 -->
+            <div style="position: relative; height: 150px; margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
+                <div style="width: 140px; height: 140px; border: 5px double #ef4444; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #ef4444; font-family: 'Noto Sans KR', sans-serif; font-weight: 900; transform: rotate(-12deg); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05); animation: stampImpact 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s both;">
+                    <div style="font-size: 14px; letter-spacing: 2px; opacity: 0.9; margin-bottom: -4px;">COIN MISSION</div>
+                    <div style="font-size: 32px; font-weight: 950; letter-spacing: 1px; border-top: 2.5px solid #ef4444; border-bottom: 2.5px solid #ef4444; padding: 2px 12px; margin: 5px 0;">완 료</div>
+                    <div style="font-size: 12px; opacity: 0.8; font-weight: bold; margin-top: -1px;">★ SUCCESS ★</div>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="copyPinCode()"
-                    style="flex: 1; padding: 14px; border-radius: 12px; background: #38bdf8; color: white; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3); transition: 0.2s;">
-                    <i class="far fa-copy"></i> <span data-i18n="btn_copy">복사하기</span>
-                </button>
+            <h2 style="font-size: 1.85rem; color: #1e293b; font-weight: 900; margin: 15px 0 5px 0; letter-spacing: -0.5px;">미션 완료!</h2>
+            <p style="color: #64748b; font-size: 1rem; margin-bottom: 10px; line-height: 1.5;">훌륭한 실력이에요! 아래 보상판에 새로운 코인이 장착됩니다.</p>
+
+            <!-- 보상판 그리드 컨테이너 -->
+            <div id="rewardBoardGrid" class="reward-grid"></div>
+
+            <span id="generatedPinCode" style="display: none;"></span>
+
+            <div style="display: flex; gap: 10px; justify-content: center; width: 100%;">
                 <button onclick="closePinCodeModal()"
-                    style="flex: 1; padding: 14px; border-radius: 12px; background: #e2e8f0; color: #475569; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s;"
-                    data-i18n="btn_close">
+                    style="width: 100%; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: white; border: none; font-size: 1.15rem; font-weight: 900; cursor: pointer; transition: all 0.2s; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4); border-top: 1px solid rgba(255,255,255,0.2);">
                     닫기
                 </button>
             </div>
@@ -5090,7 +5252,7 @@ print("BrickSync Sandbox Run")
             if (isSpeechListening) {
                 try {
                     speechRecognition.stop();
-                } catch (e) {}
+                } catch (e) { }
             } else {
                 try {
                     speechRecognition.start();
@@ -5271,7 +5433,7 @@ print("BrickSync Sandbox Run")
             // 3. Cooldown Lockout (Seesaw Effect / Double trigger protection)
             // Cooldown prevents mic from catching echo or double spoken commands while running.
             speechCooldown = true;
-            try { speechRecognition.stop(); } catch (e) {}
+            try { speechRecognition.stop(); } catch (e) { }
 
             const micIcon = document.getElementById('mic-icon-glow');
             if (micIcon) {
@@ -5348,7 +5510,7 @@ print("BrickSync Sandbox Run")
                         paramEl.innerHTML = '<i class="fas fa-dragon" style="color:#64748b;"></i>';
                     }
                 }
-                
+
                 // 좌측 패널 타이틀 변경
                 const leftPanelContainer = document.querySelector('div[style*="width: 480px"]');
                 if (leftPanelContainer) {
@@ -5357,12 +5519,12 @@ print("BrickSync Sandbox Run")
                         aiTitleText.innerHTML = '<i class="fas fa-dragon" style="color: #f97316;"></i> AI 몬스터 카메라 인식';
                     }
                 }
-                
+
                 // 학습 버튼 수정 및 불필요한 버튼 숨김
                 const btnRock = document.querySelector('button[onclick="addExample(0)"]');
                 const btnPaper = document.querySelector('button[onclick="addExample(1)"]');
                 const btnScissors = document.querySelector('button[onclick="addExample(2)"]');
-                
+
                 if (btnRock) {
                     btnRock.style.background = '#f97316';
                     btnRock.style.boxShadow = '0 3px 0 #ea580c';
@@ -5370,7 +5532,7 @@ print("BrickSync Sandbox Run")
                 }
                 if (btnPaper) btnPaper.style.display = 'none';
                 if (btnScissors) btnScissors.style.display = 'none';
-                
+
                 // 카운터 텍스트 숨김
                 const countPaper = document.getElementById('count-paper');
                 const countScissors = document.getElementById('count-scissors');
@@ -5666,7 +5828,7 @@ print("BrickSync Sandbox Run")
             let sCntSensor = 0;
             let sLiveMinutes = studentName === '김민준' ? 65 : Math.floor(40 + Math.random() * 40);
             let sLiveSuccess = studentName === '김민준' ? 79 : Math.floor(60 + Math.random() * 35);
-            let sMissions = [true, true, false];
+            let sMissions = [false, false, false, false, false, false, false, false];
             let sLogs = [];
             let sAiComment = "대기 중...";
 
@@ -5679,7 +5841,7 @@ print("BrickSync Sandbox Run")
                     sCntSensor = parsed.cntSensor || 0;
                     sLiveMinutes = parsed.liveMinutes || 0;
                     sLiveSuccess = parsed.liveSuccess || 100;
-                    sMissions = parsed.missions || [true, true, false];
+                    sMissions = parsed.missions || [false, false, false, false, false, false, false, false];
                     sLogs = parsed.logs || [];
                     sAiComment = parsed.aiComment || "대기 중...";
                 } catch (e) { }
@@ -5772,7 +5934,7 @@ print("BrickSync Sandbox Run")
             let sCntSensor = 0;
             let sLiveMinutes = studentName === '김민준' ? 65 : Math.floor(40 + Math.random() * 40);
             let sLiveSuccess = studentName === '김민준' ? 79 : Math.floor(60 + Math.random() * 35);
-            let sMissions = [true, true, false];
+            let sMissions = [false, false, false, false, false, false, false, false];
             let sLogs = [];
             let sAiComment = "대기 중...";
 
@@ -5785,7 +5947,7 @@ print("BrickSync Sandbox Run")
                     sCntSensor = parsed.cntSensor || 0;
                     sLiveMinutes = parsed.liveMinutes || 0;
                     sLiveSuccess = parsed.liveSuccess || 100;
-                    sMissions = parsed.missions || [true, true, false];
+                    sMissions = parsed.missions || [false, false, false, false, false, false, false, false];
                     sLogs = parsed.logs || [];
                     sAiComment = parsed.aiComment || "대기 중...";
                 } catch (e) { }
@@ -5867,25 +6029,38 @@ print("BrickSync Sandbox Run")
             }
         });
     </script>
-    <script src="settings.js"></script>
+    <script src="settings.js">
+</script>
     <!-- 미션 설명 및 목표 안내 팝업 (미션하러가기) -->
     <div id="missionBriefingModal"
         style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(8px); flex-direction: column;">
-        <div style="position: relative; z-index: 3002; background: rgba(255, 255, 255, 0.95); padding: 40px 35px; border-radius: 24px; width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.5);">
-            <div style="width: 70px; height: 70px; background: #eab308; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: -75px auto 20px auto; box-shadow: 0 10px 20px rgba(234, 179, 8, 0.3); border: 4px solid white;">
+        <div
+            style="position: relative; z-index: 3002; background: rgba(255, 255, 255, 0.95); padding: 40px 35px; border-radius: 24px; width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.5);">
+            <div
+                style="width: 70px; height: 70px; background: #eab308; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: -75px auto 20px auto; box-shadow: 0 10px 20px rgba(234, 179, 8, 0.3); border: 4px solid white;">
                 <i class="fas fa-flag" style="font-size: 28px; color: white;"></i>
             </div>
-            <h2 id="briefingStage" style="font-size: 1.8rem; color: #1e293b; font-weight: 900; margin-bottom: 5px; text-align: center;">STAGE 1</h2>
-            <h3 id="briefingTitle" style="font-size: 1.3rem; color: #4f46e5; font-weight: 800; margin-bottom: 15px; text-align: center;">미션 제목</h3>
-            <p id="briefingDesc" style="color: #475569; font-size: 1rem; line-height: 1.6; margin-bottom: 25px; text-align: center;">미션 설명 텍스트</p>
-            
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 16px; padding: 20px; margin-bottom: 25px;">
-                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a; display: block; margin-bottom: 12px; text-align: left;">📋 미션 달성 과제</span>
-                <ul id="briefingTasks" style="style-type: none; display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 0; list-style: none;">
+            <h2 id="briefingStage"
+                style="font-size: 1.8rem; color: #1e293b; font-weight: 900; margin-bottom: 5px; text-align: center;">
+                STAGE 1</h2>
+            <h3 id="briefingTitle"
+                style="font-size: 1.3rem; color: #4f46e5; font-weight: 800; margin-bottom: 15px; text-align: center;">미션
+                제목</h3>
+            <p id="briefingDesc"
+                style="color: #475569; font-size: 1rem; line-height: 1.6; margin-bottom: 25px; text-align: center;">미션
+                설명 텍스트</p>
+
+            <div
+                style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                <span
+                    style="font-size: 0.95rem; font-weight: 800; color: #0f172a; display: block; margin-bottom: 12px; text-align: left;">📋
+                    미션 달성 과제</span>
+                <ul id="briefingTasks"
+                    style="style-type: none; display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 0; list-style: none;">
                     <!-- 과제 항목들 동적 생성 -->
                 </ul>
             </div>
-            
+
             <div style="display: flex; gap: 10px;">
                 <button onclick="closeMissionBriefing()"
                     style="flex: 1; padding: 14px; border-radius: 12px; background: #eab308; color: #1e293b; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; box-shadow: 0 4px 10px rgba(234, 179, 8, 0.3);">
@@ -5895,5 +6070,7 @@ print("BrickSync Sandbox Run")
         </div>
     </div>
 </body>
+
+</html>
 
 </html>

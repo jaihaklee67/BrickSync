@@ -74,13 +74,13 @@
             // BroadcastChannel 수신 감지
             try {
                 const monitorChannel = new BroadcastChannel('bricksync_monitor');
-                monitorChannel.onmessage = function(event) {
+                monitorChannel.onmessage = function (event) {
                     if (event.data && event.data.type === 'RESET_ALL') {
                         localStorage.removeItem('bricksync_student_session');
                         window.location.href = 'login.html';
                     }
                 };
-            } catch(e) {}
+            } catch (e) { }
 
             // Firebase Realtime DB 리셋 신호 감지
             if (typeof isFirebaseOnline !== 'undefined' && isFirebaseOnline && database) {
@@ -99,7 +99,7 @@
                             }
                         }
                     });
-                } catch(e) {
+                } catch (e) {
                     console.error("Firebase reset monitor setup failed:", e);
                 }
             }
@@ -149,6 +149,12 @@
         window.activeStates = { LEFT: false, RIGHT: false, UP: false, DOWN: false };
         window.initialX = null;
         window.initialY = null;
+        window.candidateXState = "CENTER_X";
+        window.candidateYState = "CENTER_Y";
+        window.consecutiveXFrames = 0;
+        window.consecutiveYFrames = 0;
+        window.lastStableXState = "CENTER_X";
+        window.lastStableYState = "CENTER_Y";
 
         let ws;
 
@@ -259,6 +265,8 @@
         });
 
 
+        let bleWriteQueue = Promise.resolve();
+
         // --- 2. Web Bluetooth 및 USB 통신 영역 ---
         window.writeToHub = async function (data) {
             let buffer = (typeof data === 'string') ? new TextEncoder().encode(data) : data;
@@ -269,18 +277,28 @@
                 window.writer.releaseLock();
                 window.writer = null;
             } else if (window.connectionType === 'BLE') {
-                for (let i = 0; i < buffer.byteLength; i += 20) {
-                    let chunk = buffer.slice(i, i + 20);
-                    if (window.txCharacteristic) {
-                        try {
-                            await window.txCharacteristic.writeValueWithoutResponse(chunk);
-                        } catch (e) {
-                            console.log("BLE Write Error (GATT overload, retrying)", e);
+                // Queue the BLE write to prevent GATT conflicts
+                bleWriteQueue = bleWriteQueue.then(async () => {
+                    for (let i = 0; i < buffer.byteLength; i += 20) {
+                        let chunk = buffer.slice(i, i + 20);
+                        if (window.txCharacteristic) {
+                            let retries = 3;
+                            while (retries > 0) {
+                                try {
+                                    await window.txCharacteristic.writeValueWithoutResponse(chunk);
+                                    break;
+                                } catch (e) {
+                                    console.log("BLE Write Error (GATT overload, retrying)", e);
+                                    retries--;
+                                    await new Promise(r => setTimeout(r, 50));
+                                }
+                            }
+                            // 시스템 BLE 큐 확보를 위해 청크 당 대기
+                            await new Promise(r => setTimeout(r, 20));
                         }
-                        // 시스템 BLE 큐 확보를 위해 청크 당 대기
-                        await new Promise(r => setTimeout(r, 15));
                     }
-                }
+                });
+                await bleWriteQueue;
             }
         };
 
@@ -290,7 +308,7 @@
                 await window.port.open({ baudRate: 115200 });
                 window.connectionType = 'USB';
                 updateUI('USB');
-                
+
                 try {
                     const monitorChannel = new BroadcastChannel('bricksync_monitor');
                     let studentName = 'Guest_익명';
@@ -304,7 +322,7 @@
                         msg: `레고 스파이크 허브 USB 연결 성공 🟢`,
                         student: studentName
                     });
-                } catch(e) {}
+                } catch (e) { }
 
                 await window.writeToHub('\x03\x03');
                 readLoopUSB();
@@ -373,7 +391,7 @@
                     msg: `레고 스파이크 허브 블루투스 연결 성공 🔵`,
                     student: studentName
                 });
-            } catch(e) {}
+            } catch (e) { }
 
             await window.txCharacteristic.startNotifications();
             window.txCharacteristic.addEventListener('characteristicvaluechanged', handleBLEData);
@@ -458,7 +476,26 @@
             */
         });
 
-        function handleBLEData(event) {
+        
+        function getCurrentUnit() {
+            try {
+                const iframe = document.getElementById('main-frame');
+                if (iframe && iframe.contentWindow) {
+                    const url = new URL(iframe.contentWindow.location.href);
+                    return url.searchParams.get('unit') || '0';
+                }
+            } catch (e) { }
+            try {
+                const lastPage = sessionStorage.getItem('brickSyncLastPage');
+                if (lastPage) {
+                    const url = new URL(lastPage, window.location.origin);
+                    return url.searchParams.get('unit') || '0';
+                }
+            } catch (e) { }
+            return '0';
+        }
+
+function handleBLEData(event) {
             const value = event.target.value;
             if (value.byteLength < 3) return;
             const msgType = value.getUint8(2);
@@ -495,17 +532,45 @@
                         return;
                     }
 
-                    const adjX = rawX - window.initialX;
-                    const adjY = rawY - window.initialY;
+                    // 자이로 기울기 센서(Port 99) -> 오직 1단원, 2단원에서만 키보드 가상 입력 활성화
+                    const currentUnit = getCurrentUnit();
+                    if (currentUnit === '1' || currentUnit === '2') {
+                        const adjX = rawX - window.initialX;
+                        const adjY = rawY - window.initialY;
 
-                    let x_state = "CENTER_X", y_state = "CENTER_Y";
-                    if (adjY > threshold) y_state = "TILT_UP"; else if (adjY < -threshold) y_state = "TILT_DOWN";
-                    if (adjX > threshold) x_state = "TILT_RIGHT"; else if (adjX < -threshold) x_state = "TILT_LEFT";
+                        let x_state = "CENTER_X", y_state = "CENTER_Y";
+                        if (adjY > threshold) y_state = "TILT_UP"; else if (adjY < -threshold) y_state = "TILT_DOWN";
+                        if (adjX > threshold) x_state = "TILT_RIGHT"; else if (adjX < -threshold) x_state = "TILT_LEFT";
 
-                    updateState("LEFT", x_state === "TILT_LEFT", "STEER_LEFT", "STOP_LEFT");
-                    updateState("RIGHT", x_state === "TILT_RIGHT", "STEER_RIGHT", "STOP_RIGHT");
-                    updateState("UP", y_state === "TILT_UP", "STEER_UP", "STOP_UP");
-                    updateState("DOWN", y_state === "TILT_DOWN", "STEER_DOWN", "STOP_DOWN");
+                        // --- 🔒 시소 이펙트 철통 방어 (연속 3프레임 이상 안정성 검증) 🔒 ---
+                        // 흔들림 및 조작 혼선 시 1~2프레임 단위로 상태가 널뛰며 발생하는 키 씹힘 및 Stuck 현상 원천 예방
+                        if (window.candidateXState === x_state) {
+                            window.consecutiveXFrames++;
+                            if (window.consecutiveXFrames >= 3 && window.lastStableXState !== x_state) {
+                                window.lastStableXState = x_state;
+                                updateState("LEFT", x_state === "TILT_LEFT", "STEER_LEFT", "STOP_LEFT");
+                                updateState("RIGHT", x_state === "TILT_RIGHT", "STEER_RIGHT", "STOP_RIGHT");
+                            }
+                        } else {
+                            window.candidateXState = x_state;
+                            window.consecutiveXFrames = 1;
+                        }
+
+                        if (window.candidateYState === y_state) {
+                            window.consecutiveYFrames++;
+                            if (window.consecutiveYFrames >= 3 && window.lastStableYState !== y_state) {
+                                window.lastStableYState = y_state;
+                                updateState("UP", y_state === "TILT_UP", "STEER_UP", "STOP_UP");
+                                updateState("DOWN", y_state === "TILT_DOWN", "STEER_DOWN", "STOP_DOWN");
+                            }
+                        } else {
+                            window.candidateYState = y_state;
+                            window.consecutiveYFrames = 1;
+                        }
+                    } else {
+                        // 타 단원에서는 자이로 동작이 키보드 연타를 유발하지 않도록 즉시 모든 키 강제 릴리즈
+                        try { window.sendWebSocketAction({ action: "CLEANUP_KEYS" }); } catch (e) {}
+                    }
                 }
                 // 외부 센서: 컬러 센서(61) 등
                 else if (portID < 6 && value.byteLength === 5) {
@@ -562,6 +627,13 @@
                     console.log("🎁 허브 메시지 감지 -> 우클릭 발사!");
                     try { window.sendWebSocketAction({ action: "ITEM_GRANT_REWARD" }); } catch (e) { }
                 }
+                if (line.includes("Mission Complete!")) {
+                    console.log("🏆 미션 완료 메시지 수신!");
+                    const iframe = document.getElementById("main-frame").contentWindow;
+                    if (iframe && typeof iframe.onUsbMissionComplete === 'function') {
+                        iframe.onUsbMissionComplete();
+                    }
+                }
                 if (line.includes("|")) {
                     const parts = line.split("|");
                     const x_state = parts[0] || "", y_state = parts[1] || "";
@@ -572,7 +644,44 @@
                 }
             }
         }
-    </script>
+    
+        // --- 부모 창에서 아이프레임을 일정한 가로세로 비율로 벡터 축소하는 엔진 --- //
+        function adjustIframeScale() {
+            const iframe = document.getElementById('main-frame');
+            if (!iframe) return;
+
+            const baselineWidth = 1500; // 줄바꿈이 일어나지 않는 기준 데스크톱 가로 너비
+            const currentWidth = window.innerWidth;
+
+            if (currentWidth < baselineWidth) {
+                const scale = Math.max(0.4, currentWidth / baselineWidth);
+                
+                // 가상 해상도를 확보하기 위해 아이프레임을 확대하여 렌더링 공간 제공
+                iframe.style.width = (100 / scale) + '%';
+                iframe.style.height = (100 / scale) + '%';
+                // 전체 가상 공간을 현재 화면 크기에 맞추어 매끄럽게 축소
+                iframe.style.transform = 'scale(' + scale + ')';
+                iframe.style.transformOrigin = 'top left';
+            } else {
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.transform = 'none';
+                iframe.style.transformOrigin = 'top left';
+            }
+        }
+
+        window.addEventListener('resize', adjustIframeScale);
+        window.addEventListener('DOMContentLoaded', adjustIframeScale);
+        
+        // 아이프레임이 새로 로드될 때도 항상 축소 상태 동기화 및 가상 입력 키 릴리즈
+        const mainIframe = document.getElementById('main-frame');
+        if (mainIframe) {
+            mainIframe.addEventListener('load', () => {
+                adjustIframeScale();
+                try { window.sendWebSocketAction({ action: "CLEANUP_KEYS" }); } catch (e) {}
+            });
+        }
+</script>
 </body>
 
 </html>

@@ -303,6 +303,22 @@ async function doSignup() {
 
 // ── 게스트 로그인 ─────────────────────────────────────────────
 function doGuestLogin() {
+  // 1. 게스트 입장 시 기존의 'Guest_익명' 관련 실습/대시보드 데이터를 완전 초기화하여 깨끗한 상태(새창)로 진입 보장
+  localStorage.removeItem('dashboard_stats_Guest_익명');
+  
+  // 2. 내 프로젝트 목록에서 게스트가 생성한 임시 프로젝트 및 미션 이력 완전 삭제
+  const keys = Object.keys(localStorage);
+  keys.forEach(key => {
+    if (
+      key.startsWith('Guest_익명_project_') || 
+      key.startsWith('bricksync_project_Guest_익명') || 
+      key.startsWith('bricksync_mission_active_unit_')
+    ) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  // 3. 신규 임시 세션 발급
   localStorage.setItem('bricksync_student_session', JSON.stringify({
     name: 'Guest_익명',
     expires: Date.now() + 2 * 60 * 60 * 1000,

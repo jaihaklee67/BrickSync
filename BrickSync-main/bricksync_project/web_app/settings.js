@@ -76,8 +76,8 @@
             lesson_1: "1. 요리조리 기울여서 탐험보트를 출발시켜요",
             lesson_2: "2. 바닷속 잠수함으로 바다를 탐험해요",
             lesson_3: "3. 모터를 돌려 빙글빙글 대관람차를 태워줘요",
-            lesson_4: "4. 동굴자동차를 타고 여행해요",
-            lesson_5: "5. 급행통로 게이트를 만들어요",
+            lesson_4: "4. 탐험 자동차를 만들어요",
+            lesson_5: "5. 동굴 자동차를 타고 여행해요",
 
             ai_lesson_1: "1. 가위! 바위! 보! 손가락으로 하는 북극 레이싱",
             ai_lesson_2: "2. 앉았다 일어서기! 마법 나무 엘리베이터 타기",
@@ -153,8 +153,8 @@
             lesson_1: "1. Tilt left and right to launch the exploration boat",
             lesson_2: "2. Explore the sea with an underwater submarine",
             lesson_3: "3. Spin the motor to ride the Ferris wheel",
-            lesson_4: "4. Ride a cave car and travel",
-            lesson_5: "5. Build an express pathway gate",
+            lesson_4: "4. Build an exploration car",
+            lesson_5: "5. Ride a cave car and travel",
 
             ai_lesson_1: "1. Rock Paper Scissors! Finger-controlled Arctic Racing",
             ai_lesson_2: "2. Squats! Riding the Magic Tree Elevator",
