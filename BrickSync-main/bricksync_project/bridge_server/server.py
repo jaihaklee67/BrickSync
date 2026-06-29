@@ -117,11 +117,11 @@ async def handle_websocket(request):
                         print("▶ 관람차 (단일모터) 좌회전 발송 (h키 한번 탁 쳐서 가동)")
                         threading.Thread(target=lambda: safe_press('h'), daemon=True).start()
                     elif action == "MWHEEL_RIGHT":
-                        print("▶ 관람차 (단일모터) 우회전 발송 (k키 한번 탁 쳐서 가동)")
-                        threading.Thread(target=lambda: safe_press('k'), daemon=True).start()
-                    elif action in ["STOP_MWHEEL_LEFT", "STOP_MWHEEL_RIGHT"]:
-                        print("▶ 관람차 (단일모터) 정지 스위치 발송 (j키 한 번 탁 쳐서 정지)")
+                        print("▶ 관람차 (단일모터) 우회전 발송 (j키 한번 탁 쳐서 가동)")
                         threading.Thread(target=lambda: safe_press('j'), daemon=True).start()
+                    elif action in ["STOP_MWHEEL_LEFT", "STOP_MWHEEL_RIGHT"]:
+                        print("▶ 관람차 (단일모터) 정지 스위치 발송 (k키 한 번 탁 쳐서 정지)")
+                        threading.Thread(target=lambda: safe_press('k'), daemon=True).start()
 
                     elif action in ["SPEED_1", "SPEED_2", "SPEED_3", "SPEED_4"]:
                         speed_durations = {
