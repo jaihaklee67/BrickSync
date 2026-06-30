@@ -4,6 +4,17 @@ import json
 import os
 import threading
 import time
+import ctypes
+
+def get_active_window_title():
+    try:
+        hwnd = ctypes.windll.user32.GetForegroundWindow()
+        length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
+        buff = ctypes.create_unicode_buffer(length + 1)
+        ctypes.windll.user32.GetWindowTextW(hwnd, buff, length + 1)
+        return buff.value
+    except Exception:
+        return ""
 
 try:
     import pydirectinput
@@ -38,6 +49,10 @@ def safe_key_up(key):
     with pydirectinput_lock:
         try:
             pydirectinput.keyUp(key)
+            time.sleep(0.01)
+            pydirectinput.keyUp(key)
+            time.sleep(0.01)
+            pydirectinput.keyUp(key)
         except Exception:
             pass
 
@@ -47,7 +62,11 @@ keys = {"UP": 'y', "DOWN": 'l', "LEFT": 'u', "RIGHT": 'o'}
 
 def click_loop_worker(direction, key):
     print(f"▶ [AUTO-FIRE START] {direction} ({key}키 연사 루프 가동)")
+    start_time = time.time()
     while steering_state[direction]:
+        if time.time() - start_time > 10.0:
+            print(f"⚠ [TIMEOUT SAFE] {direction} ({key}키 10초 초과로 강제 종료)")
+            break
         safe_press(key)
         
         # 1.05초 대기 (총 간격 1.10초 = 0.05 + 1.05)
@@ -56,6 +75,7 @@ def click_loop_worker(direction, key):
             time.sleep(0.05)
             wait_time += 0.05
     # [Failsafe] 루프를 빠져나왔을 때 확실히 키를 한 번 더 떼어 줌
+    steering_state[direction] = False
     safe_key_up(key)
     active_threads[direction] = False
     print(f"■ [AUTO-FIRE STOP] {direction} ({key}키 연사 루프 종료)")

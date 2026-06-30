@@ -439,13 +439,13 @@
         <div class="brand">
             <span class="lego-box">LEGO</span> FORTNITE
         </div>
-        <a href="#" onclick="location.href='index.html?v=' + new Date().getTime(); return false;" class="nav-item"><i class="fas fa-circle"></i> 홈</a>
-        <a href="#" onclick="location.href='lesson.html?v=' + new Date().getTime(); return false;" class="nav-item"><i class="fas fa-circle"></i> 학습단원</a>
-        <a href="#" onclick="location.href='ai_fusion.html?v=' + new Date().getTime(); return false;" class="nav-item"><i class="fas fa-circle"></i> AI 학습단원</a>
-        <a href="#" onclick="location.href='workspace.html?v=' + new Date().getTime(); return false;" class="nav-item"><i class="fas fa-circle"></i> 워크스페이스</a>
+        <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('index.html'); } else { window.location.href='index.html?v=' + new Date().getTime(); } return false;" class="nav-item"><i class="fas fa-circle"></i> 홈</a>
+        <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('lesson.html'); } else { window.location.href='lesson.html?v=' + new Date().getTime(); } return false;" class="nav-item"><i class="fas fa-circle"></i> 학습단원</a>
+        <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('ai_fusion.html'); } else { window.location.href='ai_fusion.html?v=' + new Date().getTime(); } return false;" class="nav-item"><i class="fas fa-circle"></i> AI 학습단원</a>
+        <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('workspace.html'); } else { window.location.href='workspace.html?v=' + new Date().getTime(); } return false;" class="nav-item"><i class="fas fa-circle"></i> 워크스페이스</a>
         <a href="#" class="nav-item"><i class="fas fa-circle"></i> 프로젝트</a>
         <div style="margin-top: auto; margin-bottom: 15px;"></div>
-        <a href="#" onclick="location.href='dashboard_v2.html?v=' + new Date().getTime(); return false;" class="nav-item active"><i class="fas fa-circle"></i> 교사/학부모 대시보드</a>
+        <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('dashboard_v2.html'); } else { window.location.href='dashboard_v2.html?v=' + new Date().getTime(); } return false;" class="nav-item active"><i class="fas fa-circle"></i> 교사/학부모 대시보드</a>
     </div>
 
     <!-- Main Content -->

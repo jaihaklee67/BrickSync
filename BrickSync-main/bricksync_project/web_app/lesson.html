@@ -823,7 +823,7 @@
 <body>
 
     <div class="top-bar">
-        <a href="#" onclick="location.href='index.html?v=' + new Date().getTime(); return false;" class="home-btn">
+        <a href="#" onclick="console.log('▶ [HOME_CLICK] Clicked!'); console.log('window.parent:', window.parent); console.log('navigateIframe:', window.parent ? window.parent.navigateIframe : 'no parent'); if (window.parent && window.parent.navigateIframe) { console.log('▶ [HOME_CLICK] Calling parent.navigateIframe'); window.parent.navigateIframe('index.html'); } else { console.log('▶ [HOME_CLICK] Fallback navigation'); window.location.href='index.html?v=' + new Date().getTime(); } return false;" class="home-btn">
             <i class="fas fa-home"></i> 홈으로 가기
         </a>
         <div
@@ -4325,10 +4325,10 @@ except:
             isMissionActive = true;
             
             const mData = {
-                '1': { badge: 'STAGE 1', title: '첫 번째 연동', desc: '조명 블록을 꺼내어 조립해서 허브에 불을 켜보세요!', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '조명 블록(3x3) 연결하기'}] },
-                '2': { badge: 'STAGE 2', title: '모터 움직이기', desc: '회전 블록 및 제어 블록을 활용하여 포트나이트를 돕습니다.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '모터 속도 설정 블록 추가'}, {text: '모터 회전 구동 블록 실행'}] },
+                '1': { badge: 'STAGE 1', title: '탐험보트를 출발시켜요', desc: '5초 대기 후 앞으로 3번 이동하고, 좌회전 1번 후 뒤로 2번 이동하세요.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '5초 대기하기'}, {text: '앞으로 3번 이동하기'}, {text: '좌회전 1번 작동하기'}, {text: '뒤로 2번 이동하기'}] },
+                '2': { badge: 'STAGE 2', title: '바닷속 잠수함으로 바다를 탐험해요', desc: '5초 대기 후 우회전 3번, 좌회전 3번 작동하세요.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '5초 대기하기'}, {text: '우회전 3번 실행하기'}, {text: '좌회전 3번 실행하기'}] },
                 '3': { badge: 'STAGE 3', title: '5초 대기 후 오른쪽 3번, 왼쪽 2번으로 대관람차를 안전하게 운행하세요.', desc: '모터 회전 블록을 활용해 우회전 3번, 좌회전 2번으로 대관람차를 안전하게 운행하세요.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '우회전 3초 실행하기'}, {text: '좌회전 2초 실행하기'}] },
-                '4': { badge: 'STAGE 4', title: '탐험 자동차를 만들어요', desc: '5초 대기 후 앞으로 4초 이동하고, 우회전 1초 후 앞으로 2초 이동하세요.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '5초 대기하기'}, {text: '앞으로 4초 이동하기'}, {text: '우회전 1초 작동하기'}, {text: '앞으로 2초 이동하기'}] },
+                '4': { badge: 'STAGE 4', title: '탐험 자동차를 만들어요', desc: '5초 대기 후 앞으로 4번 이동하고, 우회전 1번 후 앞으로 2번 이동하세요.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '5초 대기하기'}, {text: '앞으로 4번 이동하기'}, {text: '우회전 1번 작동하기'}, {text: '앞으로 2번 이동하기'}] },
                 '5': { badge: 'STAGE 5', title: '알록달록 조명 게이트 만들기', desc: '2초후에 빨간 불이 켜지도록 만들어보세요.', tasks: [{text: '재생(시작) 블록 연결하기'}, {text: '대기 블록(2초) 연결하기'}, {text: '빨간색 조명 연결하기'}] }
             };
             const current = mData[unit];
@@ -4490,14 +4490,14 @@ except:
 
         const themeDescriptions = {
             '1': '레고 허브의 조명을 켜고 다채로운 색상을 조립해 보며 기초 동작을 익혀봅시다.',
-            '2': '모터를 회전시키고 속도를 조절하는 기본 모터 블록 조작법을 다뤄봅시다.',
+            '2': '모터 회전 블록과 대기 블록을 활용하여 잠수함을 안전하게 운행해 봅시다.',
             '3': '우회전과 좌회전 모터 구동 블록을 조립하여 대관람차 장치를 직접 움직여 봅시다.',
             '4': '다양한 센서와 모터를 결합하여 동굴자동차 알고리즘을 자유롭게 코딩해 봅시다.',
             '5': '라이트 블록과 대기 블록을 활용하여 알록달록 조명 게이트를 디자인해 봅시다.'
         };
         const themeDescriptionsEn = {
             '1': 'Learn basic Lego Hub light and color matrix control operations.',
-            '2': 'Understand motor rotation and speed control block operations.',
+            '2': 'Use motor rotation and wait blocks to safely operate the submarine.',
             '3': 'Assemble clockwise and counter-clockwise motor blocks to rotate the Ferris Wheel.',
             '4': 'Combine various sensors and motor blocks to program a cave car freely.',
             '5': 'Use light matrix and wait blocks to design a colorful light gate.'
@@ -4530,7 +4530,7 @@ except:
                 }
             } else if (unit === '4') {
                 if (isMissionActive) {
-                    if (titleEl) titleEl.textContent = '5초 대기 후 앞으로 4초 이동하고, 우회전 1초 후 앞으로 2초 이동하세요.';
+                    if (titleEl) titleEl.textContent = '5초 대기 후 앞으로 4번 이동하고, 우회전 1번 후 앞으로 2번 이동하세요.';
                     if (descEl) {
                         descEl.textContent = '';
                         descEl.style.display = 'none';
@@ -4570,23 +4570,24 @@ except:
 
         const missionData = {
             '1': {
-                badge: 'STAGE 1', title: '첫 번째 연동', desc: '5초 대기 후 앞으로 3초 이동하고, 좌회전 1초 후 뒤로 2초 이동하세요.',
+                badge: 'STAGE 1', title: '탐험보트를 출발시켜요', desc: '5초 대기 후 앞으로 3번 이동하고, 좌회전 1번 후 뒤로 2번 이동하세요.',
                 pinCode: '7241',
                 tasks: [
                     { id: 'start', text: '재생(시작) 블록 연결하기' },
                     { id: 'flow_wait_5', text: '5초 대기하기' },
-                    { id: 'car_forward_3', text: '앞으로 3초 이동하기' },
-                    { id: 'car_left_1', text: '좌회전 1초 작동하기' },
-                    { id: 'car_backward_2', text: '뒤로 2초 이동하기' }
+                    { id: 'car_forward_3', text: '앞으로 3번 이동하기' },
+                    { id: 'car_left_1', text: '좌회전 1번 작동하기' },
+                    { id: 'car_backward_2', text: '뒤로 2번 이동하기' }
                 ]
             },
             '2': {
-                badge: 'STAGE 2', title: '모터 움직이기', desc: '회전 블록 및 제어 블록을 활용하여 포트나이트를 돕습니다.',
+                badge: 'STAGE 2', title: '바닷속 잠수함으로 바다를 탐험해요', desc: '5초 대기 후 우회전 3번, 좌회전 3번 작동하세요.',
                 pinCode: '8932',
                 tasks: [
                     { id: 'start', text: '재생(시작) 블록 연결하기' },
-                    { id: 'motor_speed_set', text: '모터 속도 설정 블록 추가' },
-                    { id: ['motor_cw', 'motor_ccw'], text: '모터 회전 구동 블록 실행' }
+                    { id: 'flow_wait_5', text: '5초 대기하기' },
+                    { id: 'motor_cw_3', text: '우회전 3번 실행하기' },
+                    { id: 'motor_ccw_3', text: '좌회전 3번 실행하기' }
                 ]
             },
             '3': {
@@ -4599,14 +4600,14 @@ except:
                 ]
             },
             '4': {
-                badge: 'STAGE 4', title: '탐험 자동차를 만들어요', desc: '5초 대기 후 앞으로 4초 이동하고, 우회전 1초 후 앞으로 2초 이동하세요.',
+                badge: 'STAGE 4', title: '탐험 자동차를 만들어요', desc: '5초 대기 후 앞으로 4번 이동하고, 우회전 1번 후 앞으로 2번 이동하세요.',
                 pinCode: '3370',
                 tasks: [
                     { id: 'start', text: '재생(시작) 블록 연결하기' },
                     { id: 'flow_wait', text: '5초 대기하기' },
-                    { id: 'car_forward_4', text: '앞으로 4초 이동하기' },
-                    { id: 'car_right_1', text: '우회전 1초 작동하기' },
-                    { id: 'car_forward_2', text: '앞으로 2초 이동하기' }
+                    { id: 'car_forward_4', text: '앞으로 4번 이동하기' },
+                    { id: 'car_right_1', text: '우회전 1번 작동하기' },
+                    { id: 'car_forward_2', text: '앞으로 2번 이동하기' }
                 ]
             },
             '5': {
@@ -4713,6 +4714,16 @@ except:
                                 isCompleted = executionChain.some(cmd => cmd.action === 'car_left' && cmd.val === 1);
                             } else if (task_id === 'car_backward_2') {
                                 isCompleted = executionChain.some(cmd => cmd.action === 'car_backward' && cmd.val === 2);
+                            }
+                        } else if (unit === '2') {
+                            if (task_id === 'start') {
+                                isCompleted = presentActions.includes('start');
+                            } else if (task_id === 'flow_wait_5') {
+                                isCompleted = executionChain.some(cmd => cmd.action === 'flow_wait' && cmd.val === 5);
+                            } else if (task_id === 'motor_cw_3') {
+                                isCompleted = executionChain.some(cmd => cmd.action === 'motor_cw' && cmd.val === 3);
+                            } else if (task_id === 'motor_ccw_3') {
+                                isCompleted = executionChain.some(cmd => cmd.action === 'motor_ccw' && cmd.val === 3);
                             }
                         } else if (unit === '4') {
                             if (task_id === 'start') {

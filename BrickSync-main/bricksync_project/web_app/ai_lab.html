@@ -247,12 +247,12 @@
         <!-- 네비게이션 사이드바 -->
         <div class="sidebar">
             <ul class="menu-list">
-                <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;" class="menu-item" id="btn-home">
+                <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('index.html'); } else { window.location.href='index.html?v='+new Date().getTime(); } return false;" class="menu-item" id="btn-home">
                     <i data-lucide="home" class="menu-icon"></i> 홈
                 </a>
-                <li class="menu-item" id="btn-learning" onclick="location.href='index.html?v='+new Date().getTime()">
+                <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('index.html'); } else { window.location.href='index.html?v='+new Date().getTime(); } return false;" class="menu-item" id="btn-learning">
                     <i data-lucide="book-open" class="menu-icon"></i> 학습단원
-                </li>
+                </a>
                 <!-- 독립적인 AI 구역 (현재 활성화 상태) -->
                 <li class="menu-item active" id="btn-ai">
                     <i data-lucide="bot" class="menu-icon"></i> AI 학습단원

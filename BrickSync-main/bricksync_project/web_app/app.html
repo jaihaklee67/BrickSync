@@ -137,6 +137,25 @@
             const sep = lastPage.includes('?') ? '&' : '?';
             document.getElementById('main-frame').src = lastPage + sep + 'v=' + new Date().getTime();
         })();
+
+        // [신규] iframe 내부 페이지 안전 이동 함수 (크롬 정책 보호)
+        window.navigateIframe = function(url) {
+            console.log("▶ [PARENT_NAV] navigateIframe called with url:", url);
+            try {
+                const sep = url.includes('?') ? '&' : '?';
+                const iframe = document.getElementById('main-frame');
+                console.log("▶ [PARENT_NAV] iframe element found:", iframe);
+                if (iframe) {
+                    const targetSrc = url + sep + 'v=' + new Date().getTime();
+                    console.log("▶ [PARENT_NAV] Setting iframe src to:", targetSrc);
+                    iframe.src = targetSrc;
+                } else {
+                    console.error("▶ [PARENT_NAV] Error: iframe element not found!");
+                }
+            } catch (e) {
+                console.error("▶ [PARENT_NAV] Iframe navigation failed:", e);
+            }
+        };
     </script>
 
     <script>

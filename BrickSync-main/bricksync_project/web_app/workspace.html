@@ -330,15 +330,15 @@
             </div>
 
             <ul class="menu-list">
-                <a href="#" onclick="location.href='index.html?v='+new Date().getTime(); return false;" class="menu-item">
+                <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('index.html'); } else { window.location.href='index.html?v='+new Date().getTime(); } return false;" class="menu-item">
                     <i data-lucide="home" class="menu-icon"></i>
                     <span data-i18n="nav_home">홈</span>
                 </a>
-                <a href="#" onclick="location.href='lesson.html?v='+new Date().getTime(); return false;" class="menu-item">
+                <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('lesson.html'); } else { window.location.href='lesson.html?v='+new Date().getTime(); } return false;" class="menu-item">
                     <i data-lucide="book-open" class="menu-icon"></i>
                     <span data-i18n="nav_lessons">학습단원</span>
                 </a>
-                <a href="#" onclick="location.href='ai_fusion.html?v='+new Date().getTime(); return false;" class="menu-item" id="btn-ai">
+                <a href="#" onclick="if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('ai_fusion.html'); } else { window.location.href='ai_fusion.html?v='+new Date().getTime(); } return false;" class="menu-item" id="btn-ai">
                     <i data-lucide="bot" class="menu-icon"></i>
                     <span data-i18n="nav_ai_lessons">AI 학습단원</span>
                 </a>
