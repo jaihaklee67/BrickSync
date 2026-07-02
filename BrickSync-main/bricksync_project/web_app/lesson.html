@@ -3782,17 +3782,14 @@ except:
 
             // 스크립트가 순식간에 0.1초만에 종료되어버리면, 허브 본체가 프로그램 종료로 간주하고 조명/모터를 바로 꺼버리는 것을 방지!
             pyCode += 'utime.sleep_ms(2000)\n';
-            pyCode += 'print("Mission Complete!")\n';
+            if (isMissionActive) {
+                pyCode += 'print("Mission Complete!")\n';
+            }
 
             if (blockCount > 1) {
                 // [보상 시스템] 블록 조립 코드를 성공적으로 완성하고 런(Run) 버튼을 누르면
                 // 포트나이트 캣 아일랜드로 '상호작용(E) 또는 던지기' 키를 전송하여 고양이에게 먹이를 줍니다!
                 try { window.parent.sendWebSocketAction({ action: "CAT_FEED_REWARD" }); console.log("포트나이트 연동 신호(CAT_FEED_REWARD) 전송 완료!"); } catch (e) { }
-            }
-
-            if (!window.parent.connectionType) {
-                alert("⚠ 허브(USB 또는 블루투스)가 연결되지 않았습니다. 현재는 폭죽과 게임 보상 액션만 수행됩니다.");
-                return; // 하드웨어 코드로 넘어가지 않음
             }
 
             window.bleEngineRunCounter = (window.bleEngineRunCounter || 0) + 1;
@@ -3808,13 +3805,19 @@ except:
                 });
             }
 
-            if (window.parent.connectionType === 'USB' && localActionsQueue.length > 0) {
+            // 포트나이트 연동 액션(localActionsQueue)은 허브 연결 여부와 상관없이 작동하도록 변경 (시뮬레이션 모드 지원)
+            if (localActionsQueue.length > 0) {
                 localActionsQueue.forEach(item => {
                     setTimeout(() => {
                         if (window.bleEngineRunCounter !== currentRunId) return; // 실행 종료/취소 감지
                         try { window.parent.sendWebSocketAction({ action: item.action }); } catch (e) { }
                     }, item.delay);
                 });
+            }
+
+            if (!window.parent.connectionType) {
+                alert("⚠ 허브(USB 또는 블루투스)가 연결되지 않았습니다. 현재는 폭죽과 게임 보상 액션만 수행됩니다.");
+                return; // 하드웨어 코드로 넘어가지 않음
             }
 
             if (window.parent.connectionType === 'BLE') {
@@ -4274,6 +4277,7 @@ except:
         }
 
         window.onUsbMissionComplete = function() {
+            if (!isMissionActive) return;
             // 오직 미션 달성도 100% 완료 상태일 때만 보상 연동 및 팝업 작동
             const isMissionComplete = document.getElementById('m-progress') && document.getElementById('m-progress').dataset.completed === 'true';
             if (isMissionComplete) {

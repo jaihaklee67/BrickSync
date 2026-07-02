@@ -2,6 +2,17 @@
 <html lang="ko">
 
 <head>
+    <!-- 최상위 윈도우 자동 래핑 리다이렉트 스크립트 -->
+    <script>
+        if (window === window.parent) {
+            let currentPage = window.location.pathname.split('/').pop() + window.location.search;
+            if (!currentPage || currentPage.startsWith('?')) {
+                currentPage = 'index.html' + window.location.search;
+            }
+            sessionStorage.setItem('brickSyncLastPage', currentPage);
+            window.location.href = 'app.html';
+        }
+    </script>
     <!-- Firebase SDK (Auth + Firestore + Realtime DB) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -835,14 +846,14 @@
 
             <!-- AI 학습단원 화면 뷰 (2열 그리드, 총 3개 단원) -->
             <div id="view-ai-learning" class="learning-grid">
-                <div class="learning-card" onclick="location.href='ai_fusion.html?unit=1&v=' + new Date().getTime()">
-                    <span class="learning-card-text" data-i18n="ai_lesson_1">1. 가위! 바위! 보! 손가락으로 하는 북극 레이싱</span>
+                <div class="learning-card" onclick="location.href='ai_fusion.html?unit=6&v=' + new Date().getTime()">
+                    <span class="learning-card-text" data-i18n="ai_lesson_1">6. 가위! 바위! 보! 손가락으로 하는 북극 레이싱</span>
                 </div>
-                <div class="learning-card" onclick="location.href='ai_fusion.html?unit=2&v=' + new Date().getTime()">
-                    <span class="learning-card-text" data-i18n="ai_lesson_2">2. 앉았다 일어서기! 마법 나무 엘리베이터 타기</span>
+                <div class="learning-card" onclick="location.href='ai_fusion.html?unit=7&v=' + new Date().getTime()">
+                    <span class="learning-card-text" data-i18n="ai_lesson_2">7. 몬스터를 보여줘! 경보 알림켜기.</span>
                 </div>
-                <div class="learning-card" style="grid-column: span 2;" onclick="location.href='ai_fusion.html?unit=3&v=' + new Date().getTime()">
-                    <span class="learning-card-text" data-i18n="ai_lesson_3">3. 마이크에 대고 외쳐봐! 목소리로 조종하는 요술 그네</span>
+                <div class="learning-card" style="grid-column: span 2;" onclick="location.href='ai_fusion.html?unit=8&v=' + new Date().getTime()">
+                    <span class="learning-card-text" data-i18n="ai_lesson_3">8. 마이크에 대고 외쳐봐! 목소리로 조종하는 요술 그네</span>
                 </div>
             </div>
 

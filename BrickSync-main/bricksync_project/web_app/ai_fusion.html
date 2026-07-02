@@ -2,6 +2,17 @@
 <html lang="ko">
 
 <head>
+    <!-- 최상위 윈도우 자동 래핑 리다이렉트 스크립트 -->
+    <script>
+        if (window === window.parent) {
+            let currentPage = window.location.pathname.split('/').pop() + window.location.search;
+            if (!currentPage || currentPage.startsWith('?')) {
+                currentPage = 'index.html' + window.location.search;
+            }
+            sessionStorage.setItem('brickSyncLastPage', currentPage);
+            window.location.href = 'app.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -783,7 +794,7 @@
 <body>
 
     <div class="top-bar">
-        <a href="index.html" class="home-btn">
+        <a href="#" onclick="try { if (window.cleanupResources) window.cleanupResources(); } catch (e) { } if (window.parent && window.parent.navigateIframe) { window.parent.navigateIframe('index.html'); } else { window.location.href='index.html?v=' + new Date().getTime(); } return false;" class="home-btn">
             <i class="fas fa-home"></i> <span data-i18n="btn_back_home">홈으로 가기</span>
         </a>
         <div
@@ -827,21 +838,23 @@
                 미션 설명 텍스트</div>
         </div>
         <div style="display: flex; align-items: center; gap: 15px; position: relative; z-index: 2;">
-            <span style="font-size: 0.9rem; font-weight: 800; color: #475569; white-space: nowrap;"
-                data-i18n="lbl_mission_progress">미션 달성도</span>
-            <div
-                style="width: 160px; height: 20px; background: rgba(203, 213, 225, 0.85); border-radius: 12px; overflow: hidden; position: relative; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);">
-                <div id="m-progress"
-                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #34d399, #10b981); transition: width 0.5s ease; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.35);">
+            <div id="m-progress-container" style="display: flex; align-items: center; gap: 15px;">
+                <span style="font-size: 0.9rem; font-weight: 800; color: #475569; white-space: nowrap;"
+                    data-i18n="lbl_mission_progress">미션 달성도</span>
+                <div
+                    style="width: 160px; height: 20px; background: rgba(203, 213, 225, 0.85); border-radius: 12px; overflow: hidden; position: relative; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);">
+                    <div id="m-progress"
+                        style="width: 0%; height: 100%; background: linear-gradient(90deg, #34d399, #10b981); transition: width 0.5s ease; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.35);">
+                    </div>
                 </div>
+                <span id="m-percent"
+                    style="font-size: 1.1rem; font-weight: 900; color: #059669; width: 45px; text-align: right; margin-right: 10px;">0%</span>
             </div>
-            <span id="m-percent"
-                style="font-size: 1.1rem; font-weight: 900; color: #059669; width: 45px; text-align: right; margin-right: 10px;">0%</span>
 
             <button id="btn-go-mission" onclick="openMissionBriefing()" class="btn-go-mission">
                 <i class="fas fa-trophy"></i> <span>미션하러가기</span>
             </button>
-            <button onclick="toggleMissionTasks()" class="btn-check-tasks">
+            <button id="btn-check-tasks" onclick="toggleMissionTasks()" class="btn-check-tasks">
                 <i class="fas fa-list-check"></i> <span data-i18n="btn_check_tasks">과제 확인</span>
             </button>
         </div>
@@ -941,9 +954,43 @@
 
             <!-- Bottom Toolbox -->
             <div class="toolbox" id="palette">
+<!-- NEW AI 제스처 이벤트 블록 (보라색) -->
+                <div class="spike-block" draggable="true" data-action="event_ai_gesture" style="background: #a855f7;">
+                    <div class="block-icon"
+                        style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+                        <div style="color: #6ee7b7; font-size: 16px; position:absolute; top:-10px;">
+                            <i class="fas fa-wifi" style="transform: rotate(-45deg);"></i>
+                        </div>
+                        <div style="color: white; font-size: 18px; z-index: 2; margin-top: 5px;">
+                            <i class="fas fa-hand-sparkles"></i>
+                        </div>
+                    </div>
+                    <div class="block-param" data-val="1">
+                        <i class="fas fa-hand-paper" style="color:#64748b;"></i>
+                    </div>
+                    <style>
+                        .spike-block[data-action="event_ai_gesture"] {
+                            border-radius: 35px 16px 16px 35px;
+                            width: 80px;
+                        }
+
+                        .spike-block[data-action="event_ai_gesture"]::before {
+                            display: none;
+                        }
+
+                        .spike-block[data-action="event_ai_gesture"]::after {
+                            background: #a855f7 !important;
+                        }
+
+                        .spike-block[data-action="event_ai_gesture"] .block-icon {
+                            margin-left: -5px;
+                            font-size: 32px;
+                        }
+                    </style>
+                </div>
 
                 <!-- 1. 제어(노랑) 시작/조건 블럭 -->
-                <div class="spike-block bg-yellow" draggable="true" data-action="start">
+                <div class="spike-block bg-yellow" draggable="true" data-action="start" style="display: none !important;">
                     <i class="fas fa-play block-icon"></i>
                 </div>
 
@@ -1430,41 +1477,6 @@
 
                 <div class="category-divider"></div>
 
-                <!-- NEW AI 제스처 이벤트 블록 (보라색) -->
-                <div class="spike-block" draggable="true" data-action="event_ai_gesture" style="background: #a855f7;">
-                    <div class="block-icon"
-                        style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
-                        <div style="color: #6ee7b7; font-size: 16px; position:absolute; top:-10px;">
-                            <i class="fas fa-wifi" style="transform: rotate(-45deg);"></i>
-                        </div>
-                        <div style="color: white; font-size: 18px; z-index: 2; margin-top: 5px;">
-                            <i class="fas fa-hand-sparkles"></i>
-                        </div>
-                    </div>
-                    <div class="block-param" data-val="1">
-                        <i class="fas fa-hand-paper" style="color:#64748b;"></i>
-                    </div>
-                    <style>
-                        .spike-block[data-action="event_ai_gesture"] {
-                            border-radius: 35px 16px 16px 35px;
-                            width: 80px;
-                        }
-
-                        .spike-block[data-action="event_ai_gesture"]::before {
-                            display: none;
-                        }
-
-                        .spike-block[data-action="event_ai_gesture"]::after {
-                            background: #a855f7 !important;
-                        }
-
-                        .spike-block[data-action="event_ai_gesture"] .block-icon {
-                            margin-left: -5px;
-                            font-size: 32px;
-                        }
-                    </style>
-                </div>
-
             </div>
 
         </div> <!-- 우측 워크스페이스 컨테이너 닫기 -->
@@ -1477,12 +1489,12 @@
         function showAIGestureModal(paramEl) {
             modalBox.innerHTML = '';
             modalBox.style.cssText = 'background: #8b5cf6; display: flex; gap: 10px; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #7c3aed; width: auto; max-width: 250px;';
-            if (unit === '3') {
+            if ((unit === '3' || (unit === '8' || unit === '3'))) {
                 options = [
                     { type: 'forward', val: 0, icon: '<i class="fas fa-arrow-up"></i>' },
                     { type: 'backward', val: 1, icon: '<i class="fas fa-arrow-down"></i>' }
                 ];
-            } else if (unit === '2') {
+            } else if ((unit === '2' || (unit === '7' || unit === '2'))) {
                 options = [
                     { type: 'monster', val: 0, icon: '<i class="fas fa-dragon"></i>' },
                     { type: 'none', val: 3, icon: '<i class="fas fa-ban"></i>' }
@@ -2824,7 +2836,7 @@
                         showMusicModal(param);
                     } else if (action === 'matrix_image' || action === 'matrix_pixel') {
                         // param-unified 클래스(통합 모달 트리거)이거나 다른 매트릭스 파라미터 클릭 시
-                        if (isMissionActive && ['1', '2', '3'].includes(unit)) {
+                        if (isMissionActive && ['1', '2', '3', '6', '7', '8'].includes(unit)) {
                             return; // 미션 모드일 때는 라이트 매트릭스 편집 창 비활성화
                         }
                         showMatrixModal(param);
@@ -3640,9 +3652,12 @@
         }
         async function runBlocks(triggerAction = 'gui', triggerVal = -1) {
             if (triggerAction === 'gui') {
+                window.guiExecutionActive = true;
                 if (typeof lastTriggeredAiGesture !== 'undefined') {
                     lastTriggeredAiGesture = -1;
                 }
+            } else {
+                window.guiExecutionActive = false;
             }
             // 실행 가능한 스택 찾기 (방어 로직 탑재)
             const validStacks = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).filter(stack => {
@@ -3650,9 +3665,8 @@
                 const action = (firstBlock && firstBlock.getAttribute('data-action')) || '';
 
                 if (triggerAction === 'gui') {
-                    // GUI "실행" 버튼 클릭 시에는 AI 제스처 개별 트리거 스택은 무시 
-                    if (action === 'event_ai_gesture') return false;
-                    return action === 'start' || action.startsWith('event_');
+                    // GUI "실행" 버튼 클릭 시에도 AI 제스처 블록이 시작인 스택 실행 허용 (테스트 편의성 제공)
+                    return action === 'start' || action === 'event_ai_gesture' || action.startsWith('event_');
                 } else {
                     // 시스템(AI 락다운 머신)에서 특정 제스처로 트리거했을 때
                     if (action === triggerAction) {
@@ -3787,7 +3801,7 @@ print("BrickSync Sandbox Run")
                                 if (!isNaN(textVal) && textVal !== "") timeVal = parseFloat(textVal);
                             }
                         }
-                        if (unit === '3' && window.lastParsedSpeechTurns) {
+                        if (((unit === '3' || (unit === '8' || unit === '3')) || (unit === '8' || unit === '3')) && window.lastParsedSpeechTurns) {
                             timeVal = window.lastParsedSpeechTurns;
                         }
                     } else {
@@ -3843,14 +3857,24 @@ print("BrickSync Sandbox Run")
                             break;
                         case 'motor_cw':
                             pyCode += `${indent}rm(global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'motor_cw', delay: cumulativeDelayMs });
-                            cumulativeDelayMs += (timeVal * 1000);
+                            if (unit !== '8') {
+                                localActionsQueue.push({ action: 'motor_cw', delay: cumulativeDelayMs });
+                                cumulativeDelayMs += (timeVal * 1000);
+                            } else {
+                                // 8단원 요술그네에서는 블록에 의한 가상 키 입력을 비활성화하여 음성 명령과의 충돌 방지
+                                cumulativeDelayMs += (timeVal * 1000);
+                            }
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_ccw':
                             pyCode += `${indent}rm(-global_motor_speed) \n${indent}utime.sleep_ms(int(${pythonTimeVal} * 1000)) \n${indent}sm() \n`;
-                            localActionsQueue.push({ action: 'motor_ccw', delay: cumulativeDelayMs });
-                            cumulativeDelayMs += (timeVal * 1000);
+                            if (unit !== '8') {
+                                localActionsQueue.push({ action: 'motor_ccw', delay: cumulativeDelayMs });
+                                cumulativeDelayMs += (timeVal * 1000);
+                            } else {
+                                // 8단원 요술그네에서는 블록에 의한 가상 키 입력을 비활성화하여 음성 명령과의 충돌 방지
+                                cumulativeDelayMs += (timeVal * 1000);
+                            }
                             cumulativeDelayMs += 800; // UEFN 엔진 비동기 충돌 회피용 필수 안전 딜레이 (0.8초)
                             break;
                         case 'motor_stop':
@@ -3867,6 +3891,14 @@ print("BrickSync Sandbox Run")
                             const matEl = block.querySelector(':scope > .param-unified') || block.querySelector(':scope > .block-param:not(.param-time)') || paramEl;
                             let matrixArr = matEl ? (matEl.getAttribute('data-matrix') || JSON.stringify([0, 6, 0, 0, 0, 0, 6, 0, 6])) : JSON.stringify([0, 6, 0, 0, 0, 0, 6, 0, 6]);
                             let lightDuration = matEl ? (parseFloat(matEl.getAttribute('data-val')) || 2) : 2;
+
+                            // 2단원/7단원 조명 매트릭스 실행 시점에 포트나이트 경보 발동 신호를 지연 큐에 주입 (2초 대기 연동 실현)
+                            if (unit === '7' || unit === '2') {
+                                localActionsQueue.push({ action: 'MONSTER_ALERT', delay: cumulativeDelayMs });
+                                if (isMissionActive) {
+                                    pyCode += `${indent}print("Mission Complete!")\n`;
+                                }
+                            }
 
                             if (matrixArr) {
                                 try {
@@ -3944,27 +3976,23 @@ print("BrickSync Sandbox Run")
             buildPyCode(rootBlocks, "");
 
             // 스크립트가 순식간에 0.1초만에 종료되어버리면, 허브 본체가 프로그램 종료로 간주하고 조명/모터를 바로 꺼버리는 것을 방지!
-            pyCode += 'utime.sleep_ms(2000)\n';
-            pyCode += 'print("Mission Complete!")\n';
+            pyCode += 'utime.sleep_ms(300)\n';
+            if (isMissionActive && unit !== '7' && unit !== '2') {
+                pyCode += 'print("Mission Complete!")\n';
+            }
 
-            if (blockCount > 1) {
+            if (isMissionActive && blockCount > 1) {
                 // [보상 시스템] 블록 조립 코드를 성공적으로 완성하고 런(Run) 버튼을 누르면
-                if (unit === '2') {
-                    // 2단원: 몬스터 경보 및 보상 신호 송출
+                if ((unit === '2' || (unit === '7' || unit === '2'))) {
+                    // 2단원: 몬스터 경보 및 보상 신호 송출 (MONSTER_ALERT는 매트릭스 블록 실행 시 지연 송출되므로 여기서는 제거)
                     try {
-                        window.parent.sendWebSocketAction({ action: "MONSTER_ALERT" });
                         window.parent.sendWebSocketAction({ action: "ITEM_GRANT_REWARD" });
-                        console.log("포트나이트 연동 신호(MONSTER_ALERT & ITEM_GRANT_REWARD) 전송 완료 [AI 2단원 성공]");
+                        console.log("포트나이트 연동 신호(ITEM_GRANT_REWARD) 전송 완료 [AI 2단원 성공]");
                     } catch (e) { }
                 } else {
                     // 기본 (고양이 먹이 주기)
                     try { window.parent.sendWebSocketAction({ action: "CAT_FEED_REWARD" }); console.log("포트나이트 연동 신호(CAT_FEED_REWARD) 전송 완료!"); } catch (e) { }
                 }
-            }
-
-            if (!window.parent.connectionType) {
-                alert("⚠ 허브(USB 또는 블루투스)가 연결되지 않았습니다. 현재는 폭죽과 게임 보상 액션만 수행됩니다.");
-                return; // 하드웨어 코드로 넘어가지 않음
             }
 
             window.bleEngineRunCounter = (window.bleEngineRunCounter || 0) + 1;
@@ -3980,13 +4008,19 @@ print("BrickSync Sandbox Run")
                 });
             }
 
-            if (window.parent.connectionType === 'USB' && localActionsQueue.length > 0) {
+            // 포트나이트 연동 액션(localActionsQueue)은 허브 연결 여부와 상관없이 작동하도록 변경 (시뮬레이션 모드 지원)
+            if (localActionsQueue.length > 0) {
                 localActionsQueue.forEach(item => {
                     setTimeout(() => {
                         if (window.bleEngineRunCounter !== currentRunId) return; // 실행 종료/취소 감지
                         try { window.parent.sendWebSocketAction({ action: item.action }); } catch (e) { }
                     }, item.delay);
                 });
+            }
+
+            if (!window.parent.connectionType) {
+                alert("⚠ 허브(USB 또는 블루투스)가 연결되지 않았습니다. 현재는 폭죽과 게임 보상 액션만 수행됩니다.");
+                return; // 하드웨어 코드로 넘어가지 않음
             }
 
             if (window.parent.connectionType === 'BLE') {
@@ -4039,7 +4073,7 @@ print("BrickSync Sandbox Run")
                                     if (!isNaN(textVal) && textVal !== "") timeVal = parseFloat(textVal);
                                 }
                             }
-                            if (unit === '3' && window.lastParsedSpeechTurns) {
+                            if (((unit === '8' || unit === '3') || unit === '3') && window.lastParsedSpeechTurns) {
                                 timeVal = window.lastParsedSpeechTurns;
                             }
                         } else {
@@ -4161,12 +4195,20 @@ print("BrickSync Sandbox Run")
                                 if (window.bleEngineRunCounter !== currentRunId) return;
 
                                 if (cmd.action === 'motor' || cmd.action === 'motor_cw' || cmd.action === 'motor_ccw' || cmd.action.startsWith('motor_stop')) {
-                                    if (cmd.action === 'motor_cw') try { window.parent.sendWebSocketAction({ action: 'motor_cw' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_ccw') try { window.parent.sendWebSocketAction({ action: 'motor_ccw' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_cw') try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
-                                    else if (cmd.action === 'motor_stop_ccw') try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
+                                    if (cmd.action === 'motor_cw') {
+                                        if (unit !== '8') try { window.parent.sendWebSocketAction({ action: 'motor_cw' }); } catch (e) { }
+                                    }
+                                    else if (cmd.action === 'motor_ccw') {
+                                        if (unit !== '8') try { window.parent.sendWebSocketAction({ action: 'motor_ccw' }); } catch (e) { }
+                                    }
+                                    else if (cmd.action === 'motor_stop_cw') {
+                                        if (unit !== '8') try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
+                                    }
+                                    else if (cmd.action === 'motor_stop_ccw') {
+                                        if (unit !== '8') try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
+                                    }
                                     else if (cmd.action.startsWith('motor_stop')) {
-                                        try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
+                                        if (unit !== '8') try { window.parent.sendWebSocketAction({ action: 'motor_stop' }); } catch (e) { }
                                     }
                                     let speedInt = Math.round(cmd.speed);
                                     let speedHex = speedInt < 0 ? (256 + speedInt) : speedInt;
@@ -4215,6 +4257,9 @@ print("BrickSync Sandbox Run")
                                     }
                                 } else if (cmd.action === 'matrix') {
                                     try { window.parent.sendWebSocketAction({ action: 'ACTION_LIGHT' }); } catch (e) { }
+                                    if (isMissionActive && (unit === '7' || unit === '2') && window.bleEngineRunCounter === currentRunId) {
+                                        if (typeof window.onUsbMissionComplete === 'function') { window.onUsbMissionComplete(); } else { triggerSuccessConfetti(); }
+                                    }
                                     let encodedColors = cmd.colors.map(c => { const val = Number(c); return val > 0 ? val + 160 : 0; });
                                     let hubWin = window;
                                     for (let i = 0; i < 5; i++) {
@@ -4342,6 +4387,10 @@ print("BrickSync Sandbox Run")
                                     console.log(`📡 [BLE_ENGINE] Waiting for AI Gesture ID: ${cmd.targetGesture}`);
                                     let matched = false;
                                     while (!matched && window.bleEngineRunCounter === currentRunId) {
+                                         if (window.guiExecutionActive === true) {
+                                             matched = true;
+                                             break;
+                                         }
                                         if (typeof lastTriggeredAiGesture !== 'undefined' && lastTriggeredAiGesture === cmd.targetGesture) {
                                             matched = true;
                                             break;
@@ -4373,18 +4422,13 @@ print("BrickSync Sandbox Run")
 
                 // 게임 보상 로직?� 블록 ?�행 ?�로 ?��?
                 setTimeout(() => {
-                    if (blockCount > 1 && anySequenceFound && window.bleEngineRunCounter === currentRunId) {
-                        triggerSuccessConfetti();
-                        if (unit === '2') {
-                            try {
-                                window.parent.sendWebSocketAction({ action: "MONSTER_ALERT" });
-                                window.parent.sendWebSocketAction({ action: "ITEM_GRANT_REWARD" });
-                            } catch (e) { }
-                        } else {
+                    if (isMissionActive && blockCount > 1 && anySequenceFound && window.bleEngineRunCounter === currentRunId) {
+                        if (unit !== '7' && unit !== '2') {
+                            if (typeof window.onUsbMissionComplete === 'function') { window.onUsbMissionComplete(); } else { triggerSuccessConfetti(); }
                             try { window.parent.sendWebSocketAction({ action: "CAT_FEED_REWARD" }); } catch (e) { }
                         }
                     }
-                }, maxGlobalDelay + 1000);
+                }, maxGlobalDelay + 150);
 
                 return;
             }
@@ -4456,6 +4500,7 @@ print("BrickSync Sandbox Run")
         }
 
         window.onUsbMissionComplete = function() {
+            if (!isMissionActive) return;
             // 오직 미션 달성도 100% 완료 상태일 때만 보상 연동 및 팝업 작동
             const isMissionComplete = document.getElementById('m-progress') && document.getElementById('m-progress').dataset.completed === 'true';
             if (isMissionComplete) {
@@ -4501,6 +4546,17 @@ print("BrickSync Sandbox Run")
         let setupMissionToolbox;
         let closeMissionBriefing;
 
+        function updateMissionUI() {
+            if (typeof unit === 'undefined' || !unit) return;
+            const progressContainer = document.getElementById('m-progress-container');
+            const checkTasksBtn = document.getElementById('btn-check-tasks');
+            const goMissionBtn = document.getElementById('btn-go-mission');
+
+            if (progressContainer) progressContainer.style.display = isMissionActive ? 'flex' : 'none';
+            if (checkTasksBtn) checkTasksBtn.style.display = isMissionActive ? 'inline-flex' : 'none';
+            if (goMissionBtn) goMissionBtn.style.display = isMissionActive ? 'none' : 'inline-flex';
+        }
+
         function toggleMissionTasks() {
             const panel = document.getElementById('missionTasksPanel');
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -4510,7 +4566,7 @@ print("BrickSync Sandbox Run")
         const urlParams = new URLSearchParams(window.location.search);
         let unit = urlParams.get('unit');
         if (!unit) {
-            unit = localStorage.getItem('brickSyncLastUnit') || '3';
+            unit = localStorage.getItem('brickSyncLastUnit') || '8';
         } else {
             localStorage.setItem('brickSyncLastUnit', unit);
         }
@@ -4518,72 +4574,82 @@ print("BrickSync Sandbox Run")
         if (unit) {
             const missionData = {
                 ko: {
-                    '1': {
-                        badge: 'STAGE 1', title: '가위바위보 북극 레이싱', desc: '손가락 제스처 블록을 이용해 가상 레이싱카를 조작해 보세요!',
+                    '6': {
+                        badge: 'STAGE 6', title: '가위바위보 쓰레기통 조종 (뚜껑 열고 닫기)', desc: '가위바위보 제스처를 이용해 쓰레기통의 뚜껑(위턱)을 열고 닫아 보세요!',
                         pinCode: '7241',
                         tasks: [
-                            { id: 'start', text: '재생(시작) 블록 연결하기' },
                             { id: 'event_ai_gesture', text: 'AI 제스처 인식 블록 연결하기' },
-                            { id: ['motor_cw', 'motor_ccw', 'car_forward', 'car_backward'], text: '출력(모터/이동) 블록 연결하기' }
+                            { id: 'motor_cw', text: '모터 우회전(열기) 블록 연결하기' },
+                            { id: 'motor_ccw', text: '모터 좌회전(닫기) 블록 연결하기' }
                         ]
                     },
-                    '2': {
-                        badge: 'STAGE 2', title: '동물 경보 레인저 (몬스터 감시 카메라)', desc: '현실에서 직접 만든 몬스터 블록을 카메라에 학습시켜 감시 경보 장치를 가동해 보세요!',
+                    '7': {
+                        badge: 'STAGE 7', title: '7. 몬스터를 보여줘! 경보 알림켜기.', desc: '현실에서 직접 만든 몬스터 블록을 카메라에 학습시켜 감시 경보 장치를 가동해 보세요!',
                         pinCode: '8932',
                         tasks: [
-                            { id: 'start', text: '재생(시작) 블록 연결하기' },
                             { id: 'event_ai_gesture', text: 'AI 카메라 인식 블록 연결하기' },
+                            { id: 'flow_wait', text: '대기 블록 연결하기' },
                             { id: 'matrix_pixel', text: 'LED 매트릭스 경보등 블록 연결하기' }
                         ]
                     },
-                    '3': {
-                        badge: 'STAGE 3', title: '목소리로 조종하는 요술 그네', desc: '마이크에 대고 앞으로/뒤로 몇 바퀴 돌려달라고 외쳐 그네를 움직이세요!',
+                    '8': {
+                        badge: 'STAGE 8', title: '목소리로 조종하는 요술 그네', desc: '마이크를 켜고 자유롭게 명령해 보세요!\n[KO] 앞으로 다섯바퀴 돌아 / 그네 세 번 돌려줘\n[EN] Turn five times forward / Rotate three times',
                         pinCode: '5019',
                         tasks: [
-                            { id: 'start', text: '재생(시작) 블록 연결하기' },
                             { id: 'event_ai_gesture', text: 'AI 음성 인식 블록 연결하기' },
                             { id: ['motor_cw', 'motor_ccw'], text: '그네 회전 모터 블록 연결하기' }
                         ]
                     }
                 },
                 en: {
-                    '1': {
-                        badge: 'STAGE 1', title: 'RPS Arctic Racing', desc: 'Control the virtual racing car using hand gesture blocks!',
+                    '6': {
+                        badge: 'STAGE 6', title: 'RPS Trash Can (Open/Close Lid)', desc: 'Control the trash can lid by opening and closing it with gesture blocks!',
                         pinCode: '7241',
                         tasks: [
-                            { id: 'start', text: 'Connect the Play (Start) block' },
                             { id: 'event_ai_gesture', text: 'Connect the AI Gesture block' },
-                            { id: ['motor_cw', 'motor_ccw', 'car_forward', 'car_backward'], text: 'Connect output (motor/move) block' }
+                            { id: 'motor_cw', text: 'Connect the Motor Clockwise (Open) block' },
+                            { id: 'motor_ccw', text: 'Connect the Motor Counter-Clockwise (Close) block' }
                         ]
                     },
-                    '2': {
-                        badge: 'STAGE 2', title: 'Animal Alert Ranger (Monster Camera)', desc: 'Train your custom lego monster block on the camera to trigger the alarm system!',
+                    '7': {
+                        badge: 'STAGE 7', title: 'Animal Alert Ranger (Monster Camera)', desc: 'Train your custom lego monster block on the camera to trigger the alarm system!',
                         pinCode: '8932',
                         tasks: [
-                            { id: 'start', text: 'Connect the Play (Start) block' },
                             { id: 'event_ai_gesture', text: 'Connect the AI Camera Recognition block' },
+                            { id: 'flow_wait', text: 'Connect the Wait block' },
                             { id: 'matrix_pixel', text: 'Connect the LED Matrix Alert block' }
                         ]
                     },
-                    '3': {
-                        badge: 'STAGE 3', title: 'Voice-Controlled Magic Swing', desc: 'Shout "forward" or "backward" into the mic to rotate the swing N times!',
+                    '8': {
+                        badge: 'STAGE 8', title: 'Voice-Controlled Magic Swing', desc: 'Activate the mic and command freely!\n[KO] 앞으로 다섯바퀴 돌아 / 그네 세 번 돌려줘\n[EN] Turn five times forward / Rotate three times',
                         pinCode: '5019',
                         tasks: [
-                            { id: 'start', text: 'Connect the Play (Start) block' },
                             { id: 'event_ai_gesture', text: 'Connect the AI Voice Recognition block' },
                             { id: ['motor_cw', 'motor_ccw'], text: 'Connect swing motor block' }
                         ]
                     }
                 }
             };
+            // Dynamic mappings to support both local (6/7/8) and deployed (1/2/3) unit formats
+            missionData.ko['1'] = missionData.ko['6'];
+            missionData.ko['2'] = missionData.ko['7'];
+            missionData.ko['3'] = missionData.ko['8'];
+            missionData.en['1'] = missionData.en['6'];
+            missionData.en['2'] = missionData.en['7'];
+            missionData.en['3'] = missionData.en['8'];
 
             openMissionBriefing = function () {
                 if (typeof unit === 'undefined' || !unit) return;
                 isMissionActive = true;
+                updateMissionUI();
 
                 const lang = localStorage.getItem('bricksync_lang') || 'ko';
                 const current = (missionData[lang] || missionData['ko'])[unit];
                 if (!current) return;
+
+                // 미션 설명 텍스트를 즉시 미션 모드로 갱신
+                const descEl = document.getElementById('m-desc');
+                if (descEl) descEl.textContent = current.desc;
 
                 document.getElementById('briefingStage').textContent = current.badge;
                 document.getElementById('briefingTitle').textContent = current.title;
@@ -4609,18 +4675,21 @@ print("BrickSync Sandbox Run")
 
                 // Define allowed blocks for each unit's second step (Fortnite integration mode)
                 const fortniteCompatibleBlocks = [
-                    'start', 'flow_wait', 'control_forever', 'control_repeat', 'matrix_pixel',
+                'flow_wait', 'matrix_pixel',
                     'car_forward', 'car_backward', 'car_left', 'car_right',
                     'motor_cw', 'motor_ccw', 'motor_stop', 'event_ai_gesture'
                 ];
 
                 const allowedBlocksMap = {
-                    '1': fortniteCompatibleBlocks,
-                    '2': fortniteCompatibleBlocks,
-                    '3': fortniteCompatibleBlocks
-                };
+                '1': fortniteCompatibleBlocks,
+                '2': fortniteCompatibleBlocks,
+                '3': fortniteCompatibleBlocks,
+                '6': fortniteCompatibleBlocks,
+                '7': fortniteCompatibleBlocks,
+                '8': fortniteCompatibleBlocks
+            };
 
-                const allowed = allowedBlocksMap[targetUnit] || ['start'];
+                const allowed = allowedBlocksMap[targetUnit] || ['event_ai_gesture'];
 
                 // Hide/show blocks and configure matrix_pixel for the current unit
                 const children = Array.from(palette.children);
@@ -4671,7 +4740,7 @@ print("BrickSync Sandbox Run")
                     newStack.style.top = '150px';
                     workspaceArea.appendChild(newStack);
 
-                    const template = document.querySelector(`#palette [data-action="start"]`);
+                    const template = document.querySelector(`#palette [data-action="event_ai_gesture"]`);
                     if (template) {
                         const block = template.cloneNode(true);
                         block.classList.add('workspace-item');
@@ -4687,6 +4756,7 @@ print("BrickSync Sandbox Run")
                 if (isMissionActive && unit) {
                     setupMissionToolbox(unit);
                 }
+                updateMissionUI();
             };
             let activeObserver = null;
 
@@ -4697,7 +4767,15 @@ print("BrickSync Sandbox Run")
                     document.getElementById('missionStatusBar').style.display = 'flex';
                     document.getElementById('m-badge').textContent = currentMission.badge;
                     document.getElementById('m-title').textContent = currentMission.title;
-                    document.getElementById('m-desc').textContent = currentMission.desc;
+
+                    let sandboxDesc = '블록을 자유롭게 배치하고 코딩해 보세요!';
+                    if (unit === '6') sandboxDesc = '가위바위보 블록을 자유롭게 코딩해 보세요!';
+                    else if ((unit === '7' || unit === '2')) sandboxDesc = '조명 게이트 블록을 자유롭게 코딩해 보세요!';
+                    else if ((unit === '8' || unit === '3')) sandboxDesc = '대관람차 블록을 자유롭게 코딩해 보세요!';
+
+                    document.getElementById('m-desc').textContent = isMissionActive ? currentMission.desc : sandboxDesc;
+
+                    updateMissionUI();
 
                     // 퍼센티지 재계산 및 과제 리스트 렌더링용
                     const tasksEl = document.getElementById('m-tasks-list');
@@ -4720,15 +4798,57 @@ print("BrickSync Sandbox Run")
                         const workspaceBlocks = Array.from(workspaceArea.querySelectorAll('.workspace-item:not(.placeholder)'));
                         const presentActions = workspaceBlocks.map(b => b.getAttribute('data-action'));
 
+                        // [6단원 정밀 시퀀스 검증]
+                        let isSequenceValid = false;
+                        let mainStackActions = [];
+                        let eventStackActions = [];
+                        if (unit === '6') {
+                            // 1. Play 스택 찾기
+                            const mainStackEl = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).find(stack => {
+                                const first = stack.querySelector('.workspace-item');
+                                return first && first.getAttribute('data-action') === 'start';
+                            });
+                            if (mainStackEl) {
+                                const mainStackBlocks = Array.from(mainStackEl.querySelectorAll('.workspace-item:not(.placeholder)'));
+                                mainStackActions = mainStackBlocks.map(b => b.getAttribute('data-action'));
+                            }
+
+                            // 2. AI 제스처 이벤트 스택 찾기
+                            const eventStackEl = Array.from(document.querySelectorAll('#workspaceArea .block-stack')).find(stack => {
+                                const first = stack.querySelector('.workspace-item');
+                                return first && first.getAttribute('data-action') === 'event_ai_gesture';
+                            });
+                            if (eventStackEl) {
+                                const eventBlocks = Array.from(eventStackEl.querySelectorAll('.workspace-item:not(.placeholder)'));
+                                eventStackActions = eventBlocks.map(b => b.getAttribute('data-action'));
+                                
+                                // 순서 검사: event_ai_gesture -> flow_wait -> motor_cw -> motor_ccw
+                                const waitIdx = eventStackActions.indexOf('flow_wait');
+                                const cwIdx = eventStackActions.indexOf('motor_cw');
+                                const ccwIdx = eventStackActions.indexOf('motor_ccw');
+                                
+                                if (waitIdx > 0 && cwIdx > waitIdx && ccwIdx > cwIdx) {
+                                    isSequenceValid = true;
+                                }
+                            }
+                        }
+
+                        // 디버그 출력 제거 및 정상 설명 복원
+
                         let completedTasks = 0;
 
                         currentMission.tasks.forEach((task, idx) => {
                             const li = document.getElementById('task-item-' + idx);
                             if (!li) return;
-                            // 특정 블럭이 존재하는지 정밀 조건 검사
-                            let isCompleted = Array.isArray(task.id)
-                                ? task.id.some(id => presentActions.includes(id))
-                                : presentActions.includes(task.id);
+                            
+                            let isCompleted = false;
+                            if (unit === '6' || unit === '1') {
+                                isCompleted = eventStackActions.includes(task.id);
+                            } else {
+                                isCompleted = Array.isArray(task.id)
+                                    ? task.id.some(id => presentActions.includes(id))
+                                    : presentActions.includes(task.id);
+                            }
 
                             if (isCompleted) {
                                 completedTasks++;
@@ -4740,7 +4860,10 @@ print("BrickSync Sandbox Run")
                             }
                         });
 
-                        const percent = Math.min(100, Math.round((completedTasks / currentMission.tasks.length) * 100));
+                        let percent = Math.min(100, Math.round((completedTasks / currentMission.tasks.length) * 100));
+                        if (unit === '6' && !isSequenceValid) {
+                            percent = Math.min(80, percent); // 올바른 순서 결합 전까지 100% 제한
+                        }
 
                         const progressEl = document.getElementById('m-progress');
                         const percentEl = document.getElementById('m-percent');
@@ -4749,27 +4872,7 @@ print("BrickSync Sandbox Run")
 
                         if (percent >= 100 && progressEl && !progressEl.dataset.completed) {
                             progressEl.dataset.completed = 'true';
-
-                            // [추가됨] 사용자가 올려놓은 모터 방향 블록에 따라 동적으로 핀코드(7241 또는 9988) 발급
-                            let finalPin = currentMission.pinCode || '0000';
-                            const lastMotorAction = presentActions.slice().reverse().find(a => a === 'motor_cw' || a === 'motor_ccw');
-                            if (lastMotorAction === 'motor_cw') {
-                                finalPin = '7241';
-                            } else if (lastMotorAction === 'motor_ccw') {
-                                finalPin = '9988';
-                            }
-
-                            if (isMissionActive) {
-                                setTimeout(() => {
-                                    showPinCodeModal(finalPin);
-                                    triggerSuccessConfetti();
-
-                                    // 웹소켓을 통해 클리어 신호 전송 로직 (추후 UEFN 연동 용)
-                                    if (typeof bridgeSocket !== 'undefined' && bridgeSocket && bridgeSocket.readyState === WebSocket.OPEN) {
-                                        bridgeSocket.send(JSON.stringify({ action: "MISSION_CLEARED_PIN_READY", pin: finalPin }));
-                                    }
-                                }, 500); // 100% 모션 후 딜레이
-                            }
+                            // [수정] 즉시 성공 보상창이 팝업되는 레거시 로직 제거 (런동작이 완료된 이후 runBlocks 내부에서 팝업을 안전하게 띄웁니다.)
                         } else if (percent < 100 && progressEl) {
                             progressEl.dataset.completed = ''; // 블럭 떨어져나가면 달성도 리셋
                         }
@@ -4864,7 +4967,7 @@ print("BrickSync Sandbox Run")
             const projectNames = {
                 ko: {
                     '1': 'AI 단원 1: 가위! 바위! 보! 손가락으로 하는 북극 레이싱',
-                    '2': 'AI 단원 2: 앉았다 일어서기! 마법 나무 엘리베이터 타기',
+                    '2': 'AI 단원 2: 몬스터를 보여줘! 경보 알림켜기.',
                     '3': 'AI 단원 3: 카메라에 맛있는 과일을 보여주고 간식 선물받기'
                 },
                 en: {
@@ -5465,6 +5568,9 @@ print("BrickSync Sandbox Run")
             window.lastParsedSpeechTurns = turns;
 
             // 4. Trigger Workspace Block execution (0 = Forward, 1 = Backward)
+            if (typeof lastTriggeredAiGesture !== 'undefined') {
+                lastTriggeredAiGesture = directionVal;
+            }
             runBlocks('event_ai_gesture', directionVal);
 
             // 5. Send control action to Fortnite bridge
@@ -5485,7 +5591,7 @@ print("BrickSync Sandbox Run")
                 if (micIcon) {
                     micIcon.className = 'mic-idle';
                 }
-                if (unit === '3') {
+                if ((unit === '3' || (unit === '8' || unit === '3'))) {
                     if (voiceStatusBox) {
                         voiceStatusBox.innerHTML = '<i class="fas fa-microphone"></i> 마이크를 눌러 명령을 시작하세요';
                         voiceStatusBox.style.background = '#f1f5f9';
@@ -5496,7 +5602,7 @@ print("BrickSync Sandbox Run")
         }
 
         async function app() {
-            if (unit === '2') {
+            if ((unit === '2' || (unit === '7' || unit === '2'))) {
                 // Dynamically modify block icon & defaults in the palette for Unit 2
                 const aiBlock = document.querySelector('#palette [data-action="event_ai_gesture"]');
                 if (aiBlock) {
@@ -5540,7 +5646,7 @@ print("BrickSync Sandbox Run")
                 if (countScissors) countScissors.style.display = 'none';
             }
 
-            if (unit === '3') {
+            if ((unit === '3' || (unit === '8' || unit === '3'))) {
                 // Dynamically modify block icon & defaults in the palette for Unit 3
                 const aiBlock = document.querySelector('#palette [data-action="event_ai_gesture"]');
                 if (aiBlock) {
@@ -5590,7 +5696,7 @@ print("BrickSync Sandbox Run")
                             <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
                                 <div style="font-size: 0.9rem; font-weight: 800; color: #64748b;">⌨️ 텍스트 명령 입력 (마이크 백업용)</div>
                                 <div style="display: flex; gap: 8px; width: 100%;">
-                                    <input type="text" id="voice-text-input" placeholder="예: 앞으로 5바퀴 돌려줘" style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #cbd5e1; outline: none; font-weight: 600; font-family: inherit;" />
+                                    <input type="text" id="voice-text-input" placeholder="예: 앞으로 5바퀴 돌아 / Turn 5 times forward" style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #cbd5e1; outline: none; font-weight: 600; font-family: inherit;" />
                                     <button id="btn-send-voice-text" style="background: #3b82f6; color: white; border: none; padding: 0 15px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: transform 0.1s;">입력</button>
                                 </div>
                             </div>
@@ -5668,8 +5774,7 @@ print("BrickSync Sandbox Run")
                         const detectedGesture = parseInt(result.label);
                         let labels = ['주먹 (Rock)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
                         let icons = ['fa-hand-rock', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
-                        if (unit === '2') {
-                            labels = ['몬스터 (Monster)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
+                        if ((unit === '2' || (unit === '7' || unit === '2')) || (unit === '7' || unit === '2')) { labels = ['몬스터 (Monster)', '보 (Paper)', '가위 (Scissors)', '배경 (None)'];
                             icons = ['fa-dragon', 'fa-hand-paper', 'fa-hand-scissors', 'fa-ban'];
                         }
 
@@ -5685,7 +5790,7 @@ print("BrickSync Sandbox Run")
                                 runBlocks('event_ai_gesture', detectedGesture);
 
                                 // 2단원 몬스터 감지(0) 시 UEFN 경보 웹소켓 전송
-                                if (unit === '2' && detectedGesture === 0) {
+                                if (((unit === '2' || (unit === '7' || unit === '2')) || (unit === '7' || unit === '2')) && detectedGesture === 0) {
                                     try {
                                         window.parent.sendWebSocketAction({ action: "MONSTER_ALERT" });
                                         console.log("포트나이트 연동 신호(MONSTER_ALERT) 전송 완료 [AI 2단원]");
@@ -5852,7 +5957,7 @@ print("BrickSync Sandbox Run")
 
             if (isMissionComplete) {
                 const unitIdx = parseInt(unitNum) - 1;
-                if (unitIdx >= 0 && unitIdx < 3) {
+                if (unitIdx >= 0 && unitIdx < 8) {
                     sMissions[unitIdx] = true;
                 }
             } else {
@@ -6027,6 +6132,34 @@ print("BrickSync Sandbox Run")
             if (shouldRecord) {
                 recordTelemetry(isMotor, `[${_bsStudentName}] 이벤트 감지: UI 조작 및 블록 제어 트리거 됨`);
             }
+        });
+
+        window.cleanupResources = function() {
+            console.log("🧹 [CLEANUP] Cleaning up AI and camera resources...");
+            aiLoopRunning = false;
+            window.bleEngineRunCounter = (window.bleEngineRunCounter || 0) + 1; // [추가] 비동기 BLE 루프 즉시 파괴
+            if (typeof webcamElement !== 'undefined' && webcamElement && webcamElement.srcObject) {
+                try {
+                    const stream = webcamElement.srcObject;
+                    const tracks = stream.getTracks();
+                    tracks.forEach(track => track.stop());
+                    webcamElement.srcObject = null;
+                } catch (e) {
+                    console.error("🧹 [CLEANUP] Failed to stop camera tracks:", e);
+                }
+            }
+            if (typeof speechRecognition !== 'undefined' && speechRecognition) {
+                try {
+                    speechRecognition.stop();
+                } catch (e) {}
+            }
+        };
+
+        window.addEventListener('beforeunload', () => {
+            window.cleanupResources();
+        });
+        window.addEventListener('unload', () => {
+            window.cleanupResources();
         });
     </script>
     <script src="settings.js">

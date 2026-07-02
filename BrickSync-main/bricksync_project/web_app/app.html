@@ -587,8 +587,7 @@ function handleBLEData(event) {
                             window.consecutiveYFrames = 1;
                         }
                     } else {
-                        // 타 단원에서는 자이로 동작이 키보드 연타를 유발하지 않도록 즉시 모든 키 강제 릴리즈
-                        try { window.sendWebSocketAction({ action: "CLEANUP_KEYS" }); } catch (e) {}
+                        // 타 단원에서는 불필요한 키 해제 신호가 반복 전송되지 않도록 아무것도 하지 않음 (서버 과부하 방지)
                     }
                 }
                 // 외부 센서: 컬러 센서(61) 등

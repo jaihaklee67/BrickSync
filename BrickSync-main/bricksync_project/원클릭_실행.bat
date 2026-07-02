@@ -43,7 +43,7 @@ echo    (※주의※ 게임하는 동안 이 까만 창을 절대 끄지 마시
 echo.
 :: 백그라운드 서버 실행 (별도 윈도우 미생성 대신 최소화 창으로 실행)
 set PYTHONIOENCODING=utf-8
-start "BrickSync_Server" /MIN py bridge_server\server.py
+start "BrickSync_Server" cmd /k "py -u bridge_server\server.py"
 
 :: 서버가 뜰 때까지 2초 대기
 timeout /T 2 /NOBREAK >nul

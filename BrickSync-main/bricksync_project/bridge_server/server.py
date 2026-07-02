@@ -24,6 +24,24 @@ except ImportError:
 
 web_app_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "web_app")
 
+def focus_fortnite():
+    try:
+        # Search for "Fortnite  " (standard client) first, then "Fortnite"
+        hwnd = ctypes.windll.user32.FindWindowW(None, "Fortnite  ")
+        if not hwnd:
+            hwnd = ctypes.windll.user32.FindWindowW(None, "Fortnite")
+            
+        if hwnd:
+            # Restore window if minimized
+            ctypes.windll.user32.ShowWindow(hwnd, 9) # SW_RESTORE
+            # Set foreground window
+            ctypes.windll.user32.SetForegroundWindow(hwnd)
+            print(f"[FOCUS] Focused Fortnite window (HWND: {hwnd})")
+        else:
+            print("[FOCUS] Fortnite window not found via FindWindow")
+    except Exception as e:
+        print(f"[FOCUS] Failed to focus Fortnite: {e}")
+
 print("Starting Fortnite Bridge Server (Discrete Block Movement Mode with Global Lock)...")
 
 # 글로벌 스레드 동기화 락 (멀티스레드에서 SendInput 동시 호출로 인한 키 씹힘 및 락 현상 완벽 방지)
@@ -99,6 +117,9 @@ async def handle_websocket(request):
                     data = json.loads(msg.data)
                     action = data.get("action")
                     
+                    if action and action in ["STEER_UP", "STEER_DOWN", "STEER_LEFT", "STEER_RIGHT", "MWHEEL_LEFT", "MWHEEL_RIGHT", "SWING_CONTROL", "motor_cw", "motor_ccw", "CAT_FEED_REWARD", "MONSTER_ALERT"]:
+                        focus_fortnite()
+                    
                     if action == "STEER_UP":
                         if not steering_state["UP"] and not active_threads["UP"]:
                             steering_state["UP"] = True
@@ -140,8 +161,7 @@ async def handle_websocket(request):
                         print("▶ 관람차 (단일모터) 우회전 발송 (j키 한번 탁 쳐서 가동)")
                         threading.Thread(target=lambda: safe_press('j'), daemon=True).start()
                     elif action in ["STOP_MWHEEL_LEFT", "STOP_MWHEEL_RIGHT"]:
-                        print("▶ 관람차 (단일모터) 정지 스위치 발송 (k키 한 번 탁 쳐서 정지)")
-                        threading.Thread(target=lambda: safe_press('k'), daemon=True).start()
+                        print("▶ 관람차 (단일모터) 정지 스위치 수신 (K키 전송 제외 처리됨)")
 
                     elif action in ["SPEED_1", "SPEED_2", "SPEED_3", "SPEED_4"]:
                         speed_durations = {
@@ -180,14 +200,19 @@ async def handle_websocket(request):
                     elif action == "SWING_CONTROL":
                         direction = data.get("dir")
                         turns = data.get("val", 1)
-                        key = 'j' if direction == "FORWARD" else 'h'
+                        # 방향 오작동 해결을 위해 키 매핑 반전 (FORWARD -> h, BACKWARD -> j)
+                        key = 'h' if direction == "FORWARD" else 'j'
                         print(f"▶ [SWING_CONTROL] {direction} {turns}바퀴 수신 ({key}키 {turns}회 반복 연사)")
                         def press_swing_key(k, count):
+                            # 포트나이트 창 포커스 전환 안정화 대기 마진 (첫 키 씹힘 방지용 1초 대기)
+                            time.sleep(1.0)
                             for _ in range(count):
-                                safe_key_down(k)
+                                safe_key_up(k) # 강제 키 업 선행 실행하여 Stuck 상태 해제
                                 time.sleep(0.05)
+                                safe_key_down(k)
+                                time.sleep(0.15) # 키 누름을 0.15초로 설정하여 윈도우 키보드 재입력(Repeat) 버그 차단
                                 safe_key_up(k)
-                                time.sleep(1.2) # 1바퀴 도는 시간(1.11초) + 안전 마진 대기
+                                time.sleep(2.3)  # 그네 1회전 완료 시간(2.0초) + 마진을 대기하여 100% 회전 분리 보장
                         threading.Thread(target=press_swing_key, args=(key, turns), daemon=True).start()
                         
                     elif action == "motor_cw":
@@ -199,8 +224,7 @@ async def handle_websocket(request):
                         threading.Thread(target=lambda: [safe_key_down('j'), time.sleep(0.3), safe_key_up('j')], daemon=True).start()
 
                     elif action in ["motor_stop", "motor_stop_cw", "motor_stop_ccw", "motor_stop_generic"]:
-                        print("▶ 쓰레기 괴물 동작 정지 (K키 전송)")
-                        threading.Thread(target=lambda: [safe_key_down('k'), time.sleep(0.3), safe_key_up('k')], daemon=True).start()
+                        print("▶ 쓰레기 괴물 동작 정지 수신 (K키 전송 제외 처리됨)")
                 except Exception as e:
                     pass
     except Exception as e:

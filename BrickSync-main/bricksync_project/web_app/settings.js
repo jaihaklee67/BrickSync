@@ -79,9 +79,9 @@
             lesson_4: "4. 탐험 자동차를 만들어요",
             lesson_5: "5. 동굴 자동차를 타고 여행해요",
 
-            ai_lesson_1: "1. 가위! 바위! 보! 손가락으로 하는 북극 레이싱",
-            ai_lesson_2: "2. 앉았다 일어서기! 마법 나무 엘리베이터 타기",
-            ai_lesson_3: "3. 마이크에 대고 외쳐봐! 목소리로 조종하는 요술 그네"
+            ai_lesson_1: "6. 가위! 바위! 보! 손가락으로 하는 북극 레이싱",
+            ai_lesson_2: "7. 몬스터를 보여줘! 경보 알림켜기.",
+            ai_lesson_3: "8. 마이크에 대고 외쳐봐! 목소리로 조종하는 요술 그네"
         },
         en: {
             // Sidebar / UI Shell
@@ -156,9 +156,9 @@
             lesson_4: "4. Build an exploration car",
             lesson_5: "5. Ride a cave car and travel",
 
-            ai_lesson_1: "1. Rock Paper Scissors! Finger-controlled Arctic Racing",
-            ai_lesson_2: "2. Squats! Riding the Magic Tree Elevator",
-            ai_lesson_3: "3. Shout into the Mic! Control the Magic Swing with Your Voice"
+            ai_lesson_1: "6. Rock Paper Scissors! Finger-controlled Arctic Racing",
+            ai_lesson_2: "7. Squats! Riding the Magic Tree Elevator",
+            ai_lesson_3: "8. Shout into the Mic! Control the Magic Swing with Your Voice"
         }
     };
 
