@@ -1,0 +1,13 @@
+name = "bricksync"
+compatibility_date = "2024-12-01"
+workers_dev = true
+
+# 정적 HTML 파일 전체 서빙 (빌드 불필요)
+[assets]
+directory = "."
+not_found_handling = "single-page-application"
+
+# 커스텀 도메인 - 이 설정으로 wrangler deploy가 monsteratech.com도 함께 업데이트
+[[routes]]
+pattern = "bricksync.monsteratech.com"
+custom_domain = true
